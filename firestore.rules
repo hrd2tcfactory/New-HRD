@@ -1,0 +1,16 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Hanya akun HRD di daftar ini yang boleh membaca & mengubah data.
+    // Tambahkan email rekan HRD lain di dalam daftar, pisahkan dengan koma.
+    function isHrd() {
+      return request.auth != null
+        && request.auth.token.email in [
+          'hrd2tcfactory@gmail.com'
+        ];
+    }
+    match /{document=**} {
+      allow read, write: if isHrd();
+    }
+  }
+}
