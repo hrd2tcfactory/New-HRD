@@ -364,12 +364,12 @@ function liveCalc(e,key){
   key=key||S.periodKey;const per=S.periods[key]||{};
   const c=counts(e.id,key);const harian=(+e.gajiPokok||0)/((+e.pembagi)||24);
   const gajiHadir=harian*(c.H+c.SH+c.C);
-  const shRate=shRateFor(harian);const potSH=c.SH*shRate;
+  const shRate=shRateFor(harian);const potSH=isHarian(e)?c.SH*shRate:0;
   const lm=Math.round(harian*c.LM)*2;
   const ltm=Math.round(harian*c.LTM)*((+e.kaliLTM)||1);
   const jam=otHours(e.id,key);const rateJam=otRate(e);const lj=Math.round(jam*rateJam);
   const base=isHarian(e)?gajiHadir:(+e.gajiPokok||0);
-  const cut=isHarian(e)?[]:((S.settings&&S.settings.potongBulanan)||[]);
+  const cut=[];
   const hariPotong=cut.reduce((n,k)=>n+(c[k]||0),0);const potAbsen=Math.round(harian*hariPotong);
   const reimb=+((per.reimburse||{})[e.id])||0;const pot=+((per.potonganLain||{})[e.id])||0;
   const kas=kasbonFor(e.id,key);
