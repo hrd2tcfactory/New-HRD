@@ -310,6 +310,8 @@ function statusPill(s){const cls=s==='TETAP'?'p-TETAP':s==='KONTRAK'?'p-KONTRAK'
 function nextId(){let max=0;for(const id in S.emps){const n=parseInt(id.replace(/\D/g,''),10);if(n>max)max=n}return 'K'+String(max+1).padStart(3,'0')}
 
 // ---------- payroll calc ----------
+// Kartap (TETAP) = gaji pokok penuh (all in); non-tetap = (hadir + cuti) × gaji/hari
+function isHarian(e){return e.status!=='TETAP'}
 function counts(empId,key){const a=((S.periods[key]||{}).absensi||{})[empId]||{};const c={H:0,SH:0,I:0,S:0,C:0,A:0,L:0,LM:0,LTM:0};const {start,end}=periodRange(key);const f=iso(start),t=iso(end);for(const d in a){if(d<f||d>t)continue;const v=a[d];if(c[v]!=null)c[v]++}return c}
 function tutupTgl(){return cutoff()-1}
 function attChecks(key){
@@ -335,7 +337,7 @@ function payChecks(key){
     if(!gp)add('bad','Gaji pokok kosong / 0. Isi di halaman Karyawan');
     if(r.thp<0)add('bad','THP minus (Rp '+rp(r.thp)+'): potongan lebih besar dari pendapatan');
     else if(r.thp===0&&gp)add('warn','THP Rp 0');
-    if(e.metode==='HARIAN'&&gp&&!(r.c.H+(r.c.SH||0)+r.c.C))add('warn','Karyawan harian tanpa hari hadir: gaji dibayar Rp 0');
+    if(isHarian(e)&&gp&&!(r.c.H+(r.c.SH||0)+r.c.C))add('warn','Karyawan harian tanpa hari hadir: gaji dibayar Rp 0');
     if(gp&&r.reimb>gp*0.5)add('warn','Reimburse/bonus Rp '+rp(r.reimb)+' lebih dari setengah gaji pokok. Cek jumlah nol');
     if(gp&&r.pot>gp*0.5)add('warn','Potongan lain Rp '+rp(r.pot)+' lebih dari setengah gaji pokok. Cek jumlah nol');
     if((r.reimb%100)||(r.pot%100))add('info','Reimburse/potongan lain bukan kelipatan 100. Mungkin salah ketik');
@@ -366,8 +368,8 @@ function liveCalc(e,key){
   const lm=Math.round(harian*c.LM)*2;
   const ltm=Math.round(harian*c.LTM)*((+e.kaliLTM)||1);
   const jam=otHours(e.id,key);const rateJam=otRate(e);const lj=Math.round(jam*rateJam);
-  const base=e.metode==='HARIAN'?gajiHadir:(+e.gajiPokok||0);
-  const cut=e.metode==='HARIAN'?[]:((S.settings&&S.settings.potongBulanan)||[]);
+  const base=isHarian(e)?gajiHadir:(+e.gajiPokok||0);
+  const cut=isHarian(e)?[]:((S.settings&&S.settings.potongBulanan)||[]);
   const hariPotong=cut.reduce((n,k)=>n+(c[k]||0),0);const potAbsen=Math.round(harian*hariPotong);
   const reimb=+((per.reimburse||{})[e.id])||0;const pot=+((per.potonganLain||{})[e.id])||0;
   const kas=kasbonFor(e.id,key);
@@ -494,7 +496,7 @@ function vEmp(){
   return topbar('Karyawan',false,'<button class="btn primary" data-act="addEmp">+ Tambah karyawan</button>')+
   '<div class="row"><input id="q" class="search" type="search" placeholder="Cari nama, jabatan, ID…" value="'+esc(S.q)+'"><select id="statusF"><option value="">Semua status</option>'+STATUSES.map(s=>'<option'+(S.status===s?' selected':'')+'>'+s+'</option>').join('')+'<option value="NONAKTIF"'+(S.status==='NONAKTIF'?' selected':'')+'>Nonaktif / keluar</option></select><span class="sub">'+rows.length+' orang</span></div>'+
   '<div class="tablewrap"><table><thead><tr><th class="num">No</th><th>ID</th><th>Nama & jabatan</th><th>Status</th><th class="num">Gaji pokok</th><th>Skema gaji</th><th>Rekening</th><th>WhatsApp</th><th></th></tr></thead><tbody>'+
-  (rows.length?rows.map((e,i)=>'<tr><td class="num sub">'+(i+1)+'</td><td class="sub">'+esc(e.id)+'</td><td><div class="name">'+esc(e.nama)+'</div><div class="sub">'+esc(e.jabatan)+'</div></td><td>'+statusPill(e.status)+(e.aktif===false?' <span class="pill p-mute">Nonaktif</span>':'')+'</td><td class="num">'+rp(e.gajiPokok)+'</td><td><span class="sub">'+(e.metode==='HARIAN'?'Harian (hadir × gaji/hari)':'Bulanan penuh')+' · ÷'+(e.pembagi||24)+'</span></td><td class="sub" style="white-space:normal;min-width:180px">'+esc(e.rekening)+'</td><td>'+(e.wa?'<a class="wa" href="https://wa.me/'+esc(e.wa)+'" target="_blank" rel="noopener">+'+esc(e.wa)+'</a>':'<span class="sub">—</span>')+'</td><td><button class="btn" data-act="editEmp" data-id="'+esc(e.id)+'">Ubah</button></td></tr>').join(''):'<tr><td colspan="9" class="empty">Belum ada karyawan yang cocok.</td></tr>')+
+  (rows.length?rows.map((e,i)=>'<tr><td class="num sub">'+(i+1)+'</td><td class="sub">'+esc(e.id)+'</td><td><div class="name">'+esc(e.nama)+'</div><div class="sub">'+esc(e.jabatan)+'</div></td><td>'+statusPill(e.status)+(e.aktif===false?' <span class="pill p-mute">Nonaktif</span>':'')+'</td><td class="num">'+rp(e.gajiPokok)+'</td><td><span class="sub">'+(isHarian(e)?'Harian (hadir × gaji/hari)':'Bulanan penuh')+' · ÷'+(e.pembagi||24)+'</span></td><td class="sub" style="white-space:normal;min-width:180px">'+esc(e.rekening)+'</td><td>'+(e.wa?'<a class="wa" href="https://wa.me/'+esc(e.wa)+'" target="_blank" rel="noopener">+'+esc(e.wa)+'</a>':'<span class="sub">—</span>')+'</td><td><button class="btn" data-act="editEmp" data-id="'+esc(e.id)+'">Ubah</button></td></tr>').join(''):'<tr><td colspan="9" class="empty">Belum ada karyawan yang cocok.</td></tr>')+
   '</tbody></table></div>';
 }
 function empForm(e){
@@ -505,7 +507,7 @@ function empForm(e){
    f('jabatan','Jabatan',e.jabatan)+
    '<label>Status<select id="f_status">'+STATUSES.map(s=>'<option'+(e.status===s?' selected':'')+'>'+s+'</option>').join('')+'</select></label>'+
    f('gajiPokok','Gaji pokok (Rp)',e.gajiPokok,'number',{attr:' min="0" step="1000"'})+
-   '<label>Skema gaji<select id="f_metode"><option value="BULANAN"'+(e.metode!=='HARIAN'?' selected':'')+'>Bulanan penuh</option><option value="HARIAN"'+(e.metode==='HARIAN'?' selected':'')+'>Harian (hadir + cuti × gaji/hari)</option></select></label>'+
+   '<label>Skema gaji<select id="f_metode" disabled><option value="BULANAN"'+(!isHarian(e)?' selected':'')+'>Bulanan penuh (all in)</option><option value="HARIAN"'+(isHarian(e)?' selected':'')+'>Harian (hadir + cuti × gaji/hari)</option></select><span class="hint">Otomatis dari Status: TETAP = all in, selain itu harian</span></label>'+
    f('pembagi','Pembagi gaji harian',e.pembagi||24,'number',{hint:'Excel lama: 24 untuk bulanan, 26 untuk harian'})+
    f('kaliLTM','Pengali lembur tgl merah',e.kaliLTM||1,'number',{hint:'1× atau 2× gaji harian'})+
    '<label>Tarif lembur per jam<select id="f_lemburMode"><option value="umum"'+(!e.lemburMode||e.lemburMode==='umum'?' selected':'')+'>Tarif umum (Pengaturan)</option><option value="harian8"'+(e.lemburMode==='harian8'?' selected':'')+'>Gaji per hari ÷ 8</option><option value="khusus"'+(e.lemburMode==='khusus'?' selected':'')+'>Nominal khusus</option></select></label>'+
@@ -526,7 +528,7 @@ async function saveEmp(isNew){
   if(isNew&&S.emps[id]){toast('ID '+id+' sudah dipakai.');return}
   if(!g('nama')){toast('Nama wajib diisi.');return}
   const prev=S.emps[id]||{};
-  const e=Object.assign({},prev,{id,nama:g('nama').toUpperCase(),jabatan:g('jabatan').toUpperCase(),status:g('status'),gajiPokok:+g('gajiPokok')||0,metode:g('metode'),pembagi:+g('pembagi')||24,kaliLTM:+g('kaliLTM')||1,lemburMode:$('#f_lemburMode').value,lemburTarif:+g('lemburTarif')||0,lemburKali:+g('lemburKali')||1,rekening:g('rekening'),wa:g('wa').replace(/\D/g,''),tglBergabung:g('tglBergabung'),kontrakMulai:g('kontrakMulai'),kontrakSelesai:g('kontrakSelesai'),kuotaCuti:+g('kuotaCuti')||0,cutiTerpakaiAwal:+g('cutiTerpakaiAwal')||0,aktif:$('#f_aktif').checked,tglKeluar:$('#f_aktif').checked?'':(g('tglKeluar')||todayISO())});
+  const e=Object.assign({},prev,{id,nama:g('nama').toUpperCase(),jabatan:g('jabatan').toUpperCase(),status:g('status'),gajiPokok:+g('gajiPokok')||0,metode:isHarian({status:g('status')})?'HARIAN':'BULANAN',pembagi:+g('pembagi')||24,kaliLTM:+g('kaliLTM')||1,lemburMode:$('#f_lemburMode').value,lemburTarif:+g('lemburTarif')||0,lemburKali:+g('lemburKali')||1,rekening:g('rekening'),wa:g('wa').replace(/\D/g,''),tglBergabung:g('tglBergabung'),kontrakMulai:g('kontrakMulai'),kontrakSelesai:g('kontrakSelesai'),kuotaCuti:+g('kuotaCuti')||0,cutiTerpakaiAwal:+g('cutiTerpakaiAwal')||0,aktif:$('#f_aktif').checked,tglKeluar:$('#f_aktif').checked?'':(g('tglKeluar')||todayISO())});
   if(await saveDoc('employees/'+id,e)){S.emps[id]=e;closeModal();toast('Data '+e.nama+' disimpan.');render(true)}
 }
 
@@ -593,7 +595,7 @@ function vPay(){
   const showAbs=locked?emps.some(e=>calc(e,key).potAbsen):((S.settings&&S.settings.potongBulanan)||[]).length>0;
   const dis=locked?' disabled':'';
   const chk=locked?[]:payChecks(key);const flag={};chk.forEach(c=>{if(c.id&&c.lvl!=='info')flag[c.id]=flag[c.id]==='bad'?'bad':c.lvl});const nSerius=chk.filter(c=>c.lvl!=='info').length;
-  const rows=emps.map(e=>{const r=calc(e,key);for(const k in T)T[k]+=(r[k]||0);return '<tr><td class="sub">'+esc(e.id)+'</td><td><div class="name">'+esc(e.nama)+keluarPill(S.emps[e.id]||e)+(flag[e.id]?' <span class="pill '+(flag[e.id]==='bad'?'p-bad':'p-warn')+'">'+(flag[e.id]==='bad'?'Salah':'Cek')+'</span>':'')+'</div><div class="sub">'+esc(e.jabatan)+'</div></td><td class="sub">'+(e.metode==='HARIAN'?'Harian':'Bulanan')+' ÷'+(e.pembagi||24)+'</td><td class="num">'+rp(e.gajiPokok)+'</td><td class="num">'+rp(r.harian)+'</td><td class="num">'+(r.c.H+(r.c.SH||0)+r.c.C)+'</td><td class="num">'+rp(r.base)+'</td><td class="num">'+(r.lm?rp(r.lm):'–')+'</td><td class="num">'+(r.ltm?rp(r.ltm):'–')+'</td><td class="num">'+(r.lj?rp(r.lj):'–')+'</td>'+
+  const rows=emps.map(e=>{const r=calc(e,key);for(const k in T)T[k]+=(r[k]||0);return '<tr><td class="sub">'+esc(e.id)+'</td><td><div class="name">'+esc(e.nama)+keluarPill(S.emps[e.id]||e)+(flag[e.id]?' <span class="pill '+(flag[e.id]==='bad'?'p-bad':'p-warn')+'">'+(flag[e.id]==='bad'?'Salah':'Cek')+'</span>':'')+'</div><div class="sub">'+esc(e.jabatan)+'</div></td><td class="sub">'+(isHarian(e)?'Harian':'Bulanan')+' ÷'+(e.pembagi||24)+'</td><td class="num">'+rp(e.gajiPokok)+'</td><td class="num">'+rp(r.harian)+'</td><td class="num">'+(r.c.H+(r.c.SH||0)+r.c.C)+'</td><td class="num">'+rp(r.base)+'</td><td class="num">'+(r.lm?rp(r.lm):'–')+'</td><td class="num">'+(r.ltm?rp(r.ltm):'–')+'</td><td class="num">'+(r.lj?rp(r.lj):'–')+'</td>'+
     '<td class="num"><input class="cellin" type="number" min="0" step="1000" data-reimb="'+esc(e.id)+'" value="'+(r.reimb||'')+'" placeholder="0" aria-label="Reimburse '+esc(e.nama)+'"'+dis+'></td>'+
     '<td class="num">'+(r.potSH?'−'+rp(r.potSH)+'<div class="sub">'+r.c.SH+' × '+rp(r.shRate)+'</div>':'–')+'</td>'+
     (showAbs?'<td class="num">'+(r.potAbsen?'−'+rp(r.potAbsen)+'<div class="sub">'+r.hariPotong+' hr</div>':'–')+'</td>':'')+
@@ -611,7 +613,7 @@ function vPay(){
   '<p class="note">Semua angka dihitung otomatis dari halaman Absensi dan Lembur. <b>Bulanan</b> = gaji pokok penuh'+(((S.settings&&S.settings.potongBulanan)||[]).length?', dipotong gaji/hari untuk kode '+S.settings.potongBulanan.join(', '):' (tidak dipotong absen; atur di Pengaturan)')+'. <b>Harian</b> = (gaji pokok ÷ pembagi) × (hari H + SH + C). <b>Setengah hari (SH)</b> dihitung masuk, lalu dipotong Rp '+rp(shRateFor(1e12))+' per hari, atau Rp '+rp(shRateFor(0))+' bila gaji/hari di bawah Rp '+rp((S.settings&&S.settings.shBatas!=null)?S.settings.shBatas:100000)+'. Lembur Minggu = gaji/hari × LM × 2. Lembur tanggal merah = gaji/hari × LTM × pengali. Lembur per jam = jam × tarif.</p>';
 }
 function payRows(){
-  return payEmps().map(e=>{const r=calc(e);return {ID:e.id,Nama:e.nama,Jabatan:e.jabatan,Status:e.status,Skema:e.metode,'Gaji Pokok':Math.round(e.gajiPokok||0),'Gaji Harian':Math.round(r.harian),'Hadir (H)':r.c.H,'Cuti (C)':r.c.C,'Izin (I)':r.c.I,'Sakit (S)':r.c.S,'Alpha (A)':r.c.A,'LM (hari)':r.c.LM,'LTM (hari)':r.c.LTM,'Gaji Dibayar':Math.round(r.base),'Lembur Minggu':r.lm,'Lembur Tgl Merah':r.ltm,'Jam Lembur':r.jam,'Lembur/Jam':Math.round(r.lj),'Reimburse':r.reimb,'Setengah Hari (SH)':r.c.SH||0,'Potongan 1/2 Hari':r.potSH||0,'Potongan Absen':r.potAbsen||0,'Kasbon':Math.round(r.kas),'Potongan Lain':r.pot,'THP':r.thp,'Rekening':e.rekening}})
+  return payEmps().map(e=>{const r=calc(e);return {ID:e.id,Nama:e.nama,Jabatan:e.jabatan,Status:e.status,Skema:isHarian(e)?'HARIAN':'BULANAN','Gaji Pokok':Math.round(e.gajiPokok||0),'Gaji Harian':Math.round(r.harian),'Hadir (H)':r.c.H,'Cuti (C)':r.c.C,'Izin (I)':r.c.I,'Sakit (S)':r.c.S,'Alpha (A)':r.c.A,'LM (hari)':r.c.LM,'LTM (hari)':r.c.LTM,'Gaji Dibayar':Math.round(r.base),'Lembur Minggu':r.lm,'Lembur Tgl Merah':r.ltm,'Jam Lembur':r.jam,'Lembur/Jam':Math.round(r.lj),'Reimburse':r.reimb,'Setengah Hari (SH)':r.c.SH||0,'Potongan 1/2 Hari':r.potSH||0,'Potongan Absen':r.potAbsen||0,'Kasbon':Math.round(r.kas),'Potongan Lain':r.pot,'THP':r.thp,'Rekening':e.rekening}})
 }
 async function exportPay(){
   if(!window.XLSX){toast('Pustaka Excel belum termuat. Coba lagi sebentar.');return}
@@ -657,7 +659,7 @@ function terbilang(n){n=Math.floor(Math.abs(n));const s=['','satu','dua','tiga',
   const f=x=>x<12?s[x]:x<20?f(x-10)+' belas':x<100?f(Math.floor(x/10))+' puluh '+f(x%10):x<200?'seratus '+f(x-100):x<1000?f(Math.floor(x/100))+' ratus '+f(x%100):x<2000?'seribu '+f(x-1000):x<1e6?f(Math.floor(x/1000))+' ribu '+f(x%1000):x<1e9?f(Math.floor(x/1e6))+' juta '+f(x%1e6):f(Math.floor(x/1e9))+' miliar '+f(x%1e9);
   const t=(f(n)||'nol').replace(/\s+/g,' ').trim()+' rupiah';return t.charAt(0).toUpperCase()+t.slice(1)}
 function slipLines(e,r){
-  const plus=[['Gaji '+(e.metode==='HARIAN'?'hadir ('+(r.c.H+(r.c.SH||0)+r.c.C)+' hari)':'pokok'),r.base]];
+  const plus=[['Gaji '+(isHarian(e)?'hadir ('+(r.c.H+(r.c.SH||0)+r.c.C)+' hari)':'pokok'),r.base]];
   if(r.lm)plus.push(['Lembur hari Minggu ('+r.c.LM+' hari)',r.lm]);if(r.ltm)plus.push(['Lembur tanggal merah ('+r.c.LTM+' hari)',r.ltm]);
   if(r.lj)plus.push(['Lembur per jam ('+r.jam+' jam'+(r.rateJam?' × '+rp(r.rateJam):'')+')',r.lj]);if(r.reimb)plus.push(['Reimburse / bonus',r.reimb]);
   const minus=[];if(r.potSH)minus.push(['Setengah hari ('+r.c.SH+' × '+rp(r.shRate)+')',r.potSH]);if(r.potAbsen)minus.push(['Potongan absen ('+r.hariPotong+' hari '+(r.cutKode||[]).join('/')+')',r.potAbsen]);if(r.kas)minus.push(['Kasbon / pinjaman',r.kas]);if(r.pot)minus.push(['Potongan lain',r.pot]);
