@@ -386,7 +386,7 @@ function payEmp(id,key){const L=lockOf(key);return (L&&L.rows[id])?L.rows[id].e:
 function cutiStartMonth(){return (S.settings&&+S.settings.cutiMulaiBulan)||4}
 function cutiYearOf(d){const dt=typeof d==='string'?parse(d):d;return dt.getMonth()+1>=cutiStartMonth()?dt.getFullYear():dt.getFullYear()-1}
 function cutiRange(y){const m=cutiStartMonth();return {from:y+'-'+pad(m)+'-01',to:iso(new Date(y+1,m-1,0))}}
-function cutiLabel(y){const {from,to}=cutiRange(y);return fmtD(from)+' – '+fmtD(to)}
+function cutiLabel(y){const {from,to}=cutiRange(y);const f=parse(from),t=parse(to);return MONTHS[f.getMonth()]+' '+f.getFullYear()+' – '+MONTHS[t.getMonth()]+' '+t.getFullYear()}
 function cutiAwalYear(){return (S.settings&&+S.settings.cutiAwalTahun)||2026}
 function kuotaFor(e,y){const o=(e.kuotaTahun||{})[y];if(o!=null&&o!=='')return +o;return y===cutiAwalYear()?(+e.kuotaCuti||0):((S.settings&&+S.settings.kuotaCutiDefault)||12)}
 function awalFor(e,y){return y===cutiAwalYear()?(+e.cutiTerpakaiAwal||0):0}
@@ -682,7 +682,7 @@ function waText(e,r){const st=S.settings||{};const {plus,minus}=slipLines(e,r);
   return 'Slip Gaji '+(st.nama||'')+'\nPeriode '+periodLabel(S.periodKey)+' ('+periodSub(S.periodKey)+')\n\nNama: '+e.nama+'\nJabatan: '+e.jabatan+'\n\nKehadiran:\n'+ATT_ITEMS.filter(([k])=>(r.c||{})[k]||k==='H'||k==='SH').map(([k,n])=>'- '+n+' ('+k+'): '+((r.c||{})[k]||0)+' hari').join('\n')+'\n- Hari dibayar: '+attSummary(r).dibayar+' hari'+(()=>{const c=cutiSlip(e,S.periodKey);return '\n\nCuti ('+c.label+'):\n- Kuota cuti: '+c.kuota+' hari\n- Cuti terpakai: '+c.used+' hari\n- Sisa cuti: '+c.sisa+' hari'})()+'\n\nPenerimaan:\n'+plus.map(a=>'- '+a[0]+': Rp '+rp(a[1])).join('\n')+(minus.length?'\n\nPotongan:\n'+minus.map(a=>'- '+a[0]+': Rp '+rp(a[1])).join('\n'):'')+'\n\nTake Home Pay: Rp '+rp(r.thp)+'\n('+terbilang(r.thp)+')\n\nTerima kasih.\nHRD'}
 const ATT_ITEMS=[['H','Hadir penuh'],['SH','Setengah hari'],['C','Cuti'],['I','Izin'],['S','Sakit'],['A','Alpha'],['LM','Lembur Minggu'],['LTM','Lembur tgl merah']];
 function cutiSlip(e,key){const end=iso(periodRange(key).end);const y=cutiYearOf(end);const {from,to}=cutiRange(y);const lim=end<to?end:to;let n=0;for(const k in S.periods){const a=(S.periods[k].absensi||{})[e.id]||{};for(const d in a)if(a[d]==='C'&&d>=from&&d<=lim)n++}
-  const kuota=kuotaFor(e,y),used=awalFor(e,y)+n;return {kuota,used,sisa:kuota-used,label:'Tahun cuti '+y+'/'+String(y+1).slice(2)+' · s.d. '+fmtD(lim)}}
+  const kuota=kuotaFor(e,y),used=awalFor(e,y)+n;return {kuota,used,sisa:kuota-used,label:'Periode cuti '+cutiLabel(y)+' · s.d. '+fmtD(lim)}}
 function slipCutiHtml(e){const c=cutiSlip(e,S.periodKey);
   return '<div class="slipatt"><div class="slipatt-h"><span>Cuti</span><span>'+esc(c.label)+'</span></div><div class="slipcuti-g">'+
   [['Kuota cuti',c.kuota],['Cuti terpakai',c.used],['Sisa cuti',c.sisa]].map(([n,v],i)=>'<div class="slipatt-c'+(i===2?' hl':'')+'"><span class="slipatt-n">'+n+'</span><b'+(i===2&&v<=0?' style="color:var(--bad,#c0392b)"':'')+'>'+v+' <small>hari</small></b></div>').join('')+'</div></div>'}
