@@ -152,6 +152,7 @@ input.cellin{width:64px;padding:3px 6px;text-align:right;font-family:var(--f-mon
 .slipatt-n{font-size:12px;color:var(--muted)}
 .slipatt-c b{font-family:var(--f-display);font-size:19px;font-variant-numeric:tabular-nums}
 .slipatt-c b small{font-family:var(--f-body);font-size:11px;font-weight:400;color:var(--muted)}
+.slipcuti-g{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}.slipcuti-g .slipatt-c:nth-child(3){border-right:none}
 .slipatt-f{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:8px 12px;border-top:1px solid var(--line);font-size:13px}
 @media (max-width:520px){.slipatt-g{grid-template-columns:repeat(2,minmax(0,1fr))}.slipatt-c:nth-child(4n){border-right:1px solid var(--line)}.slipatt-c:nth-child(2n){border-right:none}}
 .slip .cols{display:grid;grid-template-columns:1fr 1fr;gap:18px}
@@ -385,7 +386,7 @@ function payEmp(id,key){const L=lockOf(key);return (L&&L.rows[id])?L.rows[id].e:
 function cutiStartMonth(){return (S.settings&&+S.settings.cutiMulaiBulan)||4}
 function cutiYearOf(d){const dt=typeof d==='string'?parse(d):d;return dt.getMonth()+1>=cutiStartMonth()?dt.getFullYear():dt.getFullYear()-1}
 function cutiRange(y){const m=cutiStartMonth();return {from:y+'-'+pad(m)+'-01',to:iso(new Date(y+1,m-1,0))}}
-function cutiLabel(y){const {from,to}=cutiRange(y);return fmtD(from)+' – '+fmtD(to)}
+function cutiLabel(y){const {from,to}=cutiRange(y);const f=parse(from),t=parse(to);return MONTHS[f.getMonth()]+' '+f.getFullYear()+' – '+MONTHS[t.getMonth()]+' '+t.getFullYear()}
 function cutiAwalYear(){return (S.settings&&+S.settings.cutiAwalTahun)||2026}
 function kuotaFor(e,y){const o=(e.kuotaTahun||{})[y];if(o!=null&&o!=='')return +o;return y===cutiAwalYear()?(+e.kuotaCuti||0):((S.settings&&+S.settings.kuotaCutiDefault)||12)}
 function awalFor(e,y){return y===cutiAwalYear()?(+e.cutiTerpakaiAwal||0):0}
@@ -672,14 +673,19 @@ function vSlip(){
   '<button class="btn primary" data-act="waPdf">Kirim PDF via WhatsApp</button><button class="btn" data-act="slipPdf">Unduh PDF</button><button class="btn ghost" data-act="copyWa">Salin rincian (teks)</button>'+(e.wa?'<span class="sub">WA: +'+esc(e.wa)+'</span>':'<span class="sub">No WhatsApp belum diisi</span>')+'</div>'+
   '<div class="slip"><div class="hd"><div><b>'+esc(st.nama)+'</b><div class="sub">'+esc(st.alamat)+' · Slip gaji karyawan</div></div><div style="text-align:right"><div class="name">'+periodLabel(S.periodKey)+'</div><div class="sub">'+periodSub(S.periodKey)+'</div></div></div>'+
   '<div class="meta"><div><span>Nama</span>'+esc(e.nama)+'</div><div><span>ID · Jabatan</span>'+esc(e.id)+' · '+esc(e.jabatan)+'</div><div><span>Status</span>'+esc(e.status)+'</div><div><span>Rekening</span>'+esc(e.rekening||'—')+'</div></div>'+
-  slipAttHtml(r)+
+  slipAttHtml(r)+slipCutiHtml(e)+
   '<div class="cols"><div><div class="sub" style="text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px">Penerimaan</div>'+plus.map(ln).join('')+'<div class="ln tot"><span>Total penerimaan</span><span>'+rp(r.terima)+'</span></div></div>'+
   '<div><div class="sub" style="text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px">Potongan</div>'+(minus.length?minus.map(ln).join(''):'<div class="ln"><span>Tidak ada potongan</span><span>0</span></div>')+'<div class="ln tot"><span>Total potongan</span><span>'+rp(r.potongan)+'</span></div></div></div>'+
   '<div class="thp"><span>Take home pay</span><b>Rp '+rp(r.thp)+'</b></div><div class="terb">Terbilang: '+terbilang(r.thp)+'</div></div>';
 }
 function waText(e,r){const st=S.settings||{};const {plus,minus}=slipLines(e,r);
-  return 'Slip Gaji '+(st.nama||'')+'\nPeriode '+periodLabel(S.periodKey)+' ('+periodSub(S.periodKey)+')\n\nNama: '+e.nama+'\nJabatan: '+e.jabatan+'\n\nKehadiran:\n'+ATT_ITEMS.filter(([k])=>(r.c||{})[k]||k==='H'||k==='SH').map(([k,n])=>'- '+n+' ('+k+'): '+((r.c||{})[k]||0)+' hari').join('\n')+'\n- Hari dibayar: '+attSummary(r).dibayar+' hari'+'\n\nPenerimaan:\n'+plus.map(a=>'- '+a[0]+': Rp '+rp(a[1])).join('\n')+(minus.length?'\n\nPotongan:\n'+minus.map(a=>'- '+a[0]+': Rp '+rp(a[1])).join('\n'):'')+'\n\nTake Home Pay: Rp '+rp(r.thp)+'\n('+terbilang(r.thp)+')\n\nTerima kasih.\nHRD'}
+  return 'Slip Gaji '+(st.nama||'')+'\nPeriode '+periodLabel(S.periodKey)+' ('+periodSub(S.periodKey)+')\n\nNama: '+e.nama+'\nJabatan: '+e.jabatan+'\n\nKehadiran:\n'+ATT_ITEMS.filter(([k])=>(r.c||{})[k]||k==='H'||k==='SH').map(([k,n])=>'- '+n+' ('+k+'): '+((r.c||{})[k]||0)+' hari').join('\n')+'\n- Hari dibayar: '+attSummary(r).dibayar+' hari'+(()=>{const c=cutiSlip(e,S.periodKey);return '\n\nCuti ('+c.label+'):\n- Kuota cuti: '+c.kuota+' hari\n- Cuti terpakai: '+c.used+' hari\n- Sisa cuti: '+c.sisa+' hari'})()+'\n\nPenerimaan:\n'+plus.map(a=>'- '+a[0]+': Rp '+rp(a[1])).join('\n')+(minus.length?'\n\nPotongan:\n'+minus.map(a=>'- '+a[0]+': Rp '+rp(a[1])).join('\n'):'')+'\n\nTake Home Pay: Rp '+rp(r.thp)+'\n('+terbilang(r.thp)+')\n\nTerima kasih.\nHRD'}
 const ATT_ITEMS=[['H','Hadir penuh'],['SH','Setengah hari'],['C','Cuti'],['I','Izin'],['S','Sakit'],['A','Alpha'],['LM','Lembur Minggu'],['LTM','Lembur tgl merah']];
+function cutiSlip(e,key){const end=iso(periodRange(key).end);const y=cutiYearOf(end);const {from,to}=cutiRange(y);const lim=end<to?end:to;let n=0;for(const k in S.periods){const a=(S.periods[k].absensi||{})[e.id]||{};for(const d in a)if(a[d]==='C'&&d>=from&&d<=lim)n++}
+  const kuota=kuotaFor(e,y),used=awalFor(e,y)+n;return {kuota,used,sisa:kuota-used,label:'Periode cuti '+cutiLabel(y)+' · s.d. '+fmtD(lim)}}
+function slipCutiHtml(e){const c=cutiSlip(e,S.periodKey);
+  return '<div class="slipatt"><div class="slipatt-h"><span>Cuti</span><span>'+esc(c.label)+'</span></div><div class="slipcuti-g">'+
+  [['Kuota cuti',c.kuota],['Cuti terpakai',c.used],['Sisa cuti',c.sisa]].map(([n,v],i)=>'<div class="slipatt-c'+(i===2?' hl':'')+'"><span class="slipatt-n">'+n+'</span><b'+(i===2&&v<=0?' style="color:var(--bad,#c0392b)"':'')+'>'+v+' <small>hari</small></b></div>').join('')+'</div></div>'}
 function attSummary(r){const c=r.c||{};return {dibayar:(c.H||0)+(c.SH||0)+(c.C||0),jam:r.jam||0}}
 function slipAttHtml(r){const c=r.c||{};const sm=attSummary(r);
   return '<div class="slipatt"><div class="slipatt-h"><span>Kehadiran</span><span>'+periodSub(S.periodKey)+'</span></div><div class="slipatt-g">'+
@@ -697,6 +703,14 @@ function drawAttBox(doc,r,L,R,y){const c=r.c||{};const W=R-L,cw=W/4,ch=10;
   doc.rect(L,y,W,6);doc.setFontSize(8);doc.text('Hari dibayar (H + SH + C): ',L+2,y+4.2);doc.setFont('helvetica','bold');doc.text(sm.dibayar+' hari',L+2+doc.getTextWidth('Hari dibayar (H + SH + C): '),y+4.2);
   doc.setFont('helvetica','normal');doc.text('Lembur per jam: ',R-24,y+4.2,{align:'right'});doc.setFont('helvetica','bold');doc.text(sm.jam+' jam',R-2,y+4.2,{align:'right'});doc.setFont('helvetica','normal');
   return y+6}
+function drawCutiBox(doc,e,L,R,y){const c=cutiSlip(e,S.periodKey);const W=R-L,cw=W/3,ch=7;
+  doc.setDrawColor(150);doc.setLineWidth(.3);
+  [['Kuota cuti',c.kuota],['Cuti terpakai',c.used],['Sisa cuti',c.sisa]].forEach(([n,v],i)=>{const x=L+i*cw;
+    if(i===2){doc.setFillColor(227,241,196);doc.rect(x,y,cw,ch,'FD')}else doc.rect(x,y,cw,ch);
+    doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(95);doc.text(n+':',x+2,y+4.6);
+    doc.setFont('helvetica','bold');doc.setFontSize(9.5);doc.setTextColor(0);doc.text(v+' hari',x+2+doc.getTextWidth(n+': ')*7.5/9.5+3,y+4.6)});
+  doc.setFont('helvetica','normal');doc.setFontSize(6.5);doc.setTextColor(110);doc.text(c.label,L,y+ch+3);doc.setTextColor(0);
+  return y+ch+3}
 function drawSlip(doc,e){
   const r=calc(e);const st=S.settings||{};const {plus,minus}=slipLines(e,r);let y=14;const L=12,R=136;
   doc.setFont('helvetica','bold');doc.setFontSize(13);doc.text(st.nama||'',L,y);doc.setFontSize(9);doc.setFont('helvetica','normal');doc.text((st.alamat||'')+'  |  Slip Gaji Karyawan',L,y+5);
@@ -704,7 +718,7 @@ function drawSlip(doc,e){
   y+=9;doc.setLineWidth(.6);doc.line(L,y,R,y);y+=7;
   const kv=(k,v,x)=>{doc.setFontSize(7.5);doc.setTextColor(110);doc.text(k.toUpperCase(),x,y);doc.setTextColor(0);doc.setFontSize(9.5);doc.text(String(v||'-'),x,y+4.5)};
   kv('Nama',e.nama,L);kv('ID / Jabatan',e.id+' / '+e.jabatan,76);y+=11;kv('Status',e.status,L);kv('Rekening',(e.rekening||'-').slice(0,40),76);y+=11;
-  y=drawAttBox(doc,r,L,R,y-2)+6;
+  y=drawAttBox(doc,r,L,R,y-2)+2;y=drawCutiBox(doc,e,L,R,y)+4;
   const sec=(title,arr,total,label)=>{doc.setFont('helvetica','bold');doc.setFontSize(9.5);doc.text(title,L,y);y+=5;doc.setFont('helvetica','normal');
     (arr.length?arr:[['-',0]]).forEach(a=>{doc.text(a[0],L+2,y);doc.text(rp(a[1]),R,y,{align:'right'});y+=5});
     doc.setLineWidth(.2);doc.line(L,y-3,R,y-3);doc.setFont('helvetica','bold');doc.text(label,L+2,y+1);doc.text(rp(total),R,y+1,{align:'right'});y+=9};
