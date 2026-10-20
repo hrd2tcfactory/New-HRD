@@ -684,7 +684,7 @@ function vSlip(){
   return topbar('Slip gaji',true)+
   '<div class="row"><select id="slipSel" aria-label="Pilih karyawan">'+emps.map(x=>'<option value="'+esc(x.id)+'"'+(x.id===e.id?' selected':'')+'>'+esc(x.id+' — '+x.nama)+'</option>').join('')+'</select>'+
   '<button class="btn primary" data-act="waPdf">Kirim PDF via WhatsApp</button><button class="btn" data-act="slipPdf">Unduh PDF</button><button class="btn ghost" data-act="copyWa">Salin rincian (teks)</button>'+(e.wa?'<span class="sub">WA: +'+esc(e.wa)+'</span>':'<span class="sub">No WhatsApp belum diisi</span>')+'</div>'+
-  '<div class="slip"><div class="hd"><div><b>'+esc(st.nama)+'</b><div class="sub">'+esc(st.alamat)+' · Slip gaji karyawan</div></div><div style="text-align:right"><div class="name">'+periodLabel(S.periodKey)+'</div><div class="sub">'+periodSub(S.periodKey)+'</div></div></div>'+
+  '<div class="slip"><div class="hd"><div style="display:flex;align-items:center;gap:10px">'+(st.logo?'<img src="'+esc(st.logo)+'" alt="" style="max-height:40px;max-width:80px">':'')+'<div><b>'+esc(st.nama)+'</b><div class="sub">'+esc(st.alamat)+' · Slip gaji karyawan</div></div></div><div style="text-align:right"><div class="name">'+periodLabel(S.periodKey)+'</div><div class="sub">'+periodSub(S.periodKey)+'</div></div></div>'+
   '<div class="meta"><div><span>Nama</span>'+esc(e.nama)+'</div><div><span>ID · Jabatan</span>'+esc(e.id)+' · '+esc(e.jabatan)+'</div><div><span>Status</span>'+esc(e.status)+'</div><div><span>Rekening</span>'+esc(e.rekening||'—')+'</div></div>'+
   slipAttHtml(r)+slipCutiHtml(e)+
   '<div class="cols"><div><div class="sub" style="text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px">Penerimaan</div>'+plus.map(ln).join('')+'<div class="ln tot"><span>Total penerimaan</span><span>'+rp(r.terima)+'</span></div></div>'+
@@ -726,9 +726,10 @@ function drawCutiBox(doc,e,L,R,y){const c=cutiSlip(e,S.periodKey);const W=R-L,cw
   return y+ch+3}
 function drawSlip(doc,e){
   const r=calc(e);const st=S.settings||{};const {plus,minus}=slipLines(e,r);let y=14;const L=12,R=136;
-  doc.setFont('helvetica','bold');doc.setFontSize(13);doc.text(st.nama||'',L,y);doc.setFontSize(9);doc.setFont('helvetica','normal');doc.text((st.alamat||'')+'  |  Slip Gaji Karyawan',L,y+5);
+  let tx=L;if(st.logo){try{const pr=doc.getImageProperties(st.logo);const k=Math.min(26/pr.width,13/pr.height);doc.addImage(st.logo,'PNG',L,y-6,pr.width*k,pr.height*k);tx=L+pr.width*k+3}catch(err){}}
+  doc.setFont('helvetica','bold');doc.setFontSize(13);doc.text(st.nama||'',tx,y);doc.setFontSize(9);doc.setFont('helvetica','normal');doc.text((st.alamat||'')+'  |  Slip Gaji Karyawan',tx,y+5);
   doc.setFont('helvetica','bold');doc.text(periodLabel(S.periodKey),R,y,{align:'right'});doc.setFont('helvetica','normal');doc.text(periodSub(S.periodKey),R,y+5,{align:'right'});
-  y+=9;doc.setLineWidth(.6);doc.line(L,y,R,y);y+=7;
+  y+=st.logo?10:9;doc.setLineWidth(.6);doc.line(L,y,R,y);y+=7;
   const kv=(k,v,x)=>{doc.setFontSize(7.5);doc.setTextColor(110);doc.text(k.toUpperCase(),x,y);doc.setTextColor(0);doc.setFontSize(9.5);doc.text(String(v||'-'),x,y+4.5)};
   kv('Nama',e.nama,L);kv('ID / Jabatan',e.id+' / '+e.jabatan,76);y+=11;kv('Status',e.status,L);kv('Rekening',(e.rekening||'-').slice(0,40),76);y+=11;
   y=drawAttBox(doc,r,L,R,y-2)+2;y=drawCutiBox(doc,e,L,R,y)+4;
@@ -739,7 +740,7 @@ function drawSlip(doc,e){
   doc.setFillColor(227,234,250);doc.rect(L,y-5,R-L,11,'F');doc.setFontSize(11);doc.text('TAKE HOME PAY',L+3,y+2);doc.text('Rp '+rp(r.thp),R-3,y+2,{align:'right'});y+=11;
   doc.setFont('helvetica','italic');doc.setFontSize(8.5);doc.text(doc.splitTextToSize('Terbilang: '+terbilang(r.thp),R-L),L,y);y+=11;
   doc.setFont('helvetica','normal');doc.setFontSize(8.5);const cols=[['Dibuat oleh',st.pembuat],['Mengetahui',st.mengetahui],['Penerima',e.nama]];
-  cols.forEach((c,i)=>{const x=L+i*((R-L)/3);doc.text(c[0],x,y);doc.text(String(c[1]||''),x,y+18);const g=[st.ttdPembuat,st.ttdMengetahui][i];if(g){try{const pr=doc.getImageProperties(g);const k=Math.min(32/pr.width,14/pr.height);doc.addImage(g,'PNG',x,y+3.5,pr.width*k,pr.height*k)}catch(err){}}});
+  cols.forEach((c,i)=>{const x=L+i*((R-L)/3);doc.text(c[0],x,y);const g=[st.ttdPembuat,st.ttdMengetahui][i];doc.text(String(c[1]||''),x,y+((st.ttdPembuat||st.ttdMengetahui)?18:9));if(g){try{const pr=doc.getImageProperties(g);const k=Math.min(32/pr.width,14/pr.height);doc.addImage(g,'PNG',x,y+3.5,pr.width*k,pr.height*k)}catch(err){}}});
 }
 async function slipPdf(ids){
   if(!window.jspdf){toast('Pustaka PDF belum termuat. Coba lagi sebentar.');return}
@@ -828,14 +829,14 @@ function pklForm(id){
 }
 
 // ===== Pengaturan =====
-function ttdField(k,label){const v=(S.settings||{})[k];return '<label class="full">'+label+'<span class="row" style="font-weight:400"><img id="ttdimg_'+k+'" alt="" style="max-height:48px;background:#fff;border:1px solid var(--line,#ccc);border-radius:4px;'+(v?'':'display:none')+'" src="'+(v?esc(v):'')+'"><input type="file" accept="image/png,image/jpeg" data-ttd="'+k+'"><button type="button" class="btn ghost" data-act="delTtd" data-id="'+k+'">Hapus</button></span><span class="hint">Unggah foto/scan tanda tangan (PNG latar transparan paling rapi). Tampil di slip PDF. Klik Simpan setelah memilih.</span></label>'}
+function ttdField(k,label,hint){const v=(S.settings||{})[k];return '<label class="full">'+label+'<span class="row" style="font-weight:400"><img id="ttdimg_'+k+'" alt="" style="max-height:48px;background:#fff;border:1px solid var(--line,#ccc);border-radius:4px;'+(v?'':'display:none')+'" src="'+(v?esc(v):'')+'"><input type="file" accept="image/png,image/jpeg" data-ttd="'+k+'"><button type="button" class="btn ghost" data-act="delTtd" data-id="'+k+'">Hapus</button></span><span class="hint">'+(hint||'Unggah foto/scan tanda tangan (PNG latar transparan paling rapi). Tampil di slip PDF. Klik Simpan setelah memilih.')+'</span></label>'}
 function ttdLoad(file,k){
-  const fr=new FileReader();fr.onload=()=>{const im=new Image();im.onload=()=>{const sc=Math.min(1,400/im.width,160/im.height);const cv=document.createElement('canvas');cv.width=Math.max(1,Math.round(im.width*sc));cv.height=Math.max(1,Math.round(im.height*sc));cv.getContext('2d').drawImage(im,0,0,cv.width,cv.height);S.settings=Object.assign({},S.settings,{[k]:cv.toDataURL('image/png')});const el=$('#ttdimg_'+k);if(el){el.src=S.settings[k];el.style.display=''}toast('Tanda tangan dipilih. Klik Simpan untuk menyimpan.')};im.onerror=()=>toast('File gambar tidak bisa dibaca.');im.src=fr.result};fr.readAsDataURL(file)}
+  const fr=new FileReader();fr.onload=()=>{const im=new Image();im.onload=()=>{const sc=Math.min(1,(k==='logo'?300:400)/im.width,(k==='logo'?300:160)/im.height);const cv=document.createElement('canvas');cv.width=Math.max(1,Math.round(im.width*sc));cv.height=Math.max(1,Math.round(im.height*sc));cv.getContext('2d').drawImage(im,0,0,cv.width,cv.height);S.settings=Object.assign({},S.settings,{[k]:cv.toDataURL('image/png')});const el=$('#ttdimg_'+k);if(el){el.src=S.settings[k];el.style.display=''}toast((k==='logo'?'Logo':'Tanda tangan')+' dipilih. Klik Simpan untuk menyimpan.')};im.onerror=()=>toast('File gambar tidak bisa dibaca.');im.src=fr.result};fr.readAsDataURL(file)}
 function vSet(){
   const s=S.settings||{};const f=(k,l,t,h)=>'<label>'+l+'<input id="s_'+k+'" type="'+(t||'text')+'" value="'+esc(s[k]==null?'':s[k])+'">'+(h?'<span class="hint">'+h+'</span>':'')+'</label>';
   return topbar('Pengaturan',false)+
   '<div class="panel"><h2>Profil perusahaan & aturan gaji</h2><div class="form">'+f('nama','Nama perusahaan')+f('alamat','Alamat')+f('pembuat','Pembuat laporan')+f('mengetahui','Mengetahui')+f('menyetujui','Menyetujui')+
-  ttdField('ttdPembuat','Tanda tangan Dibuat oleh')+ttdField('ttdMengetahui','Tanda tangan Mengetahui')+
+  ttdField('logo','Logo perusahaan','Unggah logo (PNG latar transparan paling rapi). Tampil di kiri atas slip gaji. Klik Simpan setelah memilih.')+ttdField('ttdPembuat','Tanda tangan Dibuat oleh')+ttdField('ttdMengetahui','Tanda tangan Mengetahui')+
   f('uangLembur','Tarif lembur per jam (Rp)','number')+
   '<label>Uang makan lembur (Rp)<input id="s_uangMakan" type="number" value="'+mealCfg().amt+'"><span class="hint">Dibayar per hari bila lembur mencapai batas jam di bawah</span></label>'+'<label>Minimal jam lembur untuk uang makan<input id="s_makanMinJam" type="number" step="0.5" value="'+mealCfg().min+'"><span class="hint">Uang makan diberikan jika lembur sehari minimal sebanyak angka ini</span></label>'+
   '<label>Bulan pembaruan cuti<select id="s_cutiMulaiBulan">'+MONTHS.map((m,i)=>'<option value="'+(i+1)+'"'+(cutiStartMonth()===i+1?' selected':'')+'>'+m+'</option>').join('')+'</select><span class="hint">Saldo cuti kembali penuh setiap tanggal 1 bulan ini</span></label>'+
@@ -871,7 +872,7 @@ document.addEventListener('click',async ev=>{
   if(a==='prev'||a==='next'){S.periodKey=shiftKey(S.periodKey,a==='prev'?-1:1);render(true);return}
   if(a==='impLembur'){openModal('<h3>Impor laporan lembur</h3><p class="note">Pilih karyawan, tempel laporan (satu tanggal per baris, contoh: <i>Jumat 25 sep = 2 jam</i>). Periode: <b>'+periodLabel(S.periodKey)+'</b>.</p><label>Karyawan<select id="imp_emp">'+Object.values(S.emps).sort((x,y)=>x.nama.localeCompare(y.nama)).map(e=>'<option value="'+esc(e.id)+'">'+esc(e.nama)+'</option>').join('')+'</select></label><textarea id="imp_txt" rows="12" style="width:100%"></textarea><div class="row"><button class="btn primary" data-act="doImpLembur">Impor</button><button class="btn" data-act="closeModal">Batal</button></div>');return}
   if(a==='doImpLembur'){const eid=$('#imp_emp').value,{out,bad}=parseLembur($('#imp_txt').value,S.periodKey),n=Object.keys(out).length;if(!n){toast('Tidak ada tanggal yang terbaca untuk periode ini.');return}if(bad.length&&!confirm(bad.length+' baris tidak terbaca dan dilewati:\n'+bad.join('\n')+'\n\nLanjut impor '+n+' tanggal?'))return;patchPeriod({lembur:{[eid]:out}});S.dirty=true;closeModal();toast('Lembur '+S.emps[eid].nama+': '+n+' tanggal, '+Object.values(out).reduce((a,b)=>a+b,0)+' jam diimpor.');render(true);return}
-  if(a==='delTtd'){S.settings=Object.assign({},S.settings,{[id]:''});const el=$('#ttdimg_'+id);if(el){el.removeAttribute('src');el.style.display='none'}toast('Tanda tangan dihapus. Klik Simpan.');return}
+  if(a==='delTtd'){S.settings=Object.assign({},S.settings,{[id]:''});const el=$('#ttdimg_'+id);if(el){el.removeAttribute('src');el.style.display='none'}toast((id==='logo'?'Logo':'Tanda tangan')+' dihapus. Klik Simpan.');return}
   if(a==='addEmp')return empForm(null);
   if(a==='editEmp')return empForm(S.emps[id]);
   if(a==='saveEmp')return saveEmp(b.dataset.new==='1');
