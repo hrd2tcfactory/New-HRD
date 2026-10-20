@@ -739,7 +739,7 @@ function drawSlip(doc,e){
   doc.setFillColor(227,234,250);doc.rect(L,y-5,R-L,11,'F');doc.setFontSize(11);doc.text('TAKE HOME PAY',L+3,y+2);doc.text('Rp '+rp(r.thp),R-3,y+2,{align:'right'});y+=11;
   doc.setFont('helvetica','italic');doc.setFontSize(8.5);doc.text(doc.splitTextToSize('Terbilang: '+terbilang(r.thp),R-L),L,y);y+=11;
   doc.setFont('helvetica','normal');doc.setFontSize(8.5);const cols=[['Dibuat oleh',st.pembuat],['Mengetahui',st.mengetahui],['Penerima',e.nama]];
-  cols.forEach((c,i)=>{const x=L+i*((R-L)/3);doc.text(c[0],x,y);doc.text(String(c[1]||''),x,y+18)});
+  cols.forEach((c,i)=>{const x=L+i*((R-L)/3);doc.text(c[0],x,y);doc.text(String(c[1]||''),x,y+18);const g=[st.ttdPembuat,st.ttdMengetahui][i];if(g){try{const pr=doc.getImageProperties(g);const k=Math.min(32/pr.width,14/pr.height);doc.addImage(g,'PNG',x,y+3.5,pr.width*k,pr.height*k)}catch(err){}}});
 }
 async function slipPdf(ids){
   if(!window.jspdf){toast('Pustaka PDF belum termuat. Coba lagi sebentar.');return}
@@ -828,10 +828,14 @@ function pklForm(id){
 }
 
 // ===== Pengaturan =====
+function ttdField(k,label){const v=(S.settings||{})[k];return '<label class="full">'+label+'<span class="row" style="font-weight:400"><img id="ttdimg_'+k+'" alt="" style="max-height:48px;background:#fff;border:1px solid var(--line,#ccc);border-radius:4px;'+(v?'':'display:none')+'" src="'+(v?esc(v):'')+'"><input type="file" accept="image/png,image/jpeg" data-ttd="'+k+'"><button type="button" class="btn ghost" data-act="delTtd" data-id="'+k+'">Hapus</button></span><span class="hint">Unggah foto/scan tanda tangan (PNG latar transparan paling rapi). Tampil di slip PDF. Klik Simpan setelah memilih.</span></label>'}
+function ttdLoad(file,k){
+  const fr=new FileReader();fr.onload=()=>{const im=new Image();im.onload=()=>{const sc=Math.min(1,400/im.width,160/im.height);const cv=document.createElement('canvas');cv.width=Math.max(1,Math.round(im.width*sc));cv.height=Math.max(1,Math.round(im.height*sc));cv.getContext('2d').drawImage(im,0,0,cv.width,cv.height);S.settings=Object.assign({},S.settings,{[k]:cv.toDataURL('image/png')});const el=$('#ttdimg_'+k);if(el){el.src=S.settings[k];el.style.display=''}toast('Tanda tangan dipilih. Klik Simpan untuk menyimpan.')};im.onerror=()=>toast('File gambar tidak bisa dibaca.');im.src=fr.result};fr.readAsDataURL(file)}
 function vSet(){
   const s=S.settings||{};const f=(k,l,t,h)=>'<label>'+l+'<input id="s_'+k+'" type="'+(t||'text')+'" value="'+esc(s[k]==null?'':s[k])+'">'+(h?'<span class="hint">'+h+'</span>':'')+'</label>';
   return topbar('Pengaturan',false)+
   '<div class="panel"><h2>Profil perusahaan & aturan gaji</h2><div class="form">'+f('nama','Nama perusahaan')+f('alamat','Alamat')+f('pembuat','Pembuat laporan')+f('mengetahui','Mengetahui')+f('menyetujui','Menyetujui')+
+  ttdField('ttdPembuat','Tanda tangan Dibuat oleh')+ttdField('ttdMengetahui','Tanda tangan Mengetahui')+
   f('uangLembur','Tarif lembur per jam (Rp)','number')+
   '<label>Uang makan lembur (Rp)<input id="s_uangMakan" type="number" value="'+mealCfg().amt+'"><span class="hint">Dibayar per hari bila lembur mencapai batas jam di bawah</span></label>'+'<label>Minimal jam lembur untuk uang makan<input id="s_makanMinJam" type="number" step="0.5" value="'+mealCfg().min+'"><span class="hint">Uang makan diberikan jika lembur sehari minimal sebanyak angka ini</span></label>'+
   '<label>Bulan pembaruan cuti<select id="s_cutiMulaiBulan">'+MONTHS.map((m,i)=>'<option value="'+(i+1)+'"'+(cutiStartMonth()===i+1?' selected':'')+'>'+m+'</option>').join('')+'</select><span class="hint">Saldo cuti kembali penuh setiap tanggal 1 bulan ini</span></label>'+
@@ -867,6 +871,7 @@ document.addEventListener('click',async ev=>{
   if(a==='prev'||a==='next'){S.periodKey=shiftKey(S.periodKey,a==='prev'?-1:1);render(true);return}
   if(a==='impLembur'){openModal('<h3>Impor laporan lembur</h3><p class="note">Pilih karyawan, tempel laporan (satu tanggal per baris, contoh: <i>Jumat 25 sep = 2 jam</i>). Periode: <b>'+periodLabel(S.periodKey)+'</b>.</p><label>Karyawan<select id="imp_emp">'+Object.values(S.emps).sort((x,y)=>x.nama.localeCompare(y.nama)).map(e=>'<option value="'+esc(e.id)+'">'+esc(e.nama)+'</option>').join('')+'</select></label><textarea id="imp_txt" rows="12" style="width:100%"></textarea><div class="row"><button class="btn primary" data-act="doImpLembur">Impor</button><button class="btn" data-act="closeModal">Batal</button></div>');return}
   if(a==='doImpLembur'){const eid=$('#imp_emp').value,{out,bad}=parseLembur($('#imp_txt').value,S.periodKey),n=Object.keys(out).length;if(!n){toast('Tidak ada tanggal yang terbaca untuk periode ini.');return}if(bad.length&&!confirm(bad.length+' baris tidak terbaca dan dilewati:\n'+bad.join('\n')+'\n\nLanjut impor '+n+' tanggal?'))return;patchPeriod({lembur:{[eid]:out}});S.dirty=true;closeModal();toast('Lembur '+S.emps[eid].nama+': '+n+' tanggal, '+Object.values(out).reduce((a,b)=>a+b,0)+' jam diimpor.');render(true);return}
+  if(a==='delTtd'){S.settings=Object.assign({},S.settings,{[id]:''});const el=$('#ttdimg_'+id);if(el){el.removeAttribute('src');el.style.display='none'}toast('Tanda tangan dihapus. Klik Simpan.');return}
   if(a==='addEmp')return empForm(null);
   if(a==='editEmp')return empForm(S.emps[id]);
   if(a==='saveEmp')return saveEmp(b.dataset.new==='1');
@@ -902,6 +907,7 @@ document.addEventListener('change',ev=>{
   if(t.id==='statusF'){S.status=t.value;render(true);return}
   if(t.id==='slipSel'){S.slipEmp=t.value;render(true);return}
   if((t.dataset.ot||t.dataset.reimb||t.dataset.pot)&&isLocked()){toast('Periode ini sudah dikunci.');render(true);return}
+  if(t.dataset.ttd){if(t.files&&t.files[0])ttdLoad(t.files[0],t.dataset.ttd);return}
   if(t.dataset.kuota){const id=t.dataset.kuota,y=S.cutiYear,v=Math.max(0,+t.value||0);const e=S.emps[id];if(!e)return;e.kuotaTahun=Object.assign({},e.kuotaTahun,{[y]:v});queuePatch('employees/'+id,{kuotaTahun:{[y]:v}});S.dirty=true;return}
   if(t.dataset.ot){const v=Math.max(0,+t.value||0);if(v>12)toast('Cek lagi: '+v+' jam lembur dalam sehari. Benar?');patchPeriod({lembur:{[t.dataset.ot]:{[t.dataset.d]:v}}});S.dirty=true;return}
   if(t.dataset.reimb){const v=Math.max(0,+t.value||0);bigWarn(t.dataset.reimb,v,'Reimburse/bonus');patchPeriod({reimburse:{[t.dataset.reimb]:v}});S.dirty=true;return}
