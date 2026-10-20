@@ -574,7 +574,7 @@ function fillDates(dates,onlyWork){
 function parseLembur(txt,key){
   const MAP={jan:1,feb:2,mar:3,apr:4,mei:5,jun:6,jul:7,agu:8,ags:8,sep:9,okt:10,ok:10,nov:11,des:12};
   const dates=periodDates(key),out={},bad=[];
-  txt.split(/\n/).forEach(raw=>{const ln=raw.trim();if(!ln)return;
+  txt.split(/\n/).forEach(raw=>{const ln=raw.trim();if(!ln||!/\d/.test(ln))return;
     const m=ln.match(/(\d{1,2})\s*[.\s]?\s*([a-z]+)\W+(?:=\s*)?(\d+(?:[.,]\d+)?)\s*jam/i);
     const mon=m&&(MAP[m[2].toLowerCase().slice(0,3)]||MAP[m[2].toLowerCase()]);
     const d=m&&dates.find(x=>{const dt=parse(x);return dt.getDate()===+m[1]&&dt.getMonth()+1===mon});
