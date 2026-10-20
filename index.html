@@ -570,6 +570,17 @@ function fillDates(dates,onlyWork){
 }
 
 // ===== Lembur =====
+// Impor laporan lembur (teks bebas: "Jumat 25 sep = 2 jam") ke satu karyawan
+function parseLembur(txt,key){
+  const MAP={jan:1,feb:2,mar:3,apr:4,mei:5,jun:6,jul:7,agu:8,ags:8,sep:9,okt:10,ok:10,nov:11,des:12};
+  const dates=periodDates(key),out={},bad=[];
+  txt.split(/\n/).forEach(raw=>{const ln=raw.trim();if(!ln)return;
+    const m=ln.match(/(\d{1,2})\s*[.\s]?\s*([a-z]+)\W+(?:=\s*)?(\d+(?:[.,]\d+)?)\s*jam/i);
+    const mon=m&&(MAP[m[2].toLowerCase().slice(0,3)]||MAP[m[2].toLowerCase()]);
+    const d=m&&dates.find(x=>{const dt=parse(x);return dt.getDate()===+m[1]&&dt.getMonth()+1===mon});
+    if(!d){bad.push(ln);return}out[d]=(out[d]||0)+parseFloat(m[3].replace(',','.'))});
+  return {out,bad};
+}
 function vOt(){
   const per=P();const L=per.lembur||{};let dates=periodDates(S.periodKey);
   const extra=new Set();Object.values(L).forEach(r=>Object.keys(r).forEach(d=>{if(!dates.includes(d)&&+r[d])extra.add(d)}));
@@ -579,7 +590,7 @@ function vOt(){
   let gt=0,gtRp=0;
   const head='<tr><th class="stick">Karyawan</th>'+dates.map(d=>{const dt=parse(d);return '<th class="'+(dt.getDay()===0?'sun':'')+(hol.has(d)?' hol':'')+'"'+(extra.has(d)?' title="Di luar periode (data impor)"':'')+'>'+dt.getDate()+(extra.has(d)?'*':'')+'<span class="dw">'+DOW[dt.getDay()]+'</span></th>'}).join('')+'<th class="tot">Jam</th><th class="tot">Rupiah</th></tr>';
   const body=emps.map(e=>{const r=L[e.id]||{};const j=otHours(e.id,S.periodKey);gt+=j;gtRp+=Math.round(j*otRate(e));return '<tr><td class="stick"><div class="name" style="font-size:12.5px">'+esc(e.nama)+keluarPill(e)+'</div><div class="sub" style="font-size:11px">'+esc(e.id)+(e.lemburMode&&e.lemburMode!=='umum'?' · '+esc(otRateLabel(e)):'')+'</div></td>'+dates.map(d=>{const v=+r[d]||'';const dt=parse(d);return '<td class="lcell'+(dt.getDay()===0?' sun':'')+(hol.has(d)?' hol':'')+'"><input type="number" min="0" step="0.5" inputmode="decimal" placeholder=" " aria-label="Jam lembur '+esc(e.nama)+' '+d+'" data-ot="'+esc(e.id)+'" data-d="'+d+'" value="'+v+'"'+(isLocked()?' disabled':'')+'></td>'}).join('')+'<td class="tot">'+(j||'')+'</td><td class="tot" style="text-align:right">'+(j?rp(Math.round(j*otRate(e))):'')+'</td></tr>'}).join('');
-  return topbar('Lembur per jam',true)+lockBanner()+
+  return topbar('Lembur per jam',true,isLocked()?'':'<button class="btn" data-act="impLembur">Impor laporan lembur</button>')+lockBanner()+
   '<div class="row"><input id="q" class="search" type="search" placeholder="Cari karyawan…" value="'+esc(S.q)+'"><span class="sub">Tarif umum Rp '+rp(rate)+'/jam (ubah di Pengaturan; tarif per orang di data karyawan) · Total periode: <b>'+gt+' jam = Rp '+rp(gtRp)+'</b></span></div>'+
   '<p class="note" style="margin:0">Ketik jumlah jam di tanggal lembur. Lembur hari Minggu / tanggal merah (dibayar per hari) diisi di halaman Absensi dengan kode LM / LTM.'+(extra.size?' Kolom bertanda * berisi data impor di luar rentang periode dan tetap dihitung.':'')+'</p>'+
   '<div class="tablewrap" style="max-height:70vh"><table class="att"><thead>'+head+'</thead><tbody>'+body+'</tbody></table></div>';
@@ -851,6 +862,8 @@ document.addEventListener('click',async ev=>{
   const a=b.dataset.act,id=b.dataset.id;
   if(a==='overlay'){if(ev.target===b)closeModal();return}
   if(a==='prev'||a==='next'){S.periodKey=shiftKey(S.periodKey,a==='prev'?-1:1);render(true);return}
+  if(a==='impLembur'){openModal('<h3>Impor laporan lembur</h3><p class="note">Pilih karyawan, tempel laporan (satu tanggal per baris, contoh: <i>Jumat 25 sep = 2 jam</i>). Periode: <b>'+periodLabel(S.periodKey)+'</b>.</p><label>Karyawan<select id="imp_emp">'+Object.values(S.emps).sort((x,y)=>x.nama.localeCompare(y.nama)).map(e=>'<option value="'+esc(e.id)+'">'+esc(e.nama)+'</option>').join('')+'</select></label><textarea id="imp_txt" rows="12" style="width:100%"></textarea><div class="row"><button class="btn primary" data-act="doImpLembur">Impor</button><button class="btn" data-act="closeModal">Batal</button></div>');return}
+  if(a==='doImpLembur'){const eid=$('#imp_emp').value,{out,bad}=parseLembur($('#imp_txt').value,S.periodKey),n=Object.keys(out).length;if(!n){toast('Tidak ada tanggal yang terbaca untuk periode ini.');return}if(bad.length&&!confirm(bad.length+' baris tidak terbaca dan dilewati:\n'+bad.join('\n')+'\n\nLanjut impor '+n+' tanggal?'))return;patchPeriod({lembur:{[eid]:out}});S.dirty=true;closeModal();toast('Lembur '+S.emps[eid].nama+': '+n+' tanggal, '+Object.values(out).reduce((a,b)=>a+b,0)+' jam diimpor.');render(true);return}
   if(a==='addEmp')return empForm(null);
   if(a==='editEmp')return empForm(S.emps[id]);
   if(a==='saveEmp')return saveEmp(b.dataset.new==='1');
