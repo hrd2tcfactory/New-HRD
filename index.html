@@ -262,13 +262,14 @@ const ICONS={
   loan:'<path d="M12 2v20M17 6H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>',
   leave:'<path d="M2 20h20M5 20V9l7-5 7 5v11"/><path d="M10 20v-6h4v6"/>',
   ctr:'<path d="M4 4h16v16H4z"/><path d="M8 9h8M8 13h5"/><circle cx="17" cy="17" r="3"/>',
+  note:'<path d="M5 3h11l4 4v14H5z"/><path d="M15 3v5h5M8.5 12h8M8.5 16h5"/>',
   set:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>'
 };
 const TABS=[
   ['dash','Dasbor','dash'],['emp','Karyawan','emp'],['att','Absensi','att'],['ot','Lembur','ot'],['pay','Payroll','pay'],
-  ['slip','Slip Gaji','slip'],['loan','Kasbon','loan'],['leave','Cuti','leave'],['ctr','Kontrak & PKL','ctr'],['set','Pengaturan','set']];
+  ['slip','Slip Gaji','slip'],['loan','Kasbon','loan'],['leave','Cuti','leave'],['ctr','Kontrak & PKL','ctr'],['note','Catatan','note'],['set','Pengaturan','set']];
 
-const S={db:null,dl:null,settings:null,emps:{},loans:{},interns:{},periods:{},ready:{},tab:'dash',periodKey:null,brush:'H',q:'',status:'',slipEmp:null,dirty:false,saving:0,readonly:false,armed:null};
+const S={db:null,dl:null,settings:null,emps:{},loans:{},interns:{},notes:{},nCat:'',nSt:'aktif',periods:{},ready:{},tab:'dash',periodKey:null,brush:'H',q:'',status:'',slipEmp:null,dirty:false,saving:0,readonly:false,armed:null};
 
 // ---------- utils ----------
 const $=s=>document.querySelector(s);
@@ -447,7 +448,7 @@ function render(force){
   if(!S.db){main.innerHTML=S.dbMissing?'<div class="panel empty"><b>Database tidak bisa dibuka di tampilan ini.</b><br>Buka halaman ini lewat claude.ai dalam keadaan masuk (login) agar data HRD bisa dibaca dan disimpan.</div>':'<div class="empty">Memuat data HRD…</div>';return}
   if(!S.ready.emps||!S.ready.settings){main.innerHTML='<div class="empty">Memuat data HRD…</div>';return}
   const sx=window.scrollX,sy=window.scrollY;const gw=main.querySelector('.tablewrap');const gl=gw?gw.scrollLeft:0;const gt=gw?gw.scrollTop:0;
-  const f={dash:vDash,emp:vEmp,att:vAtt,ot:vOt,pay:vPay,slip:vSlip,loan:vLoan,leave:vLeave,ctr:vCtr,set:vSet}[S.tab]||vDash;
+  const f={dash:vDash,emp:vEmp,att:vAtt,ot:vOt,pay:vPay,slip:vSlip,loan:vLoan,leave:vLeave,ctr:vCtr,note:vNote,set:vSet}[S.tab]||vDash;
   main.innerHTML=f();
   const gw2=main.querySelector('.tablewrap');if(gw2&&!force){gw2.scrollLeft=gl;gw2.scrollTop=gt}
   if(!force)window.scrollTo(sx,sy);
@@ -469,6 +470,7 @@ function vDash(){
   emps.forEach(e=>{if(e.status==='BELUM KONTRAK'||e.status==='TRAINING'){alerts.push({d:200,html:'<span class="pill p-mute">'+esc(e.status)+'</span>',t:e.nama+' belum punya kontrak',s:(e.tglBergabung?'Bergabung '+fmtD(e.tglBergabung):'Tanggal bergabung belum diisi')+' · '+e.jabatan})}});
   Object.values(S.interns).forEach(p=>{if(p.selesai){const d=daysBetween(t,p.selesai);if(d>=0&&d<=30)alerts.push({d,html:'<span class="pill p-warn">'+d+' hari</span>',t:'PKL '+p.nama+' selesai',s:fmtD(p.selesai)+' · '+p.sekolah})}});
   ((S.settings&&S.settings.reminders)||[]).forEach(r=>{const d=daysBetween(t,r.tanggal);if(d>=-7&&d<=120)alerts.push({d,html:'<span class="pill '+(d<=30?'p-warn':'p-mute')+'">'+(d<0?'Lewat':d+' hari')+'</span>',t:r.judul,s:fmtD(r.tanggal)})});
+  Object.entries(S.notes).forEach(([id,n])=>{if(n.selesai||!n.pengingat)return;const d=daysBetween(t,n.pengingat);if(d<=14)alerts.push({d,html:'<span class="pill '+(d<0?'p-bad':d<=3?'p-warn':'p-mute')+'">'+(d<0?'Lewat '+(-d)+' hr':d===0?'Hari ini':d+' hari')+'</span>',t:'Catatan: '+n.judul,s:fmtD(n.pengingat)+' · '+(NOTE_CATS.find(c=>c===n.kategori)||'Lainnya')})});
   {const pk=shiftKey(keyFor(new Date()),-1);const pp=S.periods[pk];if(pp&&Object.keys(pp.absensi||{}).length&&!isLocked(pk))alerts.push({d:-999,html:'<span class="pill p-warn">Belum dikunci</span>',t:'Payroll '+periodLabel(pk)+' belum dikunci',s:'Kunci di halaman Payroll setelah gaji dibayar'});
    const nk=keyFor(new Date());const ny=cutiYearOf(new Date())+1;const dReset=daysBetween(t,cutiRange(ny).from);if(dReset>=0&&dReset<=45)alerts.push({d:dReset,html:'<span class="pill p-mute">'+dReset+' hari</span>',t:'Saldo cuti diperbarui',s:'Kuota cuti tahun baru mulai '+fmtD(cutiRange(ny).from)})}
   emps.forEach(e=>{const sisa=cutiSisa(e);if(sisa<=0)alerts.push({d:300,html:'<span class="pill p-bad">Cuti habis</span>',t:e.nama,s:'Sisa cuti '+sisa+' hari'})});
@@ -489,6 +491,47 @@ function vDash(){
    '<div class="panel"><h2>Kehadiran harian<small>jumlah karyawan hadir per tanggal, '+periodSub(key)+'</small></h2><div class="bars">'+bars+'</div><div class="axis"><span>'+fmtD(dates[0])+'</span><span>'+fmtD(dates[dates.length-1])+'</span></div><p class="note" style="margin:10px 0 0">Batang abu-abu = hari Minggu/libur. Garis tebal = hari ini.</p></div>'+
    '<div class="panel"><h2>Perlu perhatian<small>'+alerts.length+' item</small></h2><div class="list">'+(alerts.length?alerts.slice(0,14).map(a=>'<div class="li"><div class="t"><div class="name">'+esc(a.t)+'</div><div class="sub">'+esc(a.s)+'</div></div>'+a.html+'</div>').join(''):'<div class="empty">Tidak ada yang mendesak.</div>')+'</div></div>'+
   '</div>';
+}
+
+// ===== Catatan =====
+const NOTE_CATS=['Kantor','Karyawan','Pengingat','Lainnya'];
+function vNote(){
+  const q=S.q.toLowerCase(),t=todayISO();
+  const all=Object.entries(S.notes).map(([id,n])=>Object.assign({_id:id},n));
+  const rows=all.filter(n=>(!S.nCat||n.kategori===S.nCat)&&(S.nSt==='semua'||(S.nSt==='selesai')===!!n.selesai)&&(!q||((n.judul||'')+' '+(n.isi||'')+' '+((S.emps[n.empId]||{}).nama||'')).toLowerCase().includes(q)))
+    .sort((a,b)=>(!!a.selesai-!!b.selesai)||((a.pengingat||'9999')>(b.pengingat||'9999')?1:(a.pengingat||'9999')<(b.pengingat||'9999')?-1:0)||(b.dibuat||'').localeCompare(a.dibuat||''));
+  const aktif=all.filter(n=>!n.selesai),telat=aktif.filter(n=>n.pengingat&&n.pengingat<t).length,segera=aktif.filter(n=>n.pengingat&&n.pengingat>=t&&daysBetween(t,n.pengingat)<=7).length;
+  return topbar('Catatan',false,'<button class="btn primary" data-act="addNote">+ Tambah catatan</button>')+
+  '<div class="kpis"><div class="kpi"><span class="k">Catatan aktif</span><span class="v">'+aktif.length+'</span></div>'+
+  '<div class="kpi"><span class="k">Pengingat lewat tanggal</span><span class="v">'+telat+'</span></div>'+
+  '<div class="kpi"><span class="k">Pengingat 7 hari ke depan</span><span class="v">'+segera+'</span></div></div>'+
+  '<div class="row"><input id="q" class="search" type="search" placeholder="Cari catatan atau nama karyawan…" value="'+esc(S.q)+'">'+
+  '<select id="noteCat"><option value="">Semua kategori</option>'+NOTE_CATS.map(c=>'<option'+(S.nCat===c?' selected':'')+'>'+c+'</option>').join('')+'</select>'+
+  '<select id="noteSt">'+[['aktif','Belum selesai'],['selesai','Selesai'],['semua','Semua']].map(([v,l])=>'<option value="'+v+'"'+(S.nSt===v?' selected':'')+'>'+l+'</option>').join('')+'</select><span class="sub">'+rows.length+' catatan</span></div>'+
+  '<div class="list">'+(rows.length?rows.map(n=>{
+    const e=n.empId&&S.emps[n.empId];const d=n.pengingat?daysBetween(t,n.pengingat):null;
+    const pill=n.pengingat&&!n.selesai?'<span class="pill '+(d<0?'p-bad':d<=3?'p-warn':'p-mute')+'">'+(d<0?'Lewat '+(-d)+' hr':d===0?'Hari ini':d+' hari lagi')+' · '+fmtD(n.pengingat)+'</span> ':'';
+    return '<div class="li" style="align-items:flex-start;gap:12px;'+(n.selesai?'opacity:.6':'')+'"><input type="checkbox" data-note-done="'+esc(n._id)+'"'+(n.selesai?' checked':'')+' aria-label="Tandai selesai" style="margin-top:4px">'+
+    '<div class="t" style="flex:1;min-width:0"><div class="name"'+(n.selesai?' style="text-decoration:line-through"':'')+'>'+esc(n.judul)+'</div>'+
+    '<div class="sub" style="white-space:pre-wrap">'+esc(n.isi||'')+'</div>'+
+    '<div class="sub" style="margin-top:4px">'+pill+'<span class="pill p-mute">'+esc(n.kategori||'Lainnya')+'</span>'+(e?' <span class="pill p-mute">'+esc(e.nama)+'</span>':'')+' · dibuat '+fmtD((n.dibuat||'').slice(0,10))+'</div></div>'+
+    '<button class="btn" data-act="editNote" data-id="'+esc(n._id)+'">Ubah</button></div>'}).join(''):'<div class="empty">Belum ada catatan.</div>')+'</div>';
+}
+function noteForm(id){
+  const n=id?S.notes[id]:{judul:'',isi:'',kategori:'Kantor',empId:'',pengingat:''};
+  openModal('<h3>'+(id?'Ubah catatan':'Catatan baru')+'</h3><div class="form">'+
+   '<label class="full">Judul<input id="n_judul" type="text" maxlength="120" value="'+esc(n.judul)+'"></label>'+
+   '<label>Kategori<select id="n_kat">'+NOTE_CATS.map(c=>'<option'+(c===n.kategori?' selected':'')+'>'+c+'</option>').join('')+'</select></label>'+
+   '<label>Tanggal pengingat<input id="n_ping" type="date" value="'+esc(n.pengingat||'')+'"><span class="hint">Kosongkan bila tanpa pengingat</span></label>'+
+   '<label class="full">Karyawan terkait (opsional)<select id="n_emp"><option value="">— Tidak ada —</option>'+empList().map(e=>'<option value="'+esc(e.id)+'"'+(e.id===n.empId?' selected':'')+'>'+esc(e.id+' — '+e.nama)+'</option>').join('')+'</select></label>'+
+   '<label class="full">Isi catatan<textarea id="n_isi" rows="6">'+esc(n.isi)+'</textarea></label>'+
+  '</div><div class="row"><button class="btn primary" data-act="saveNote" data-id="'+esc(id||'')+'">Simpan</button><button class="btn" data-act="closeModal">Batal</button><span class="spacer"></span>'+(id?'<button class="btn danger" data-act="delNote" data-id="'+esc(id)+'">'+(S.armed==='delN'+id?'Klik lagi untuk hapus':'Hapus')+'</button>':'')+'</div>');
+}
+async function saveNote(id){
+  const n=Object.assign({dibuat:new Date().toISOString(),selesai:false},id?S.notes[id]:{},{judul:$('#n_judul').value.trim(),isi:$('#n_isi').value.trim(),kategori:$('#n_kat').value,empId:$('#n_emp').value,pengingat:$('#n_ping').value});
+  if(!n.judul){toast('Judul wajib diisi.');return}
+  const nid=id||('N'+Date.now().toString(36));
+  if(await saveDoc('notes/'+nid,n)){S.notes[nid]=n;closeModal();toast('Catatan disimpan.');render(true)}
 }
 
 // ===== Karyawan =====
@@ -911,6 +954,10 @@ document.addEventListener('click',async ev=>{
   if(a==='editPkl')return pklForm(id);
   if(a==='savePkl'){const p={};['nama','sekolah','hpSiswa','hpOrtu','mulai','selesai'].forEach(k=>p[k]=$('#p_'+k).value.trim());if(!p.nama){toast('Nama wajib diisi.');return}const nid=id||('P'+Date.now().toString(36));if(await saveDoc('interns/'+nid,p)){S.interns[nid]=p;closeModal();render(true)}return}
   if(a==='delPkl'){if(S.armed==='delP'+id){S.armed=null;if(await delDoc('interns/'+id)){delete S.interns[id];closeModal();render(true)}}else{S.armed='delP'+id;b.textContent='Klik lagi untuk hapus'}return}
+  if(a==='addNote')return noteForm(null);
+  if(a==='editNote')return noteForm(id);
+  if(a==='saveNote')return saveNote(id||null);
+  if(a==='delNote'){if(S.armed==='delN'+id){S.armed=null;if(await delDoc('notes/'+id)){delete S.notes[id];closeModal();toast('Catatan dihapus.');render(true)}}else{S.armed='delN'+id;b.textContent='Klik lagi untuk hapus'}return}
   if(a==='saveSet')return saveSet();
 });
 document.addEventListener('input',ev=>{
@@ -921,6 +968,9 @@ function bigWarn(id,v,lbl){const e=S.emps[id];const gp=e&&+e.gajiPokok||0;if(gp&
 document.addEventListener('change',ev=>{
   const t=ev.target;
   if(t.id==='statusF'){S.status=t.value;render(true);return}
+  if(t.id==='noteCat'){S.nCat=t.value;render(true);return}
+  if(t.id==='noteSt'){S.nSt=t.value;render(true);return}
+  if(t.dataset.noteDone){const id=t.dataset.noteDone,n=S.notes[id];if(!n)return;const n2=Object.assign({},n,{selesai:t.checked});S.notes[id]=n2;render(true);saveDoc('notes/'+id,n2);return}
   if(t.id==='slipSel'){S.slipEmp=t.value;render(true);return}
   if((t.dataset.ot||t.dataset.reimb||t.dataset.pot)&&isLocked()){toast('Periode ini sudah dikunci.');render(true);return}
   if(t.dataset.ttd){if(t.files&&t.files[0])ttdLoad(t.files[0],t.dataset.ttd);return}
@@ -949,7 +999,7 @@ function db_subscribe(db,err){
     if(target==='emps'&&snap.docs.length)S.needImport=false;
     if(target==='periods'){for(const p in Q)if(p.startsWith('periods/')){const k=p.slice(8);if(o[k])deepMerge(o[k],clone(Q[p].patch))}}
     render()},err);
-  coll('employees','emps');coll('loans','loans');coll('interns','interns');coll('periods','periods');
+  coll('employees','emps');coll('loans','loans');coll('interns','interns');coll('notes','notes');coll('periods','periods');
 }
 async function runImport(btn){
   btn.disabled=true;btn.textContent='Mengimpor…';
