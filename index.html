@@ -364,7 +364,7 @@ function liveCalc(e,key){
   key=key||S.periodKey;const per=S.periods[key]||{};
   const c=counts(e.id,key);const harian=(+e.gajiPokok||0)/((+e.pembagi)||24);
   const gajiHadir=harian*(c.H+c.SH+c.C);
-  const shRate=shRateFor(harian);const potSH=c.SH*shRate;
+  const shRate=shRateFor(harian);const potSH=e.status==='TETAP'?0:c.SH*shRate;
   const lm=Math.round(harian*c.LM)*2;
   const ltm=Math.round(harian*c.LTM)*((+e.kaliLTM)||1);
   const jam=otHours(e.id,key);const rateJam=otRate(e);const lj=Math.round(jam*rateJam);const hariUM=mealDays(e.id,key);const um=hariUM*mealCfg().amt;
@@ -856,13 +856,13 @@ function vSet(){
   '<label>Uang makan lembur (Rp)<input id="s_uangMakan" type="number" value="'+mealCfg().amt+'"><span class="hint">Dibayar per hari bila lembur mencapai batas jam di bawah</span></label>'+'<label>Minimal jam lembur untuk uang makan<input id="s_makanMinJam" type="number" step="0.5" value="'+mealCfg().min+'"><span class="hint">Uang makan diberikan jika lembur sehari minimal sebanyak angka ini</span></label>'+
   '<label>Bulan pembaruan cuti<select id="s_cutiMulaiBulan">'+MONTHS.map((m,i)=>'<option value="'+(i+1)+'"'+(cutiStartMonth()===i+1?' selected':'')+'>'+m+'</option>').join('')+'</select><span class="hint">Saldo cuti kembali penuh setiap tanggal 1 bulan ini</span></label>'+
   f('kuotaCutiDefault','Kuota cuti tahunan bawaan (hari)','number','Dipakai mulai tahun cuti '+(cutiAwalYear()+1)+'/'+String(cutiAwalYear()+2).slice(2))+
-  f('shPotong','Potongan setengah hari (Rp)','number','Per hari berkode SH')+f('shPotongRendah','Potongan setengah hari, gaji kecil (Rp)','number','Untuk gaji/hari di bawah batas')+f('shBatas','Batas gaji/hari (Rp)','number','Gaji/hari di bawah angka ini dipotong lebih kecil')+
+  f('shPotong','Potongan setengah hari (Rp)','number','Per hari berkode SH. Karyawan TETAP tidak dipotong')+f('shPotongRendah','Potongan setengah hari, gaji kecil (Rp)','number','Untuk gaji/hari di bawah batas')+f('shBatas','Batas gaji/hari (Rp)','number','Gaji/hari di bawah angka ini dipotong lebih kecil')+
   '<label class="full">Potong gaji karyawan <b>bulanan</b> untuk kode absen<span class="row" style="color:var(--fg);font-weight:400">'+[['A','Alpha'],['I','Izin'],['S','Sakit']].map(([c,n])=>'<label style="flex-direction:row;align-items:center;gap:6px;color:var(--fg)"><input type="checkbox" id="s_pb_'+c+'"'+(((s.potongBulanan)||[]).includes(c)?' checked':'')+'> '+n+' ('+c+')</label>').join('')+'</span><span class="hint">Potongan = gaji/hari × jumlah hari. Kosongkan semua untuk mengikuti Excel lama (gaji bulanan tidak dipotong). Karyawan harian otomatis hanya dibayar H + C.</span></label>'+'<label>Tanggal tutup absen<input id="s_tutup" type="number" min="1" max="27" value="'+tutupTgl()+'"><span class="hint">Periode Oktober = '+(tutupTgl()+1)+' September s/d '+tutupTgl()+' Oktober</span></label>'+
   '<label class="full">Tanggal merah / libur nasional<textarea id="s_libur" rows="2" placeholder="2026-12-25, 2027-01-01">'+esc((s.libur||[]).join(', '))+'</textarea><span class="hint">Format TTTT-BB-HH, pisahkan dengan koma. Kolom ini diwarnai merah di absensi.</span></label>'+
   '<label class="full">Urutan jabatan (paling atas = tertinggi)<textarea id="s_jab" rows="8">'+esc(jabOrder().join('\n'))+'</textarea><span class="hint">Satu jabatan per baris. Urutan ini dipakai di semua daftar, payroll, slip dan file Excel. Jabatan yang belum tercantum ditaruh paling bawah'+(function(){const miss=[...new Set(Object.values(S.emps).map(e=>(e.jabatan||'').trim().toUpperCase()).filter(j=>j&&jabRank(j)===999))];return miss.length?': <b>'+esc(miss.join(', '))+'</b>':''})()+'.</span></label>'+
   '<label class="full">Pengingat (satu per baris: TTTT-BB-HH judul)<textarea id="s_rem" rows="3">'+esc((s.reminders||[]).map(r=>r.tanggal+' '+r.judul).join('\n'))+'</textarea></label>'+
   '</div><div class="row" style="margin-top:12px"><button class="btn primary" data-act="saveSet">Simpan pengaturan</button></div></div>'+
-  '<div class="panel"><h2>Kode absensi</h2><div class="brushes">'+CODES.map(c=>'<span class="brush code-'+c.c+'" style="cursor:default"><b>'+c.c+'</b>'+c.n+'</span>').join('')+'</div><p class="note">H, SH dan C dihitung sebagai hari dibayar untuk skema harian. SH (setengah hari) dipotong sesuai aturan di atas, untuk karyawan harian maupun bulanan. LM dan LTM dibayar sebagai lembur per hari.</p></div>';
+  '<div class="panel"><h2>Kode absensi</h2><div class="brushes">'+CODES.map(c=>'<span class="brush code-'+c.c+'" style="cursor:default"><b>'+c.c+'</b>'+c.n+'</span>').join('')+'</div><p class="note">H, SH dan C dihitung sebagai hari dibayar untuk skema harian. SH (setengah hari) dipotong sesuai aturan di atas, untuk karyawan harian maupun bulanan, kecuali karyawan berstatus TETAP (tetap tercatat SH di absen, tanpa potongan). LM dan LTM dibayar sebagai lembur per hari.</p></div>';
 }
 async function saveSet(){
   const g=k=>$('#s_'+k).value.trim();
