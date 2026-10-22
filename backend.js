@@ -81,7 +81,7 @@ window.HRD_BACKEND = new Promise((resolve) => {
     if (user && !resolved) {
       resolved = true;
       resolve({
-        db, dl: downloads, email: user.email,
+        db, dl: downloads, email: user.email, getToken: () => user.getIdToken(),
         logout: () => signOut(auth).then(() => location.reload()),
         isEmpty: async () => (await getDocs(collection(fs, "employees"))).empty,
         importData: (json, cb) => importData(fs, json, cb),

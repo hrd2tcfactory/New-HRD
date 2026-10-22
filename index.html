@@ -538,10 +538,10 @@ async function saveNote(id){
 function vEmp(){
   const q=S.q.toLowerCase();
   const rows=empList(true).filter(e=>(!S.status||e.status===S.status||(S.status==='NONAKTIF'&&e.aktif===false))&&(S.status==='NONAKTIF'||e.aktif!==false)&&(!q||(e.nama+' '+e.jabatan+' '+e.id).toLowerCase().includes(q)));
-  return topbar('Karyawan',false,'<button class="btn primary" data-act="addEmp">+ Tambah karyawan</button>')+
+  return topbar('Karyawan',false,'<button class="btn" data-act="impEmail">Impor email dari Excel</button><button class="btn primary" data-act="addEmp">+ Tambah karyawan</button>')+
   '<div class="row"><input id="q" class="search" type="search" placeholder="Cari nama, jabatan, ID…" value="'+esc(S.q)+'"><select id="statusF"><option value="">Semua status</option>'+STATUSES.map(s=>'<option'+(S.status===s?' selected':'')+'>'+s+'</option>').join('')+'<option value="NONAKTIF"'+(S.status==='NONAKTIF'?' selected':'')+'>Nonaktif / keluar</option></select><span class="sub">'+rows.length+' orang</span></div>'+
-  '<div class="tablewrap"><table><thead><tr><th class="num">No</th><th>ID</th><th>Nama & jabatan</th><th>Status</th><th class="num">Gaji pokok</th><th>Skema gaji</th><th>Rekening</th><th>WhatsApp</th><th></th></tr></thead><tbody>'+
-  (rows.length?rows.map((e,i)=>'<tr><td class="num sub">'+(i+1)+'</td><td class="sub">'+esc(e.id)+'</td><td><div class="name">'+esc(e.nama)+'</div><div class="sub">'+esc(e.jabatan)+'</div></td><td>'+statusPill(e.status)+(e.aktif===false?' <span class="pill p-mute">Nonaktif</span>':'')+'</td><td class="num">'+rp(e.gajiPokok)+'</td><td><span class="sub">'+(e.metode==='HARIAN'?'Harian (hadir × gaji/hari)':'Bulanan penuh')+' · ÷'+(e.pembagi||24)+'</span></td><td class="sub" style="white-space:normal;min-width:180px">'+esc(e.rekening)+'</td><td>'+(e.wa?'<a class="wa" href="https://wa.me/'+esc(e.wa)+'" target="_blank" rel="noopener">+'+esc(e.wa)+'</a>':'<span class="sub">—</span>')+'</td><td><button class="btn" data-act="editEmp" data-id="'+esc(e.id)+'">Ubah</button></td></tr>').join(''):'<tr><td colspan="9" class="empty">Belum ada karyawan yang cocok.</td></tr>')+
+  '<div class="tablewrap"><table><thead><tr><th class="num">No</th><th>ID</th><th>Nama & jabatan</th><th>Status</th><th class="num">Gaji pokok</th><th>Skema gaji</th><th>Rekening</th><th>WhatsApp</th><th>Email</th><th></th></tr></thead><tbody>'+
+  (rows.length?rows.map((e,i)=>'<tr><td class="num sub">'+(i+1)+'</td><td class="sub">'+esc(e.id)+'</td><td><div class="name">'+esc(e.nama)+'</div><div class="sub">'+esc(e.jabatan)+'</div></td><td>'+statusPill(e.status)+(e.aktif===false?' <span class="pill p-mute">Nonaktif</span>':'')+'</td><td class="num">'+rp(e.gajiPokok)+'</td><td><span class="sub">'+(e.metode==='HARIAN'?'Harian (hadir × gaji/hari)':'Bulanan penuh')+' · ÷'+(e.pembagi||24)+'</span></td><td class="sub" style="white-space:normal;min-width:180px">'+esc(e.rekening)+'</td><td>'+(e.wa?'<a class="wa" href="https://wa.me/'+esc(e.wa)+'" target="_blank" rel="noopener">+'+esc(e.wa)+'</a>':'<span class="sub">—</span>')+'</td><td class="sub">'+(e.email?esc(e.email):'—')+'</td><td><button class="btn" data-act="editEmp" data-id="'+esc(e.id)+'">Ubah</button></td></tr>').join(''):'<tr><td colspan="10" class="empty">Belum ada karyawan yang cocok.</td></tr>')+
   '</tbody></table></div>';
 }
 function empForm(e){
@@ -560,6 +560,7 @@ function empForm(e){
    f('lemburKali','Pengali (untuk gaji/hari ÷ 8)',e.lemburKali||1,'number',{hint:'Contoh 2 → (gaji/hari ÷ 8) × 2 per jam'})+
    f('rekening','Nomor rekening (a.n.)',e.rekening,'text',{full:true})+
    f('wa','No WhatsApp',e.wa,'tel',{hint:'Format 62…, tanpa + atau spasi'})+
+   f('email','Email (untuk kirim slip)',e.email||'','email')+
    f('tglBergabung','Tanggal bergabung',e.tglBergabung,'date')+
    f('kontrakMulai','Mulai kontrak',e.kontrakMulai,'date')+f('kontrakSelesai','Berakhir kontrak',e.kontrakSelesai,'date')+
    f('kuotaCuti','Kuota cuti '+cutiAwalYear()+'/'+String(cutiAwalYear()+1).slice(2),e.kuotaCuti,'number',{hint:'Tahun cuti '+cutiLabel(cutiAwalYear())+'. Tahun berikutnya pakai kuota default di Pengaturan, bisa diubah per orang di halaman Cuti'})+f('cutiTerpakaiAwal','Cuti terpakai sebelum sistem',e.cutiTerpakaiAwal,'number',{hint:'Dari sheet CUTI lama (Apr–Sep '+cutiAwalYear()+')'})+
@@ -573,7 +574,7 @@ async function saveEmp(isNew){
   if(isNew&&S.emps[id]){toast('ID '+id+' sudah dipakai.');return}
   if(!g('nama')){toast('Nama wajib diisi.');return}
   const prev=S.emps[id]||{};
-  const e=Object.assign({},prev,{id,nama:g('nama').toUpperCase(),jabatan:g('jabatan').toUpperCase(),status:g('status'),gajiPokok:+g('gajiPokok')||0,metode:g('metode'),pembagi:+g('pembagi')||24,kaliLTM:+g('kaliLTM')||1,lemburMode:$('#f_lemburMode').value,lemburTarif:+g('lemburTarif')||0,lemburKali:+g('lemburKali')||1,rekening:g('rekening'),wa:g('wa').replace(/\D/g,''),tglBergabung:g('tglBergabung'),kontrakMulai:g('kontrakMulai'),kontrakSelesai:g('kontrakSelesai'),kuotaCuti:+g('kuotaCuti')||0,cutiTerpakaiAwal:+g('cutiTerpakaiAwal')||0,aktif:$('#f_aktif').checked,tglKeluar:$('#f_aktif').checked?'':(g('tglKeluar')||todayISO())});
+  const e=Object.assign({},prev,{id,nama:g('nama').toUpperCase(),jabatan:g('jabatan').toUpperCase(),status:g('status'),gajiPokok:+g('gajiPokok')||0,metode:g('metode'),pembagi:+g('pembagi')||24,kaliLTM:+g('kaliLTM')||1,lemburMode:$('#f_lemburMode').value,lemburTarif:+g('lemburTarif')||0,lemburKali:+g('lemburKali')||1,rekening:g('rekening'),wa:g('wa').replace(/\D/g,''),email:g('email').toLowerCase(),tglBergabung:g('tglBergabung'),kontrakMulai:g('kontrakMulai'),kontrakSelesai:g('kontrakSelesai'),kuotaCuti:+g('kuotaCuti')||0,cutiTerpakaiAwal:+g('cutiTerpakaiAwal')||0,aktif:$('#f_aktif').checked,tglKeluar:$('#f_aktif').checked?'':(g('tglKeluar')||todayISO())});
   if(await saveDoc('employees/'+id,e)){S.emps[id]=e;closeModal();toast('Data '+e.nama+' disimpan.');render(true)}
 }
 
@@ -659,7 +660,7 @@ function vPay(){
     '<td class="num"><input class="cellin" type="number" min="0" step="1000" data-pot="'+esc(e.id)+'" value="'+(r.pot||'')+'" placeholder="0" aria-label="Potongan lain '+esc(e.nama)+'"'+dis+'></td>'+
     '<td class="num"><b>'+rp(r.thp)+'</b></td><td><button class="btn ghost" data-act="toSlip" data-id="'+esc(e.id)+'">Slip</button></td></tr>'}).join('');
   const lockBtn=locked?'<button class="btn" data-act="unlockPay">'+(S.armed==='unlockPay'?'Klik lagi untuk buka kunci':'Buka kunci')+'</button>':'<button class="btn primary" data-act="lockPay" style="white-space:normal;text-align:left">'+(S.armed==='lockPay'?(nSerius?'Ada '+nSerius+' peringatan. Klik lagi untuk tetap kunci':'Klik lagi untuk mengunci'):'Kunci payroll '+periodLabel(key))+'</button>';
-  return topbar('Payroll',true,'<button class="btn" data-act="exportPay">Unduh Excel</button><button class="btn" data-act="allSlips">Unduh semua slip (PDF)</button>')+lockBanner()+
+  return topbar('Payroll',true,'<button class="btn" data-act="exportPay">Unduh Excel</button><button class="btn" data-act="allSlips">Unduh semua slip (PDF)</button><button class="btn primary" data-act="mailAll">Kirim semua slip via email</button>')+lockBanner()+
   '<div class="kpis"><div class="kpi"><span class="k">Total take home pay</span><span class="v">Rp '+rp(T.thp)+'</span><span class="s">'+emps.length+' karyawan'+(locked?' · angka final':' · masih bisa berubah')+'</span></div>'+
   '<div class="kpi"><span class="k">Total lembur</span><span class="v">Rp '+rp(T.lm+T.ltm+T.lj)+'</span><span class="s">Minggu '+rp(T.lm)+' · Tgl merah '+rp(T.ltm)+' · Per jam '+rp(T.lj)+'</span></div>'+
   '<div class="kpi"><span class="k">Potongan kasbon</span><span class="v">Rp '+rp(T.kas)+'</span><span class="s">'+(locked?'Sudah dicatat ke saldo kasbon':'Dicatat ke saldo kasbon saat payroll dikunci')+'</span></div>'+
@@ -727,7 +728,7 @@ function vSlip(){
   const ln=a=>'<div class="ln"><span>'+esc(a[0])+'</span><span>'+rp(a[1])+'</span></div>';
   return topbar('Slip gaji',true)+
   '<div class="row"><select id="slipSel" aria-label="Pilih karyawan">'+emps.map(x=>'<option value="'+esc(x.id)+'"'+(x.id===e.id?' selected':'')+'>'+esc(x.id+' — '+x.nama)+'</option>').join('')+'</select>'+
-  '<button class="btn primary" data-act="waPdf">Kirim PDF via WhatsApp</button><button class="btn" data-act="slipPdf">Unduh PDF</button><button class="btn ghost" data-act="copyWa">Salin rincian (teks)</button>'+(e.wa?'<span class="sub">WA: +'+esc(e.wa)+'</span>':'<span class="sub">No WhatsApp belum diisi</span>')+'</div>'+
+  '<button class="btn primary" data-act="mailSlip">Kirim via email</button><button class="btn" data-act="waPdf">Kirim PDF via WhatsApp</button><button class="btn" data-act="slipPdf">Unduh PDF</button><button class="btn ghost" data-act="copyWa">Salin rincian (teks)</button>'+(e.wa?'<span class="sub">WA: +'+esc(e.wa)+'</span>':'<span class="sub">No WhatsApp belum diisi</span>')+(((S.emps[e.id]||{}).email)?'<span class="sub">Email: '+esc(S.emps[e.id].email)+'</span>':'<span class="sub">Email belum diisi</span>')+'</div>'+
   '<div class="slip"><div class="hd"><div style="display:flex;align-items:center;gap:10px">'+(st.logo?'<img src="'+esc(st.logo)+'" alt="" style="max-height:40px;max-width:80px">':'')+'<div><b>'+esc(st.nama)+'</b><div class="sub">'+esc(st.alamat)+' · Slip gaji karyawan</div></div></div><div style="text-align:right"><div class="name">'+periodLabel(S.periodKey)+'</div><div class="sub">'+periodSub(S.periodKey)+'</div></div></div>'+
   '<div class="meta"><div><span>Nama</span>'+esc(e.nama)+'</div><div><span>ID · Jabatan</span>'+esc(e.id)+' · '+esc(e.jabatan)+'</div><div><span>Status</span>'+esc(e.status)+'</div><div><span>Rekening</span>'+esc(e.rekening||'—')+'</div></div>'+
   slipAttHtml(r)+slipCutiHtml(e)+
@@ -807,6 +808,59 @@ async function slipPdf(ids){
   ids.forEach((id,i)=>{if(i)doc.addPage();drawSlip(doc,payEmp(id,S.periodKey))});
   const name=ids.length===1?'Slip Gaji '+payEmp(ids[0],S.periodKey).nama+' '+periodLabel(S.periodKey)+'.pdf':'Slip Gaji Semua '+periodLabel(S.periodKey)+'.pdf';
   try{await S.dl.save({filename:name,data:new Blob([doc.output('arraybuffer')])});toast('PDF diunduh.');return name}catch(e){if(e&&e.code!=='declined')toast('Unduhan gagal ('+(e&&e.code||'error')+').');return null}
+}
+function slipBlobB64(id){
+  const doc=new jspdf.jsPDF({unit:'mm',format:'a5'});drawSlip(doc,payEmp(id,S.periodKey));
+  const u8=new Uint8Array(doc.output('arraybuffer'));let bin='';for(let i=0;i<u8.length;i+=0x8000)bin+=String.fromCharCode.apply(null,u8.subarray(i,i+0x8000));return btoa(bin)}
+async function mailOne(id,token){
+  const e=payEmp(id,S.periodKey);const to=((S.emps[id]||{}).email||'').trim();
+  if(!to)return {ok:false,err:'email belum diisi'};
+  try{
+    const r=await fetch('/api/kirim-slip',{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+token},body:JSON.stringify({to,nama:e.nama,periode:periodLabel(S.periodKey),rentang:periodSub(S.periodKey),perusahaan:(S.settings||{}).nama,filename:'Slip Gaji '+e.nama+' '+periodLabel(S.periodKey)+'.pdf',pdfBase64:slipBlobB64(id)})});
+    const j=await r.json().catch(()=>({}));return r.ok?{ok:true}:{ok:false,err:j.error||('HTTP '+r.status)}
+  }catch(err){return {ok:false,err:'koneksi gagal'}}
+}
+async function mailSlips(ids){
+  if(!window.jspdf){toast('Pustaka PDF belum termuat. Coba lagi sebentar.');return}
+  if(!S.getToken){toast('Kirim email tidak tersedia di tampilan ini.');return}
+  const sent=S.mailSent||(S.mailSent={});const key=S.periodKey;const res=[];
+  const token=await S.getToken();
+  for(let i=0;i<ids.length;i++){
+    toast('Mengirim '+(i+1)+' dari '+ids.length+'…');
+    const e=payEmp(ids[i],key);const r=await mailOne(ids[i],token);
+    if(r.ok)sent[key+'|'+ids[i]]=1;res.push(Object.assign({id:ids[i],nama:e.nama},r));
+    await new Promise(z=>setTimeout(z,600));
+  }
+  const ok=res.filter(x=>x.ok),bad=res.filter(x=>!x.ok);
+  if(ids.length===1){toast(ok.length?'Slip terkirim ke '+((S.emps[ids[0]]||{}).email)+'.':'Gagal: '+bad[0].err);return}
+  openModal('<h3>Hasil kirim email · '+periodLabel(key)+'</h3><p class="note" style="margin:0"><b>'+ok.length+'</b> terkirim, <b>'+bad.length+'</b> gagal.</p>'+
+   (bad.length?'<div class="tablewrap"><table><thead><tr><th>Karyawan</th><th>Alasan</th></tr></thead><tbody>'+bad.map(x=>'<tr><td>'+esc(x.id+' '+x.nama)+'</td><td class="sub">'+esc(x.err)+'</td></tr>').join('')+'</tbody></table></div>':'')+
+   '<div class="row"><button class="btn" data-act="closeModal">Tutup</button></div>');
+}
+function mailAll(){
+  const ids=payEmps().map(e=>e.id);const noMail=ids.filter(id=>!((S.emps[id]||{}).email));
+  const sent=S.mailSent||{};const done=ids.filter(id=>sent[S.periodKey+'|'+id]).length;
+  openModal('<h3>Kirim semua slip via email</h3><p class="note" style="margin:0">Periode <b>'+periodLabel(S.periodKey)+'</b>: <b>'+(ids.length-noMail.length)+'</b> karyawan punya email dan akan dikirimi slip PDF.'+(noMail.length?' <b>'+noMail.length+'</b> belum punya email dan dilewati.':'')+(done?' <b>'+done+'</b> sudah terkirim di sesi ini dan akan dikirim ulang.':'')+(isLocked()?'':' Payroll periode ini <b>belum dikunci</b>: angka bisa masih berubah.')+'</p><div class="row"><button class="btn primary" data-act="mailAllGo">Kirim sekarang</button><button class="btn" data-act="closeModal">Batal</button></div>');
+}
+function impEmail(){
+  const inp=document.createElement('input');inp.type='file';inp.accept='.xlsx,.xls,.csv';
+  inp.onchange=async()=>{const f=inp.files[0];if(!f)return;
+    try{
+      const wb=XLSX.read(await f.arrayBuffer());const rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''});
+      const up=[],skip=[];
+      rows.forEach(r=>{const id=String(r.ID||r.Id||'').trim().toUpperCase();const em=String(r.Email||r.EMAIL||'').trim().toLowerCase();
+        if(!id)return;if(!S.emps[id]){skip.push(id+' (ID tidak ditemukan)');return}
+        if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)){skip.push(id+' (email tidak valid)');return}
+        if(S.emps[id].email!==em)up.push([id,em])});
+      S.impMail=up;
+      openModal('<h3>Impor email karyawan</h3><p class="note" style="margin:0"><b>'+up.length+'</b> email akan disimpan/diperbarui.'+(skip.length?' Dilewati: '+esc(skip.join(', '))+'.':'')+'</p><div class="row"><button class="btn primary" data-act="impEmailGo"'+(up.length?'':' disabled')+'>Simpan</button><button class="btn" data-act="closeModal">Batal</button></div>');
+    }catch(err){toast('File tidak bisa dibaca.')}};
+  inp.click();
+}
+async function impEmailGo(){
+  const up=S.impMail||[];let n=0;
+  for(const [id,em] of up){const e=Object.assign({},S.emps[id],{email:em});if(await saveDoc('employees/'+id,e)){S.emps[id]=e;n++}}
+  closeModal();toast(n+' email disimpan.');render(true);
 }
 async function waPdf(id){
   const e=payEmp(id,S.periodKey);if(!e)return;
@@ -939,6 +993,11 @@ document.addEventListener('click',async ev=>{
   if(a==='fillAll'){if(armed('fillAll')){const t=todayISO();fillDates(periodDates(S.periodKey).filter(d=>d<=t),true)}return}
   if(a==='toSlip'){S.slipEmp=id;S.tab='slip';renderNav();render(true);window.scrollTo(0,0);return}
   if(a==='exportPay')return exportPay();
+  if(a==='mailAllGo'){closeModal();return mailSlips(payEmps().map(e=>e.id).filter(id=>(S.emps[id]||{}).email))}
+  if(a==='impEmailGo')return impEmailGo();
+  if(a==='mailSlip')return mailSlips([S.slipEmp]);
+  if(a==='mailAll')return mailAll();
+  if(a==='impEmail')return impEmail();
   if(a==='allSlips')return slipPdf(payEmps().map(e=>e.id));
   if(a==='slipPdf')return slipPdf([S.slipEmp]);
   if(a==='waPdf')return waPdf(S.slipEmp);
@@ -986,7 +1045,7 @@ S.tab=lsGet('hrd.tab')||'dash';renderNav();render();window.__runImport=b=>runImp
   const be=await new Promise(r=>{let n=0;const t=()=>window.HRD_BACKEND?r(window.HRD_BACKEND):(++n>400?r({error:'config'}):setTimeout(t,25));t()});
   if(!be||be.error){S.dbMissing=true;S.configMissing=true;render(true);return}
   document.getElementById('loginRoot').hidden=true;
-  S.backend=be;S.dl=be.dl;S.db=be.db;
+  S.backend=be;S.dl=be.dl;S.db=be.db;S.getToken=be.getToken;
   const ub=document.getElementById('userbox');ub.innerHTML='<b></b><button class="btn" id="logoutBtn" type="button">Keluar</button>';ub.querySelector('b').textContent=be.email;
   document.getElementById('logoutBtn').onclick=()=>be.logout();
   try{S.needImport=await be.isEmpty()}catch(e){console.error(e);if(e&&e.code==='permission-denied'){S.noAccess=true;render(true);return}}
