@@ -1,10 +1,11 @@
-// Fungsi server Vercel: kirim slip gaji (PDF) ke email karyawan lewat Resend.
+// Fungsi server Vercel: kirim slip gaji (PDF) ke email karyawan lewat Gmail SMTP.
 // Hanya akun HRD yang sudah login (token Firebase valid) dan terdaftar di ALLOWED_EMAILS yang boleh memakainya.
 // Variabel lingkungan (Vercel → Settings → Environment Variables):
-//   RESEND_API_KEY  wajib   kunci API dari resend.com
-//   MAIL_FROM       wajib   mis. "HRD 2TC <hrd@domain-anda.com>" (atau onboarding@resend.dev untuk uji coba)
-//   ALLOWED_EMAILS  wajib   email HRD yang boleh mengirim, pisahkan dengan koma
-//   MAIL_REPLY_TO   opsional
+//   GMAIL_USER          wajib   alamat Gmail pengirim
+//   GMAIL_APP_PASSWORD  wajib   Sandi Aplikasi 16 huruf dari akun Google (bukan sandi login)
+//   ALLOWED_EMAILS      wajib   email HRD yang boleh mengirim, pisahkan dengan koma
+//   MAIL_REPLY_TO       opsional
+const nodemailer = require('nodemailer');
 const FIREBASE_API_KEY = process.env.FIREBASE_API_KEY || 'AIzaSyDqhQJU69-ORsBwqbS78rTWbvObo0xXsyA';
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -24,8 +25,8 @@ async function verifyHrd(req) {
 module.exports = async (req, res) => {
   res.setHeader('Cache-Control', 'no-store');
   if (req.method !== 'POST') return res.status(405).json({ error: 'Metode tidak diizinkan.' });
-  if (!process.env.RESEND_API_KEY || !process.env.MAIL_FROM || !process.env.ALLOWED_EMAILS)
-    return res.status(500).json({ error: 'Server belum diatur (RESEND_API_KEY, MAIL_FROM, ALLOWED_EMAILS).' });
+  if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD || !process.env.ALLOWED_EMAILS)
+    return res.status(500).json({ error: 'Server belum diatur (GMAIL_USER, GMAIL_APP_PASSWORD, ALLOWED_EMAILS).' });
   if (!(await verifyHrd(req))) return res.status(401).json({ error: 'Tidak berwenang. Masuk ulang sebagai HRD.' });
 
   const { to, nama, periode, rentang, filename, pdfBase64, perusahaan } = req.body || {};
@@ -34,27 +35,23 @@ module.exports = async (req, res) => {
     return res.status(400).json({ error: 'Lampiran PDF tidak valid.' });
 
   const firma = esc(perusahaan || 'HRD');
-  const body = {
-    from: process.env.MAIL_FROM,
-    to: [to],
+  const mail = {
+    from: '"' + String(perusahaan || 'HRD').replace(/["\r\n]/g, '') + '" <' + process.env.GMAIL_USER + '>',
+    to,
     subject: 'Slip Gaji ' + periode + ' - ' + nama,
     html: '<p>Halo ' + esc(nama) + ',</p><p>Berikut slip gaji Anda periode <b>' + esc(periode) + '</b>' +
       (rentang ? ' (' + esc(rentang) + ')' : '') + '. File PDF terlampir.</p>' +
       '<p>Dokumen ini bersifat rahasia. Jika ada yang tidak sesuai, hubungi HRD.</p><p>Terima kasih,<br>' + firma + '</p>',
-    attachments: [{ filename: String(filename || 'Slip Gaji.pdf'), content: pdfBase64 }],
+    attachments: [{ filename: String(filename || 'Slip Gaji.pdf'), content: pdfBase64, encoding: 'base64', contentType: 'application/pdf' }],
   };
-  if (process.env.MAIL_REPLY_TO) body.reply_to = process.env.MAIL_REPLY_TO;
+  if (process.env.MAIL_REPLY_TO) mail.replyTo = process.env.MAIL_REPLY_TO;
 
   try {
-    const r = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: { authorization: 'Bearer ' + process.env.RESEND_API_KEY, 'content-type': 'application/json' },
-      body: JSON.stringify(body),
-    });
-    const j = await r.json().catch(() => ({}));
-    if (!r.ok) return res.status(502).json({ error: j.message || 'Resend menolak (' + r.status + ').' });
-    return res.status(200).json({ ok: true, id: j.id });
+    const t = nodemailer.createTransport({ service: 'gmail', auth: { user: process.env.GMAIL_USER, pass: process.env.GMAIL_APP_PASSWORD } });
+    const info = await t.sendMail(mail);
+    return res.status(200).json({ ok: true, id: info.messageId });
   } catch (e) {
-    return res.status(502).json({ error: 'Gagal menghubungi layanan email.' });
+    const msg = e && e.responseCode === 535 ? 'Gmail menolak login. Periksa GMAIL_USER dan Sandi Aplikasi.' : 'Gagal mengirim lewat Gmail' + (e && e.code ? ' (' + e.code + ')' : '') + '.';
+    return res.status(502).json({ error: msg });
   }
 };

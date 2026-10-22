@@ -72,17 +72,19 @@ Firebase → **Authentication → Settings → Authorized domains → Add domain
 
 ## Kirim slip gaji lewat email (otomatis)
 
-Slip PDF dikirim ke email karyawan lewat Resend. Di halaman **Payroll** ada tombol **Kirim semua slip via email** (satu klik untuk semua), dan di halaman **Slip gaji** ada tombol **Kirim via email** per orang.
+Slip PDF dikirim ke email karyawan lewat Gmail SMTP. Di halaman **Payroll** ada tombol **Kirim semua slip via email** (satu klik untuk semua), dan di halaman **Slip gaji** ada tombol **Kirim via email** per orang. Batas Gmail sekitar 500 email per hari.
 
 **Setup satu kali**
 
-1. Daftar di https://resend.com → **API Keys** → buat kunci. Untuk email dari domain sendiri, tambahkan dan verifikasi domain di menu **Domains**. Untuk uji coba, `onboarding@resend.dev` hanya bisa mengirim ke email pemilik akun Resend.
+1. Akun Google pengirim: aktifkan **Verifikasi 2 Langkah**, lalu buat **Sandi Aplikasi** di https://myaccount.google.com/apppasswords (16 huruf, bukan sandi login).
 2. Di Vercel → project → **Settings → Environment Variables**, tambahkan:
-   - `RESEND_API_KEY` = kunci dari Resend
-   - `MAIL_FROM` = mis. `HRD 2TC <hrd@domain-anda.com>`
+   - `GMAIL_USER` = alamat Gmail pengirim
+   - `GMAIL_APP_PASSWORD` = Sandi Aplikasi 16 huruf (jenis Secret)
    - `ALLOWED_EMAILS` = email HRD yang boleh mengirim, pisahkan koma (sama seperti di Firestore Rules)
    - `MAIL_REPLY_TO` = (opsional)
 3. **Redeploy** di Vercel supaya variabel terbaca.
 4. Di halaman **Karyawan** tekan **Impor email dari Excel**, pilih `Daftar_Email_Karyawan_2TC.xlsx` (kolom `ID` dan `Email`). Email bisa diubah per orang lewat tombol Ubah.
 
 **Cara pakai bulanan**: kunci payroll → buka Payroll → **Kirim semua slip via email** → cek ringkasan hasil (yang gagal ditampilkan beserta alasannya).
+
+Kalau email masuk spam, minta karyawan menandainya "bukan spam" sekali saja.
