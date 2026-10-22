@@ -67,3 +67,22 @@ Firebase → **Authentication → Settings → Authorized domains → Add domain
 | Tidak bisa masuk, "auth/unauthorized-domain" | Domain Vercel belum ditambahkan (Langkah 4). |
 | "Akun ini belum diberi akses" | Email belum ada di Firestore Rules (Langkah 1.3). |
 | "Email atau kata sandi salah" | Cek user di Firebase Authentication, atau tekan **Lupa kata sandi**. |
+
+---
+
+## Kirim slip gaji lewat email (otomatis)
+
+Slip PDF dikirim ke email karyawan lewat Resend. Di halaman **Payroll** ada tombol **Kirim semua slip via email** (satu klik untuk semua), dan di halaman **Slip gaji** ada tombol **Kirim via email** per orang.
+
+**Setup satu kali**
+
+1. Daftar di https://resend.com → **API Keys** → buat kunci. Untuk email dari domain sendiri, tambahkan dan verifikasi domain di menu **Domains**. Untuk uji coba, `onboarding@resend.dev` hanya bisa mengirim ke email pemilik akun Resend.
+2. Di Vercel → project → **Settings → Environment Variables**, tambahkan:
+   - `RESEND_API_KEY` = kunci dari Resend
+   - `MAIL_FROM` = mis. `HRD 2TC <hrd@domain-anda.com>`
+   - `ALLOWED_EMAILS` = email HRD yang boleh mengirim, pisahkan koma (sama seperti di Firestore Rules)
+   - `MAIL_REPLY_TO` = (opsional)
+3. **Redeploy** di Vercel supaya variabel terbaca.
+4. Di halaman **Karyawan** tekan **Impor email dari Excel**, pilih `Daftar_Email_Karyawan_2TC.xlsx` (kolom `ID` dan `Email`). Email bisa diubah per orang lewat tombol Ubah.
+
+**Cara pakai bulanan**: kunci payroll → buka Payroll → **Kirim semua slip via email** → cek ringkasan hasil (yang gagal ditampilkan beserta alasannya).
