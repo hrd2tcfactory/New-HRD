@@ -22,6 +22,14 @@ async function verifyHrd(req) {
   return u && u.email && allowed.includes(u.email.toLowerCase()) ? u.email : null;
 }
 
+function revisiHtml(nama, periode, firma) {
+  return '<p>Halo ' + esc(nama) + ',</p>' +
+    '<p>Mohon abaikan slip gaji periode <b>' + esc(periode) + '</b> yang kami kirim sebelumnya. Terjadi kendala pada sistem sehingga isi slip tersebut belum sesuai.</p>' +
+    '<p>Slip gaji yang sudah dikoreksi terlampir pada email ini (PDF) dan menggantikan slip yang lama.</p>' +
+    '<p>Mohon maaf atas ketidaknyamanannya. Jika masih ada yang tidak sesuai, silakan hubungi HRD.</p>' +
+    '<p>Terima kasih atas kerja sama dan kontribusi Anda selama ini.</p><p>Salam,<br>' + firma + '</p>';
+}
+
 module.exports = async (req, res) => {
   res.setHeader('Cache-Control', 'no-store');
   if (req.method !== 'POST') return res.status(405).json({ error: 'Metode tidak diizinkan.' });
@@ -29,7 +37,7 @@ module.exports = async (req, res) => {
     return res.status(500).json({ error: 'Server belum diatur (GMAIL_USER, GMAIL_APP_PASSWORD, ALLOWED_EMAILS).' });
   if (!(await verifyHrd(req))) return res.status(401).json({ error: 'Tidak berwenang. Masuk ulang sebagai HRD.' });
 
-  const { to, nama, periode, rentang, filename, pdfBase64, perusahaan } = req.body || {};
+  const { to, nama, periode, rentang, filename, pdfBase64, perusahaan, revisi } = req.body || {};
   if (!EMAIL_RE.test(to || '')) return res.status(400).json({ error: 'Alamat email tidak valid.' });
   if (!pdfBase64 || typeof pdfBase64 !== 'string' || pdfBase64.length > 3_000_000)
     return res.status(400).json({ error: 'Lampiran PDF tidak valid.' });
@@ -38,8 +46,8 @@ module.exports = async (req, res) => {
   const mail = {
     from: '"' + String(perusahaan || 'HRD').replace(/["\r\n]/g, '') + '" <' + process.env.GMAIL_USER + '>',
     to,
-    subject: 'Slip Gaji ' + periode + ' - ' + nama,
-    html: '<p>Halo ' + esc(nama) + ',</p><p>Berikut slip gaji Anda periode <b>' + esc(periode) + '</b>' +
+    subject: (revisi ? '[REVISI] ' : '') + 'Slip Gaji ' + periode + ' - ' + nama,
+    html: revisi ? revisiHtml(nama, periode, firma) : '<p>Halo ' + esc(nama) + ',</p><p>Berikut slip gaji Anda periode <b>' + esc(periode) + '</b>' +
       (rentang ? ' (' + esc(rentang) + ')' : '') + '. File PDF terlampir.</p>' +
       '<p>Dokumen ini bersifat rahasia. Jika ada yang tidak sesuai, hubungi HRD.</p><p>Terima kasih,<br>' + firma + '</p>',
     attachments: [{ filename: String(filename || 'Slip Gaji.pdf'), content: pdfBase64, encoding: 'base64', contentType: 'application/pdf' }],

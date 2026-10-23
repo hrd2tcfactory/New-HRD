@@ -660,7 +660,7 @@ function vPay(){
     '<td class="num"><input class="cellin" type="number" min="0" step="1000" data-pot="'+esc(e.id)+'" value="'+(r.pot||'')+'" placeholder="0" aria-label="Potongan lain '+esc(e.nama)+'"'+dis+'></td>'+
     '<td class="num"><b>'+rp(r.thp)+'</b></td><td><button class="btn ghost" data-act="toSlip" data-id="'+esc(e.id)+'">Slip</button></td></tr>'}).join('');
   const lockBtn=locked?'<button class="btn" data-act="unlockPay">'+(S.armed==='unlockPay'?'Klik lagi untuk buka kunci':'Buka kunci')+'</button>':'<button class="btn primary" data-act="lockPay" style="white-space:normal;text-align:left">'+(S.armed==='lockPay'?(nSerius?'Ada '+nSerius+' peringatan. Klik lagi untuk tetap kunci':'Klik lagi untuk mengunci'):'Kunci payroll '+periodLabel(key))+'</button>';
-  return topbar('Payroll',true,'<button class="btn" data-act="exportPay">Unduh Excel</button><button class="btn" data-act="allSlips">Unduh semua slip (PDF)</button><button class="btn primary" data-act="mailAll">Kirim semua slip via email</button>')+lockBanner()+
+  return topbar('Payroll',true,'<button class="btn" data-act="exportPay">Unduh Excel</button><button class="btn" data-act="allSlips">Unduh semua slip (PDF)</button><button class="btn" data-act="mailAllRev">Kirim ulang sebagai revisi</button><button class="btn primary" data-act="mailAll">Kirim semua slip via email</button>')+lockBanner()+
   '<div class="kpis"><div class="kpi"><span class="k">Total take home pay</span><span class="v">Rp '+rp(T.thp)+'</span><span class="s">'+emps.length+' karyawan'+(locked?' · angka final':' · masih bisa berubah')+'</span></div>'+
   '<div class="kpi"><span class="k">Total lembur</span><span class="v">Rp '+rp(T.lm+T.ltm+T.lj)+'</span><span class="s">Minggu '+rp(T.lm)+' · Tgl merah '+rp(T.ltm)+' · Per jam '+rp(T.lj)+'</span></div>'+
   '<div class="kpi"><span class="k">Potongan kasbon</span><span class="v">Rp '+rp(T.kas)+'</span><span class="s">'+(locked?'Sudah dicatat ke saldo kasbon':'Dicatat ke saldo kasbon saat payroll dikunci')+'</span></div>'+
@@ -823,22 +823,22 @@ async function slipPdf(ids){
 function slipBlobB64(id){
   const doc=new jspdf.jsPDF({unit:'mm',format:'a5'});drawSlip(doc,payEmp(id,S.periodKey));
   const u8=new Uint8Array(doc.output('arraybuffer'));let bin='';for(let i=0;i<u8.length;i+=0x8000)bin+=String.fromCharCode.apply(null,u8.subarray(i,i+0x8000));return btoa(bin)}
-async function mailOne(id,token){
+async function mailOne(id,token,revisi){
   const e=payEmp(id,S.periodKey);const to=((S.emps[id]||{}).email||'').trim();
   if(!to)return {ok:false,err:'email belum diisi'};
   try{
-    const r=await fetch('/api/kirim-slip',{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+token},body:JSON.stringify({to,nama:e.nama,periode:periodLabel(S.periodKey),rentang:periodSub(S.periodKey),perusahaan:(S.settings||{}).nama,filename:'Slip Gaji '+e.nama+' '+periodLabel(S.periodKey)+'.pdf',pdfBase64:slipBlobB64(id)})});
+    const r=await fetch('/api/kirim-slip',{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+token},body:JSON.stringify({to,nama:e.nama,periode:periodLabel(S.periodKey),rentang:periodSub(S.periodKey),perusahaan:(S.settings||{}).nama,filename:'Slip Gaji '+e.nama+' '+periodLabel(S.periodKey)+'.pdf',pdfBase64:slipBlobB64(id),revisi:!!revisi})});
     const j=await r.json().catch(()=>({}));return r.ok?{ok:true}:{ok:false,err:j.error||('HTTP '+r.status)}
   }catch(err){return {ok:false,err:'koneksi gagal'}}
 }
-async function mailSlips(ids){
+async function mailSlips(ids,revisi){
   if(!window.jspdf){toast('Pustaka PDF belum termuat. Coba lagi sebentar.');return}
   if(!S.getToken){toast('Kirim email tidak tersedia di tampilan ini.');return}
   const sent=S.mailSent||(S.mailSent={});const key=S.periodKey;const res=[];
   const token=await S.getToken();
   for(let i=0;i<ids.length;i++){
     toast('Mengirim '+(i+1)+' dari '+ids.length+'…');
-    const e=payEmp(ids[i],key);const r=await mailOne(ids[i],token);
+    const e=payEmp(ids[i],key);const r=await mailOne(ids[i],token,revisi);
     if(r.ok)sent[key+'|'+ids[i]]=1;res.push(Object.assign({id:ids[i],nama:e.nama},r));
     await new Promise(z=>setTimeout(z,600));
   }
@@ -848,10 +848,10 @@ async function mailSlips(ids){
    (bad.length?'<div class="tablewrap"><table><thead><tr><th>Karyawan</th><th>Alasan</th></tr></thead><tbody>'+bad.map(x=>'<tr><td>'+esc(x.id+' '+x.nama)+'</td><td class="sub">'+esc(x.err)+'</td></tr>').join('')+'</tbody></table></div>':'')+
    '<div class="row"><button class="btn" data-act="closeModal">Tutup</button></div>');
 }
-function mailAll(){
+function mailAll(revisi){
   const ids=payEmps().map(e=>e.id);const noMail=ids.filter(id=>!((S.emps[id]||{}).email));
   const sent=S.mailSent||{};const done=ids.filter(id=>sent[S.periodKey+'|'+id]).length;
-  openModal('<h3>Kirim semua slip via email</h3><p class="note" style="margin:0">Periode <b>'+periodLabel(S.periodKey)+'</b>: <b>'+(ids.length-noMail.length)+'</b> karyawan punya email dan akan dikirimi slip PDF.'+(noMail.length?' <b>'+noMail.length+'</b> belum punya email dan dilewati.':'')+(done?' <b>'+done+'</b> sudah terkirim di sesi ini dan akan dikirim ulang.':'')+(isLocked()?'':' Payroll periode ini <b>belum dikunci</b>: angka bisa masih berubah.')+'</p><div class="row"><button class="btn primary" data-act="mailAllGo">Kirim sekarang</button><button class="btn" data-act="closeModal">Batal</button></div>');
+  openModal('<h3>'+(revisi?'Kirim ulang semua slip sebagai REVISI':'Kirim semua slip via email')+'</h3><p class="note" style="margin:0">Periode <b>'+periodLabel(S.periodKey)+'</b>: <b>'+(ids.length-noMail.length)+'</b> karyawan punya email dan akan dikirimi slip PDF.'+(noMail.length?' <b>'+noMail.length+'</b> belum punya email dan dilewati.':'')+(done?' <b>'+done+'</b> sudah terkirim di sesi ini dan akan dikirim ulang.':'')+(isLocked()?'':' Payroll periode ini <b>belum dikunci</b>: angka bisa masih berubah.')+'</p><div class="row"><button class="btn primary" data-act="'+(revisi?'mailAllRevGo':'mailAllGo')+'">Kirim sekarang</button><button class="btn" data-act="closeModal">Batal</button></div>');
 }
 function impEmail(){
   const inp=document.createElement('input');inp.type='file';inp.accept='.xlsx,.xls,.csv';
@@ -1005,6 +1005,8 @@ document.addEventListener('click',async ev=>{
   if(a==='fillAll'){if(armed('fillAll')){const t=todayISO();fillDates(periodDates(S.periodKey).filter(d=>d<=t),true)}return}
   if(a==='toSlip'){S.slipEmp=id;S.tab='slip';renderNav();render(true);window.scrollTo(0,0);return}
   if(a==='exportPay')return exportPay();
+  if(a==='mailAllRevGo'){closeModal();return mailSlips(payEmps().map(e=>e.id).filter(id=>(S.emps[id]||{}).email),true)}
+  if(a==='mailAllRev')return mailAll(true);
   if(a==='mailAllGo'){closeModal();return mailSlips(payEmps().map(e=>e.id).filter(id=>(S.emps[id]||{}).email))}
   if(a==='impEmailGo')return impEmailGo();
   if(a==='mailSlip')return mailSlips([S.slipEmp]);
