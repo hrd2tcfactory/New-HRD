@@ -739,7 +739,7 @@ function vSlip(){
   const ln=a=>'<div class="ln"><span>'+esc(a[0])+'</span><span>'+rp(a[1])+'</span></div>';
   return topbar('Slip gaji',true)+
   '<div class="row"><select id="slipSel" aria-label="Pilih karyawan">'+emps.map(x=>'<option value="'+esc(x.id)+'"'+(x.id===e.id?' selected':'')+'>'+esc(x.id+' — '+x.nama)+'</option>').join('')+'</select>'+
-  '<button class="btn primary" data-act="mailSlip">Kirim via email</button><button class="btn" data-act="waPdf">Kirim PDF via WhatsApp</button><button class="btn" data-act="slipPdf">Unduh PDF</button><button class="btn ghost" data-act="copyWa">Salin rincian (teks)</button>'+(e.wa?'<span class="sub">WA: +'+esc(e.wa)+'</span>':'<span class="sub">No WhatsApp belum diisi</span>')+(((S.emps[e.id]||{}).email)?'<span class="sub">Email: '+esc(S.emps[e.id].email)+'</span>':'<span class="sub">Email belum diisi</span>')+'</div>'+
+  '<button class="btn primary" data-act="mailSlip">Kirim via email</button><button class="btn" data-act="mailSlipRev">Kirim via email (revisi)</button><button class="btn" data-act="waPdf">Kirim PDF via WhatsApp</button><button class="btn" data-act="slipPdf">Unduh PDF</button><button class="btn ghost" data-act="copyWa">Salin rincian (teks)</button>'+(e.wa?'<span class="sub">WA: +'+esc(e.wa)+'</span>':'<span class="sub">No WhatsApp belum diisi</span>')+(((S.emps[e.id]||{}).email)?'<span class="sub">Email: '+esc(S.emps[e.id].email)+'</span>':'<span class="sub">Email belum diisi</span>')+'</div>'+
   '<div class="slip"><div class="hd"><div style="display:flex;align-items:center;gap:10px">'+(st.logo?'<img src="'+esc(st.logo)+'" alt="" style="max-height:40px;max-width:80px">':'')+'<div><b>'+esc(st.nama)+'</b><div class="sub">'+esc(st.alamat)+' · Slip gaji karyawan</div></div></div><div style="text-align:right"><div class="name">'+periodLabel(S.periodKey)+'</div><div class="sub">'+periodSub(S.periodKey)+'</div></div></div>'+
   '<div class="meta"><div><span>Nama</span>'+esc(e.nama)+'</div><div><span>ID · Jabatan</span>'+esc(e.id)+' · '+esc(e.jabatan)+'</div><div><span>Status</span>'+esc(e.status)+'</div><div><span>Rekening</span>'+esc(e.rekening||'—')+'</div></div>'+
   slipAttHtml(r)+slipCutiHtml(e)+
@@ -1010,6 +1010,7 @@ document.addEventListener('click',async ev=>{
   if(a==='mailAllGo'){closeModal();return mailSlips(payEmps().map(e=>e.id).filter(id=>(S.emps[id]||{}).email))}
   if(a==='impEmailGo')return impEmailGo();
   if(a==='mailSlip')return mailSlips([S.slipEmp]);
+  if(a==='mailSlipRev')return mailSlips([S.slipEmp],true);
   if(a==='mailAll')return mailAll();
   if(a==='impEmail')return impEmail();
   if(a==='allSlips')return slipPdf(payEmps().map(e=>e.id));
