@@ -356,7 +356,7 @@ function loanPaidBefore(loan,key){let t=0;const p=loan.potongan||{};for(const k 
 function loanDeduction(loan,key){
   const p=loan.potongan||{};if(p[key]!=null)return +p[key]||0;
   const {end}=periodRange(key);if(loan.tanggal&&parse(loan.tanggal)>end)return 0;
-  const later=Object.keys(p).some(k=>k>key);if(later)return 0;
+  const later=Object.keys(p).some(k=>k>key&&p[k]!=null);if(later)return 0;
   const rem=(+loan.jumlah||0)-loanPaidBefore(loan,key);return Math.max(0,Math.min(+loan.cicilan||0,rem))}
 function kasbonFor(empId,key){let t=0;for(const id in S.loans){const l=S.loans[id];if(l.empId===empId)t+=loanDeduction(l,key)}return t}
 function lockOf(key){const k=(S.periods[key||S.periodKey]||{}).kunci;return k&&k.rows?k:null}
@@ -696,6 +696,10 @@ function postLoans(key){
   for(const id in S.loans){const l=S.loans[id];const amt=loanDeduction(Object.assign({},l,{potongan:Object.assign({},l.potongan,{[key]:undefined})}),key);
     const cur=(l.potongan||{})[key];if(amt>0||cur!=null){l.potongan=Object.assign({},l.potongan,{[key]:amt});queuePatch('loans/'+id,{potongan:{[key]:amt}})}}
 }
+function unpostLoans(key){
+  for(const id in S.loans){const l=S.loans[id];if((l.potongan||{})[key]==null)continue;
+    delete l.potongan[key];queuePatch('loans/'+id,{potongan:{[key]:null}})}
+}
 function lockPay(){
   const key=S.periodKey;if(isLocked(key))return;
   postLoans(key);
@@ -707,8 +711,9 @@ function lockPay(){
 }
 function unlockPay(){
   const key=S.periodKey;if(!isLocked(key))return;
+  unpostLoans(key);
   patchPeriod({kunci:null});
-  toast('Kunci dibuka. Kunci lagi setelah koreksi selesai.');render(true);
+  toast('Kunci dibuka. Potongan kasbon periode ini dibatalkan. Kunci lagi setelah koreksi selesai.');render(true);
 }
 
 // ===== Slip =====
@@ -887,7 +892,7 @@ function vLoan(){
     return '<tr><td><div class="name">'+esc(e.nama)+'</div><div class="sub">'+esc(l.empId)+(l.keterangan?' · '+esc(l.keterangan):'')+'</div></td><td class="sub">'+fmtD(l.tanggal)+'</td><td class="num">'+rp(l.jumlah)+'</td><td class="num">'+rp(l.cicilan)+'</td><td class="num">'+rp(Math.max(0,l.sisaAwal))+'</td>'+
     '<td class="num">'+(l.now?'−'+rp(l.now)+'<div>'+(l.posted?'<span class="pill p-ok">Tercatat</span>':'<span class="pill p-warn">Menunggu kunci</span>')+'</div>':'–')+'</td>'+
     '<td class="num">'+(l.sisaAkhir>0?'<b>'+rp(l.sisaAkhir)+'</b>':'<span class="pill p-ok">Lunas</span>')+'</td>'+
-    '<td class="sub" style="white-space:normal;min-width:150px">'+(Object.keys(l.potongan||{}).length?Object.entries(l.potongan).sort().map(([k,v])=>esc(periodLabel(k))+': '+rp(v)).join('<br>'):'Belum ada potongan tercatat')+'</td><td><button class="btn" data-act="editLoan" data-id="'+esc(l._id)+'">Ubah</button></td></tr>'}).join(''):'<tr><td colspan="9" class="empty">Belum ada kasbon.</td></tr>')+
+    '<td class="sub" style="white-space:normal;min-width:150px">'+(Object.values(l.potongan||{}).some(v=>v!=null)?Object.entries(l.potongan).filter(([k,v])=>v!=null).sort().map(([k,v])=>esc(periodLabel(k))+': '+rp(v)).join('<br>'):'Belum ada potongan tercatat')+'</td><td><button class="btn" data-act="editLoan" data-id="'+esc(l._id)+'">Ubah</button></td></tr>'}).join(''):'<tr><td colspan="9" class="empty">Belum ada kasbon.</td></tr>')+
   '</tbody><tfoot><tr><td>Total</td><td></td><td></td><td></td><td class="num">'+rp(tAwal)+'</td><td class="num">−'+rp(tNow)+'</td><td class="num">'+rp(tAkhir)+'</td><td></td><td></td></tr></tfoot></table></div>';
 }
 function loanForm(id){
