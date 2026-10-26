@@ -981,7 +981,7 @@ function kpiStatusPill(r,e){
 }
 function vKpi(){
   const key=kpiKey(),q=S.q.toLowerCase();
-  const nav='<div class="period"><button class="btn ghost icon" data-act="kpiPrev" aria-label="Bulan sebelumnya">‹</button><div class="lbl"><b>'+kpiMonthLabel(key)+'</b><small>Bulan kalender</small></div><button class="btn ghost icon" data-act="kpiNext" aria-label="Bulan berikutnya">›</button></div>';
+  const nav='<div class="period"><button class="btn ghost icon" data-act="kpiPrev" aria-label="Bulan sebelumnya">‹</button><div class="lbl"><b>'+kpiMonthLabel(key)+'</b><small>'+periodSub(key)+'</small></div><button class="btn ghost icon" data-act="kpiNext" aria-label="Bulan berikutnya">›</button></div>';
   const btns='<button class="btn" data-act="kpiAuto">Lengkapi otomatis</button><button class="btn" data-act="kpiExport">Ekspor Excel</button><button class="btn primary" data-act="kpiImport">Impor dari Excel</button>';
   const bar=topbar('KPI',false,btns+nav);
   if(!Object.keys(S.kpiD).length)return bar+'<div class="panel" style="max-width:640px"><h2>Belum ada templat KPI</h2><p class="note">Impor sheet KPI (file Excel dengan sheet <b>Rekap Okt</b>, <b>Rekap Jun-Des</b> dan <b>Detail Indikator</b>) untuk membuat templat indikator tiap divisi dan menetapkan divisi serta penilai tiap karyawan. Setelah itu nilai diisi per karyawan di sini.</p><div class="row"><button class="btn primary" data-act="kpiImport">Impor dari Excel</button></div></div>';
@@ -1101,9 +1101,14 @@ async function kpiExport(){
 // Hanya sel kosong yang diisi. Bulan yang sudah punya skor impor (Rekap Jun-Des) dan bulan sebelum tanggal bergabung dilewati.
 const KPI_DEF=7;
 function kpiAttend(id,key){
-  let H=0,SH=0,I=0,Sk=0,C=0,A=0;
-  for(const pk in S.periods){const a=((S.periods[pk]||{}).absensi||{})[id]||{};for(const d in a){if(d.slice(0,7)!==key)continue;const v=a[d];if(v==='H')H++;else if(v==='SH')SH++;else if(v==='I')I++;else if(v==='S')Sk++;else if(v==='C')C++;else if(v==='A')A++}}
-  const den=H+SH+I+Sk+C+A;return den?{den,hadir:(H+SH*.5)/den*100,alpha:A/den*100}:null;
+  const z=c=>c&&(c.H||0)+(c.SH||0)+(c.I||0)+(c.S||0)+(c.A||0)>0;
+  let c=null;const a=((S.periods[key]||{}).absensi||{})[id];
+  if(a){const {start,end}=periodRange(key),f=iso(start),t=iso(end);c={H:0,SH:0,I:0,S:0,C:0,A:0};for(const d in a){if(d<f||d>t)continue;if(c[a[d]]!=null)c[a[d]]++}}
+  if(!z(c))c=((S.kpiN[key]||{}).absen||{})[id];
+  if(!z(c))return null;
+  // cuti (C) dianggap izin resmi: tidak masuk pembagi kehadiran
+  const den=(c.H||0)+(c.SH||0)+(c.I||0)+(c.S||0)+(c.A||0);
+  return {den,hadir:((c.H||0)+(c.SH||0)*.5)/den*100,alpha:(c.A||0)/den*100};
 }
 function kpiNilaiFrom(x,actual){
   const tg=+x.target;let n;
@@ -1121,7 +1126,7 @@ function kpiAutoValue(e,x,key){
 function kpiAutoPlan(from,to){
   const plan=[];let k=from;
   while(k<=to){
-    const [y,m]=k.split('-').map(Number),last=iso(new Date(y,m,0));
+    const last=iso(periodRange(k).end);
     empList().forEach(e=>{const t=kpiTpl(e);if(!t)return;
       if(e.tglBergabung&&e.tglBergabung>last)return;
       const doc=S.kpiN[k]||{},cur=((doc.nilai||{})[e.id])||{};
@@ -1136,13 +1141,34 @@ function kpiAutoPlan(from,to){
 }
 function kpiAutoForm(){
   const to=kpiKey();
-  openModal('<h3>Lengkapi KPI otomatis</h3><p class="note">Mengisi <b>sel indikator yang masih kosong</b>; nilai yang sudah ada tidak diubah. <b>Kehadiran</b>, <b>Attendance Rate</b> dan <b>Absenteeism</b> dihitung dari menu Absensi (target tercapai = 10, di bawah target dikurangi sebanding). Indikator lain diisi nilai awal <b>'+KPI_DEF+'</b> dan ditandai oranye serta status <i>Perlu dikoreksi</i> sampai Anda simpan ulang nilainya. Karyawan yang belum bergabung di bulan itu dan bulan yang sudah punya skor impor dilewati.</p>'+
-   '<div class="form"><label>Dari bulan<input id="ka_from" type="month" value="2026-06"></label><label>Sampai bulan<input id="ka_to" type="month" value="'+to+'"></label></div>'+
+  openModal('<h3>Lengkapi KPI otomatis</h3><p class="note">Mengisi <b>sel indikator yang masih kosong</b>; nilai yang sudah ada tidak diubah. <b>Kehadiran</b>, <b>Attendance Rate</b> dan <b>Absenteeism</b> dihitung dari menu Absensi atau dari file HR_SISTEM di bawah; cuti tidak dihitung sebagai tidak hadir (target tercapai = 10, di bawah target dikurangi sebanding). Indikator lain diisi nilai awal <b>'+KPI_DEF+'</b> dan ditandai oranye serta status <i>Perlu dikoreksi</i> sampai Anda simpan ulang nilainya. Karyawan yang belum bergabung di bulan itu dan bulan yang sudah punya skor impor dilewati.</p>'+
+   '<div class="form"><label>Dari bulan<input id="ka_from" type="month" value="2026-06"></label><label>Sampai bulan<input id="ka_to" type="month" value="'+to+'"></label><label class="full">Absensi bulan lain (opsional): file HR_SISTEM_*.xlsx<input id="ka_files" type="file" accept=".xlsx" multiple><span class="hint">Bulan dibaca dari nama file (JUNI, JULI, …) dan disamakan dengan nama periode payroll. Data hanya dipakai untuk KPI, tidak mengubah menu Absensi.</span></label></div>'+
    '<div class="row"><button class="btn primary" data-act="kpiAutoGo">Isi sekarang</button><button class="btn" data-act="closeModal">Batal</button></div>');
 }
-function kpiAutoGo(){
+const KPI_NM={januari:1,februari:2,maret:3,april:4,mei:5,juni:6,juli:7,agustus:8,september:9,oktober:10,november:11,desember:12};
+async function kpiReadAbsen(f){
+  const m=Object.keys(KPI_NM).find(n=>f.name.toLowerCase().includes(n)),y=(/20\d\d/.exec(f.name)||['2026'])[0];
+  if(!m)throw new Error('Bulan tidak terbaca dari nama file '+f.name);
+  const key=y+'-'+pad(KPI_NM[m]);
+  const wb=XLSX.read(await f.arrayBuffer(),{type:'array'}),ws=wb.Sheets['ABSENSI'];if(!ws)throw new Error('Sheet ABSENSI tidak ada di '+f.name);
+  const rg=XLSX.utils.decode_range(ws['!ref']);rg.s.c=0;rg.s.r=0;ws['!ref']=XLSX.utils.encode_range(rg);
+  const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:null}),out={};
+  rows.forEach(r=>{const id=String(r[1]||'').trim();if(!/^[A-Z]\d+$/.test(id))return;const c={H:0,SH:0,I:0,S:0,C:0,A:0};
+    r.slice(4,35).forEach(x=>{if(typeof x==='string'&&c[x]!=null)c[x]++});if(c.H+c.SH+c.I+c.S+c.C+c.A)out[id]=c});
+  return {key,out};
+}
+async function kpiAutoGo(){
   const from=$('#ka_from').value,to=$('#ka_to').value;if(!from||!to||from>to){toast('Rentang bulan tidak valid.');return}
-  const plan=kpiAutoPlan(from,to);if(!plan.length){closeModal();toast('Tidak ada sel kosong untuk dilengkapi.');return}
+  const files=[...($('#ka_files').files||[])];let nAb=0;
+  if(files.length){
+    if(!window.XLSX){toast('Pustaka Excel belum termuat. Coba lagi sebentar.');return}
+    try{for(const f of files){const {key,out}=await kpiReadAbsen(f);const ids=Object.fromEntries(Object.entries(out).filter(([id])=>S.emps[id]));
+      if(!S.kpiN[key])S.kpiN[key]={key,nilai:{},catatan:{},hist:{},def:{}};S.kpiN[key].absen=Object.assign(S.kpiN[key].absen||{},ids);
+      queuePatch('kpiNilai/'+key,{absen:ids},{key,nilai:{},catatan:{},hist:{},def:{}});nAb+=Object.keys(ids).length}}
+    catch(err){console.error(err);toast('Impor absensi gagal: '+err.message);return}
+  }
+  const plan=kpiAutoPlan(from,to);
+  if(!plan.length){closeModal();render(true);toast(nAb?'Absensi '+nAb+' baris tersimpan, tapi tidak ada sel kosong untuk dilengkapi.':'Tidak ada sel kosong untuk dilengkapi.');return}
   const by={};plan.forEach(p=>{const m=by[p.k]||(by[p.k]={nilai:{},def:{}});m.nilai[p.e.id]=p.nilai;if(Object.keys(p.def).length)m.def[p.e.id]=p.def});
   for(const k in by){if(!S.kpiN[k])S.kpiN[k]={key:k,nilai:{},catatan:{},hist:{},def:{}};deepMerge(S.kpiN[k],by[k]);queuePatch('kpiNilai/'+k,by[k],{key:k,nilai:{},catatan:{},hist:{},def:{}})}
   const nAuto=plan.reduce((a,p)=>a+p.nAuto,0);
