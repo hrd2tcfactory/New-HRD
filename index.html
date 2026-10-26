@@ -967,7 +967,7 @@ function kpiTpl(e){return e.kpiDivisi?S.kpiD[kpiSlug(e.kpiDivisi)]:null}
 function kpiScore(e,key){
   const t=kpiTpl(e),doc=S.kpiN[key]||{},v=(doc.nilai||{})[e.id]||{},total=t?t.indikator.length:0;
   if(t){let sw=0,sv=0,n=0;t.indikator.forEach((x,i)=>{const val=v[i];if(val!=null&&val!==''&&!isNaN(+val)){sw+=+x.bobot;sv+=+x.bobot*(+val);n++}});
-    if(n&&sw)return {skor:sv/sw,done:n,total,def:Object.keys(((doc.def||{})[e.id])||{}).length}}
+    if(n&&sw)return {skor:sv/sw,done:n,total,def:Object.values(((doc.def||{})[e.id])||{}).filter(Boolean).length}}
   const h=(doc.hist||{})[e.id];
   if(h!=null&&h!==''&&!isNaN(+h))return {skor:+h,done:total,total,imp:true};
   return {skor:null,done:0,total};
@@ -1115,12 +1115,16 @@ function kpiNilaiFrom(x,actual){
   if(x.arah==='≤'){n=actual<=tg?10:(tg>0?10*tg/actual:1)}else{n=tg>0?10*actual/tg:10}
   return Math.max(1,Math.min(10,Math.round(n*10)/10));
 }
+// indikator "dari laporan harian" -> kolom hasil hitung di kpiNilai/{bulan}.lap.{id}
+const KPI_LAP={'kelengkapan laporan harian':'kelengkapan','tugas selesai (status done)':'tugas','pencapaian target harian':'target','pekerjaan tercatat per hari kerja':'perHari','orderan pending':'pending','konten terbit (upload/posting)':'konten','interaksi medsos harian (story, reply dm/komentar)':'interaksi'};
 function kpiAutoValue(e,x,key){
   const nm=x.nama.toLowerCase(),at=kpiAttend(e.id,key);
   if(at){
     if(nm==='kehadiran'||nm==='attendance rate')return {v:kpiNilaiFrom(x,at.hadir),auto:true};
     if(nm.startsWith('absenteeism'))return {v:kpiNilaiFrom(x,at.alpha),auto:true};
   }
+  const lp=(((S.kpiN[key]||{}).lap||{})[e.id]);
+  if(lp){const f=KPI_LAP[nm];const v=f&&lp[f];if(v!=null)return {v:kpiNilaiFrom(x,v),auto:true}}
   return {v:KPI_DEF,auto:false};
 }
 function kpiAutoPlan(from,to){
@@ -1132,7 +1136,8 @@ function kpiAutoPlan(from,to){
       const doc=S.kpiN[k]||{},cur=((doc.nilai||{})[e.id])||{};
       if((doc.hist||{})[e.id]!=null&&!Object.keys(cur).length)return;
       const nilai={},def={};let nAuto=0;
-      t.indikator.forEach((x,i)=>{if(cur[i]!=null&&cur[i]!=='')return;const r=kpiAutoValue(e,x,k);nilai[i]=r.v;if(r.auto)nAuto++;else def[i]=true});
+      const dfl=((doc.def||{})[e.id])||{};
+      t.indikator.forEach((x,i)=>{if(cur[i]!=null&&cur[i]!==''&&!dfl[i])return;const r=kpiAutoValue(e,x,k);if(dfl[i]&&!r.auto)return;nilai[i]=r.v;if(r.auto){nAuto++;if(dfl[i])def[i]=null}else def[i]=true});
       if(Object.keys(nilai).length)plan.push({k,e,nilai,def,nAuto});
     });
     k=kpiShift(k,1);
@@ -1142,7 +1147,7 @@ function kpiAutoPlan(from,to){
 function kpiAutoForm(){
   const to=kpiKey();
   openModal('<h3>Lengkapi KPI otomatis</h3><p class="note">Mengisi <b>sel indikator yang masih kosong</b>; nilai yang sudah ada tidak diubah. <b>Kehadiran</b>, <b>Attendance Rate</b> dan <b>Absenteeism</b> dihitung dari menu Absensi atau dari file HR_SISTEM di bawah; cuti tidak dihitung sebagai tidak hadir (target tercapai = 10, di bawah target dikurangi sebanding). Indikator lain diisi nilai awal <b>'+KPI_DEF+'</b> dan ditandai oranye serta status <i>Perlu dikoreksi</i> sampai Anda simpan ulang nilainya. Karyawan yang belum bergabung di bulan itu dan bulan yang sudah punya skor impor dilewati.</p>'+
-   '<div class="form"><label>Dari bulan<input id="ka_from" type="month" value="2026-06"></label><label>Sampai bulan<input id="ka_to" type="month" value="'+to+'"></label><label class="full">Absensi bulan lain (opsional): file HR_SISTEM_*.xlsx<input id="ka_files" type="file" accept=".xlsx" multiple><span class="hint">Bulan dibaca dari nama file (JUNI, JULI, …) dan disamakan dengan nama periode payroll. Data hanya dipakai untuk KPI, tidak mengubah menu Absensi.</span></label></div>'+
+   '<div class="form"><label>Dari bulan<input id="ka_from" type="month" value="2026-06"></label><label>Sampai bulan<input id="ka_to" type="month" value="'+to+'"></label><label class="full">Absensi bulan lain (opsional): file HR_SISTEM_*.xlsx<input id="ka_files" type="file" accept=".xlsx" multiple><span class="hint">Bulan dibaca dari nama file (JUNI, JULI, …) dan disamakan dengan nama periode payroll. Data hanya dipakai untuk KPI, tidak mengubah menu Absensi.</span></label><label class="full">Laporan harian divisi (opsional): file Laporan Harian Divisi.xlsx<input id="ka_lap" type="file" accept=".xlsx"><span class="hint">Sheet Content Creator, Admin dan RnD dihitung menjadi indikator \"dari laporan harian\" (kelengkapan, tugas selesai, target harian, konten, orderan pending, dst.).</span></label></div>'+
    '<div class="row"><button class="btn primary" data-act="kpiAutoGo">Isi sekarang</button><button class="btn" data-act="closeModal">Batal</button></div>');
 }
 const KPI_NM={januari:1,februari:2,maret:3,april:4,mei:5,juni:6,juli:7,agustus:8,september:9,oktober:10,november:11,desember:12};
@@ -1157,6 +1162,57 @@ async function kpiReadAbsen(f){
     r.slice(4,35).forEach(x=>{if(typeof x==='string'&&c[x]!=null)c[x]++});if(c.H+c.SH+c.I+c.S+c.C+c.A)out[id]=c});
   return {key,out};
 }
+
+// ---- Laporan harian divisi (Content Creator / Admin / RnD) ----
+function kpiNorm(n){return String(n||'').replace(/a\.k\.a.*$/i,'').toLowerCase().replace(/[^a-z\s]/g,' ').split(/\s+/).filter(t=>t.length>1)}
+function kpiMatchEmp(name,cands){const t=kpiNorm(name);let best=null,bs=0;
+  cands.forEach(e=>{const u=kpiNorm(e.nama);const sc=t.filter(x=>u.includes(x)).length;if(sc>bs){bs=sc;best=e}});
+  return bs>=Math.min(2,t.length)&&bs>0?best:null}
+const kpiNum=v=>{if(typeof v==='number')return v;const m=/^\s*(\d+(?:[.,]\d+)?)/.exec(String(v==null?'':v));return m?parseFloat(m[1].replace(',','.')):null};
+function kpiParseLap(ws){
+  const rg=XLSX.utils.decode_range(ws['!ref']);rg.s.c=0;rg.s.r=0;ws['!ref']=XLSX.utils.encode_range(rg);
+  const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:null,raw:true}),starts=[];
+  rows.forEach((r,ri)=>r.forEach((v,ci)=>{if(typeof v==='string'&&/^\s*nama\s*:/i.test(v))starts.push({ri,ci,name:v.replace(/^\s*nama\s*:/i,'').trim()})}));
+  const out=[];
+  starts.forEach(s=>{
+    const hr=[s.ri+1,s.ri+2].find(i=>rows[i]&&typeof rows[i][s.ci]==='string'&&/^\s*tanggal/i.test(rows[i][s.ci]));if(hr==null)return;
+    const nextRight=starts.filter(x=>x.ri===s.ri&&x.ci>s.ci).map(x=>x.ci);const c1=nextRight.length?Math.min(...nextRight):Math.max(...rows.map(r=>r.length));
+    const nextDown=starts.filter(x=>x.ci===s.ci&&x.ri>s.ri).map(x=>x.ri);const r1=nextDown.length?Math.min(...nextDown):rows.length;
+    const H={};for(let c=s.ci;c<c1;c++){const h=String(rows[hr][c]||'').toLowerCase().replace(/\s+/g,' ');if(!h)continue;
+      if(/aktivitas|judul|pekerjaan/.test(h)&&H.akt==null)H.akt=c;else if(/target/.test(h))H.tgt=c;else if(/realisasi/.test(h))H.real=c;else if(/^status/.test(h))H.st=c;else if(/selesai diproses/.test(h))H.done=c;else if(/orderan/.test(h)&&/pending/.test(h))H.pend=c;else if(/platform/.test(h))H.plat=c}
+    let label='';for(let c=s.ci;c<c1;c++){const v=rows[s.ri][c];if(typeof v==='string'&&/bulan/i.test(v))label=v}
+    const recs=[];let cur=null;
+    for(let ri=hr+1;ri<r1;ri++){const r=rows[ri]||[];const d=r[s.ci];if(d instanceof Date)cur=iso(d);else if(typeof d==='string'&&/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(d.trim())){const [m,dd,y]=d.trim().split('/').map(Number);cur=y+'-'+pad(m)+'-'+pad(dd)}
+      const akt=H.akt!=null?r[H.akt]:null;if(!cur||typeof akt!=='string'||!akt.trim()||akt.trim()==='-')continue;
+      recs.push({d:cur,akt,tgt:H.tgt!=null?kpiNum(r[H.tgt]):null,real:H.real!=null?kpiNum(r[H.real]):null,st:H.st!=null&&r[H.st]!=null?String(r[H.st]).trim().toLowerCase():'',done:H.done!=null?kpiNum(r[H.done]):null,pend:H.pend!=null?kpiNum(r[H.pend]):null,plat:H.plat!=null&&typeof r[H.plat]==='string'?r[H.plat].trim():''})}
+    if(recs.length)out.push({name:s.name,label,recs});
+  });
+  return out;
+}
+function kpiLapMetrics(recs,wd){
+  const days=new Set(recs.map(r=>r.d)).size,n=recs.length,R=x=>Math.round(x*10)/10;
+  const m={hari:days,kelengkapan:wd?R(Math.min(100,days/wd*100)):null,perHari:days?R(n/days):null};
+  const st=recs.filter(r=>r.st);if(st.length)m.tugas=R(st.filter(r=>r.st.startsWith('done')).length/st.length*100);
+  const tp=recs.filter(r=>r.tgt!=null&&r.real!=null),tg=tp.reduce((a,r)=>a+r.tgt,0);if(tp.length&&tg>0)m.target=R(tp.reduce((a,r)=>a+r.real,0)/tg*100);
+  const pd=recs.filter(r=>r.pend!=null||r.done!=null);if(pd.some(r=>r.pend!=null)){const P=pd.reduce((a,r)=>a+(r.pend||0),0),D=pd.reduce((a,r)=>a+(r.done||0),0);if(P+D>0)m.pending=R(P/(P+D)*100)}
+  if(recs.some(r=>r.plat)){m.konten=recs.filter(r=>r.plat&&r.plat!=='-'&&/upload|posting|publish/i.test(r.akt)).length;
+    const dd=new Set(recs.filter(r=>/story|reply|comment|komentar|\bdm\b/i.test(r.akt)).map(r=>r.d)).size;m.interaksi=wd?R(Math.min(100,dd/wd*100)):null}
+  return m;
+}
+async function kpiReadLaporan(f){
+  const wb=XLSX.read(await f.arrayBuffer(),{type:'array',cellDates:true});
+  const secs=[];wb.SheetNames.forEach(n=>kpiParseLap(wb.Sheets[n]).forEach(x=>secs.push(x)));
+  if(!secs.length)throw new Error('Format laporan harian tidak dikenali');
+  const all=secs.flatMap(s=>s.recs.map(r=>r.d)).sort(),dmin=all[0],dmax=all[all.length-1],hol=holidays();
+  const cands=empList().filter(e=>['Designer','Admin','Content Creator'].includes(e.kpiDivisi));
+  const res={},miss=new Set();
+  secs.forEach(s=>{const e=kpiMatchEmp(s.name,cands);if(!e){miss.add(s.name);return}
+    const by={};s.recs.forEach(r=>{const k=r.d.slice(0,7);(by[k]||(by[k]=[])).push(r)});
+    for(const k in by){const [y,m]=k.split('-').map(Number);const a=iso(new Date(y,m-1,1))<dmin?dmin:iso(new Date(y,m-1,1));let b=iso(new Date(y,m,0));if(b>dmax)b=dmax;
+      let wd=0;for(let d=parse(a);d<=parse(b);d.setDate(d.getDate()+1)){if(d.getDay()!==0&&!hol.has(iso(d)))wd++}
+      (res[k]||(res[k]={}))[e.id]=kpiLapMetrics(by[k],wd)}});
+  return {res,miss:[...miss]};
+}
 async function kpiAutoGo(){
   const from=$('#ka_from').value,to=$('#ka_to').value;if(!from||!to||from>to){toast('Rentang bulan tidak valid.');return}
   const files=[...($('#ka_files').files||[])];let nAb=0;
@@ -1167,12 +1223,19 @@ async function kpiAutoGo(){
       queuePatch('kpiNilai/'+key,{absen:ids},{key,nilai:{},catatan:{},hist:{},def:{}});nAb+=Object.keys(ids).length}}
     catch(err){console.error(err);toast('Impor absensi gagal: '+err.message);return}
   }
+  const lf=$('#ka_lap').files[0];let nLap=0,lapMiss=[];
+  if(lf){
+    if(!window.XLSX){toast('Pustaka Excel belum termuat. Coba lagi sebentar.');return}
+    try{const {res,miss}=await kpiReadLaporan(lf);lapMiss=miss;
+      for(const k in res){if(!S.kpiN[k])S.kpiN[k]={key:k,nilai:{},catatan:{},hist:{},def:{}};S.kpiN[k].lap=Object.assign(S.kpiN[k].lap||{},res[k]);queuePatch('kpiNilai/'+k,{lap:res[k]},{key:k,nilai:{},catatan:{},hist:{},def:{}});nLap+=Object.keys(res[k]).length}}
+    catch(err){console.error(err);toast('Impor laporan harian gagal: '+err.message);return}
+  }
   const plan=kpiAutoPlan(from,to);
   if(!plan.length){closeModal();render(true);toast(nAb?'Absensi '+nAb+' baris tersimpan, tapi tidak ada sel kosong untuk dilengkapi.':'Tidak ada sel kosong untuk dilengkapi.');return}
   const by={};plan.forEach(p=>{const m=by[p.k]||(by[p.k]={nilai:{},def:{}});m.nilai[p.e.id]=p.nilai;if(Object.keys(p.def).length)m.def[p.e.id]=p.def});
   for(const k in by){if(!S.kpiN[k])S.kpiN[k]={key:k,nilai:{},catatan:{},hist:{},def:{}};deepMerge(S.kpiN[k],by[k]);queuePatch('kpiNilai/'+k,by[k],{key:k,nilai:{},catatan:{},hist:{},def:{}})}
   const nAuto=plan.reduce((a,p)=>a+p.nAuto,0);
-  closeModal();render(true);toast('Terisi: '+plan.length+' penilaian ('+Object.keys(by).length+' bulan), '+nAuto+' indikator dihitung dari absensi, sisanya nilai awal '+KPI_DEF+'.');
+  closeModal();render(true);toast('Terisi: '+plan.length+' penilaian ('+Object.keys(by).length+' bulan), '+nAuto+' indikator dihitung dari absensi/laporan harian, sisanya nilai awal '+KPI_DEF+'.'+(lapMiss.length?' Nama laporan tidak cocok: '+lapMiss.join(', ')+'.':''));
 }
 function kpiClick(a,id){
   if(a==='kpiPrev'||a==='kpiNext'){S.kpiMonth=kpiShift(kpiKey(),a==='kpiPrev'?-1:1);render(true);return}
