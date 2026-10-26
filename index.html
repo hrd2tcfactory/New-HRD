@@ -967,7 +967,7 @@ function kpiTpl(e){return e.kpiDivisi?S.kpiD[kpiSlug(e.kpiDivisi)]:null}
 function kpiScore(e,key){
   const t=kpiTpl(e),doc=S.kpiN[key]||{},v=(doc.nilai||{})[e.id]||{},total=t?t.indikator.length:0;
   if(t){let sw=0,sv=0,n=0;t.indikator.forEach((x,i)=>{const val=v[i];if(val!=null&&val!==''&&!isNaN(+val)){sw+=+x.bobot;sv+=+x.bobot*(+val);n++}});
-    if(n&&sw)return {skor:sv/sw,done:n,total}}
+    if(n&&sw)return {skor:sv/sw,done:n,total,def:Object.keys(((doc.def||{})[e.id])||{}).length}}
   const h=(doc.hist||{})[e.id];
   if(h!=null&&h!==''&&!isNaN(+h))return {skor:+h,done:total,total,imp:true};
   return {skor:null,done:0,total};
@@ -976,12 +976,13 @@ function kpiStatusPill(r,e){
   if(!e.kpiDivisi||!kpiTpl(e))return '<span class="pill p-warn">Divisi belum diatur</span>';
   if(r.imp)return '<span class="pill p-ok">Selesai (impor)</span>';
   if(!r.done)return '<span class="pill p-mute">Belum dinilai</span>';
+  if(r.def)return '<span class="pill p-warn">Perlu dikoreksi ('+r.def+')</span>';
   return r.done>=r.total?'<span class="pill p-ok">Selesai</span>':'<span class="pill p-warn">'+r.done+'/'+r.total+' indikator</span>';
 }
 function vKpi(){
   const key=kpiKey(),q=S.q.toLowerCase();
   const nav='<div class="period"><button class="btn ghost icon" data-act="kpiPrev" aria-label="Bulan sebelumnya">‹</button><div class="lbl"><b>'+kpiMonthLabel(key)+'</b><small>Bulan kalender</small></div><button class="btn ghost icon" data-act="kpiNext" aria-label="Bulan berikutnya">›</button></div>';
-  const btns='<button class="btn" data-act="kpiExport">Ekspor Excel</button><button class="btn primary" data-act="kpiImport">Impor dari Excel</button>';
+  const btns='<button class="btn" data-act="kpiAuto">Lengkapi otomatis</button><button class="btn" data-act="kpiExport">Ekspor Excel</button><button class="btn primary" data-act="kpiImport">Impor dari Excel</button>';
   const bar=topbar('KPI',false,btns+nav);
   if(!Object.keys(S.kpiD).length)return bar+'<div class="panel" style="max-width:640px"><h2>Belum ada templat KPI</h2><p class="note">Impor sheet KPI (file Excel dengan sheet <b>Rekap Okt</b>, <b>Rekap Jun-Des</b> dan <b>Detail Indikator</b>) untuk membuat templat indikator tiap divisi dan menetapkan divisi serta penilai tiap karyawan. Setelah itu nilai diisi per karyawan di sini.</p><div class="row"><button class="btn primary" data-act="kpiImport">Impor dari Excel</button></div></div>';
   const all=empList();
@@ -1009,7 +1010,7 @@ function vKpi(){
   return bar+kp+filt+tbl+rec;
 }
 function kpiForm(id){
-  const e=S.emps[id];if(!e)return;const key=kpiKey(),doc=S.kpiN[key]||{},v=(doc.nilai||{})[id]||{},t=kpiTpl(e);
+  const e=S.emps[id];if(!e)return;const key=kpiKey(),doc=S.kpiN[key]||{},v=(doc.nilai||{})[id]||{},df=(doc.def||{})[id]||{},t=kpiTpl(e);
   const divs=Object.values(S.kpiD).map(d=>d.nama).sort();
   let h='<h3>KPI '+esc(e.nama)+' · '+kpiMonthLabel(key)+'</h3><div class="form">'+
    '<label>Divisi KPI<select data-kpidiv="'+esc(id)+'"><option value="">— Pilih —</option>'+divs.map(d=>'<option'+(d===e.kpiDivisi?' selected':'')+'>'+esc(d)+'</option>').join('')+'</select></label>'+
@@ -1018,7 +1019,7 @@ function kpiForm(id){
   let cat='';
   h+='<div class="tablewrap" style="max-height:52vh"><table><thead><tr><th>Indikator</th><th>Target</th><th class="num">Bobot</th><th class="num">Nilai (1–10)</th></tr></thead><tbody>'+
    t.indikator.map((x,i)=>{let r='';if(x.kategori!==cat){cat=x.kategori;r='<tr><td colspan="4" class="sub"><b>'+esc(cat)+'</b></td></tr>'}
-    return r+'<tr><td>'+esc(x.nama)+'</td><td class="sub">'+esc(x.arah)+' '+esc(x.target)+' '+esc(x.satuan)+'</td><td class="num">'+esc(x.bobot)+'</td><td class="num"><input type="number" min="1" max="10" step="0.1" style="width:72px" data-kn="'+i+'" value="'+(v[i]==null?'':esc(v[i]))+'" aria-label="Nilai '+esc(x.nama)+'"></td></tr>'}).join('')+'</tbody></table></div>'+
+    return r+'<tr><td>'+esc(x.nama)+'</td><td class="sub">'+esc(x.arah)+' '+esc(x.target)+' '+esc(x.satuan)+'</td><td class="num">'+esc(x.bobot)+'</td><td class="num"><input type="number" min="1" max="10" step="0.1" style="width:72px" data-kn="'+i+'"'+(df[i]?' title="Terisi otomatis, mohon dikoreksi" style="width:72px;outline:2px solid var(--warn)"':'')+' value="'+(v[i]==null?'':esc(v[i]))+'" aria-label="Nilai '+esc(x.nama)+'"></td></tr>'}).join('')+'</tbody></table></div>'+
    '<label class="full">Catatan penilai<textarea id="kp_cat" rows="3">'+esc(((doc.catatan||{})[id])||'')+'</textarea></label>'+
    '<div class="row"><b>Skor: <span id="kpLive">—</span></b> <span id="kpLivePred"></span><span class="spacer"></span><button class="btn primary" data-act="kpiSave" data-id="'+esc(id)+'">Simpan</button><button class="btn" data-act="closeModal">Batal</button></div>';
   openModal(h);kpiLive(id);
@@ -1035,9 +1036,9 @@ function kpiSave(id){
   if(bad){toast('Nilai harus antara 1 dan 10.');return}
   const penilai=$('#kp_penilai').value.trim();
   if(penilai!==(e.kpiPenilai||'')){e.kpiPenilai=penilai;queuePatch('employees/'+id,{kpiPenilai:penilai})}
-  const patch={nilai:{[id]:nilai},catatan:{[id]:$('#kp_cat').value.trim()}};
-  if(!S.kpiN[key])S.kpiN[key]={key,nilai:{},catatan:{},hist:{}};
-  deepMerge(S.kpiN[key],patch);queuePatch('kpiNilai/'+key,patch,{key,nilai:{},catatan:{},hist:{}});
+  const patch={nilai:{[id]:nilai},catatan:{[id]:$('#kp_cat').value.trim()},def:{[id]:null}};
+  if(!S.kpiN[key])S.kpiN[key]={key,nilai:{},catatan:{},hist:{},def:{}};
+  deepMerge(S.kpiN[key],patch);queuePatch('kpiNilai/'+key,patch,{key,nilai:{},catatan:{},hist:{},def:{}});
   closeModal();toast('Nilai KPI '+e.nama+' disimpan.');render(true);
 }
 const KPI_BLN={jan:1,feb:2,mar:3,apr:4,mei:5,jun:6,jul:7,agu:8,sep:9,okt:10,nov:11,des:12};
@@ -1095,6 +1096,58 @@ async function kpiExport(){
   const buf=XLSX.write(wb,{type:'array',bookType:'xlsx'});
   try{await S.dl.save({filename:'KPI '+kpiMonthLabel(key)+'.xlsx',data:new Blob([buf])});toast('File Excel diunduh.')}catch(e){if(e&&e.code!=='declined')toast('Unduhan gagal ('+(e&&e.code||'error')+').')}
 }
+
+// Lengkapi otomatis: indikator kehadiran dihitung dari Absensi, indikator lain diisi nilai awal (7) dan ditandai "perlu dikoreksi".
+// Hanya sel kosong yang diisi. Bulan yang sudah punya skor impor (Rekap Jun-Des) dan bulan sebelum tanggal bergabung dilewati.
+const KPI_DEF=7;
+function kpiAttend(id,key){
+  let H=0,SH=0,I=0,Sk=0,C=0,A=0;
+  for(const pk in S.periods){const a=((S.periods[pk]||{}).absensi||{})[id]||{};for(const d in a){if(d.slice(0,7)!==key)continue;const v=a[d];if(v==='H')H++;else if(v==='SH')SH++;else if(v==='I')I++;else if(v==='S')Sk++;else if(v==='C')C++;else if(v==='A')A++}}
+  const den=H+SH+I+Sk+C+A;return den?{den,hadir:(H+SH*.5)/den*100,alpha:A/den*100}:null;
+}
+function kpiNilaiFrom(x,actual){
+  const tg=+x.target;let n;
+  if(x.arah==='≤'){n=actual<=tg?10:(tg>0?10*tg/actual:1)}else{n=tg>0?10*actual/tg:10}
+  return Math.max(1,Math.min(10,Math.round(n*10)/10));
+}
+function kpiAutoValue(e,x,key){
+  const nm=x.nama.toLowerCase(),at=kpiAttend(e.id,key);
+  if(at){
+    if(nm==='kehadiran'||nm==='attendance rate')return {v:kpiNilaiFrom(x,at.hadir),auto:true};
+    if(nm.startsWith('absenteeism'))return {v:kpiNilaiFrom(x,at.alpha),auto:true};
+  }
+  return {v:KPI_DEF,auto:false};
+}
+function kpiAutoPlan(from,to){
+  const plan=[];let k=from;
+  while(k<=to){
+    const [y,m]=k.split('-').map(Number),last=iso(new Date(y,m,0));
+    empList().forEach(e=>{const t=kpiTpl(e);if(!t)return;
+      if(e.tglBergabung&&e.tglBergabung>last)return;
+      const doc=S.kpiN[k]||{},cur=((doc.nilai||{})[e.id])||{};
+      if((doc.hist||{})[e.id]!=null&&!Object.keys(cur).length)return;
+      const nilai={},def={};let nAuto=0;
+      t.indikator.forEach((x,i)=>{if(cur[i]!=null&&cur[i]!=='')return;const r=kpiAutoValue(e,x,k);nilai[i]=r.v;if(r.auto)nAuto++;else def[i]=true});
+      if(Object.keys(nilai).length)plan.push({k,e,nilai,def,nAuto});
+    });
+    k=kpiShift(k,1);
+  }
+  return plan;
+}
+function kpiAutoForm(){
+  const to=kpiKey();
+  openModal('<h3>Lengkapi KPI otomatis</h3><p class="note">Mengisi <b>sel indikator yang masih kosong</b>; nilai yang sudah ada tidak diubah. <b>Kehadiran</b>, <b>Attendance Rate</b> dan <b>Absenteeism</b> dihitung dari menu Absensi (target tercapai = 10, di bawah target dikurangi sebanding). Indikator lain diisi nilai awal <b>'+KPI_DEF+'</b> dan ditandai oranye serta status <i>Perlu dikoreksi</i> sampai Anda simpan ulang nilainya. Karyawan yang belum bergabung di bulan itu dan bulan yang sudah punya skor impor dilewati.</p>'+
+   '<div class="form"><label>Dari bulan<input id="ka_from" type="month" value="2026-06"></label><label>Sampai bulan<input id="ka_to" type="month" value="'+to+'"></label></div>'+
+   '<div class="row"><button class="btn primary" data-act="kpiAutoGo">Isi sekarang</button><button class="btn" data-act="closeModal">Batal</button></div>');
+}
+function kpiAutoGo(){
+  const from=$('#ka_from').value,to=$('#ka_to').value;if(!from||!to||from>to){toast('Rentang bulan tidak valid.');return}
+  const plan=kpiAutoPlan(from,to);if(!plan.length){closeModal();toast('Tidak ada sel kosong untuk dilengkapi.');return}
+  const by={};plan.forEach(p=>{const m=by[p.k]||(by[p.k]={nilai:{},def:{}});m.nilai[p.e.id]=p.nilai;if(Object.keys(p.def).length)m.def[p.e.id]=p.def});
+  for(const k in by){if(!S.kpiN[k])S.kpiN[k]={key:k,nilai:{},catatan:{},hist:{},def:{}};deepMerge(S.kpiN[k],by[k]);queuePatch('kpiNilai/'+k,by[k],{key:k,nilai:{},catatan:{},hist:{},def:{}})}
+  const nAuto=plan.reduce((a,p)=>a+p.nAuto,0);
+  closeModal();render(true);toast('Terisi: '+plan.length+' penilaian ('+Object.keys(by).length+' bulan), '+nAuto+' indikator dihitung dari absensi, sisanya nilai awal '+KPI_DEF+'.');
+}
 function kpiClick(a,id){
   if(a==='kpiPrev'||a==='kpiNext'){S.kpiMonth=kpiShift(kpiKey(),a==='kpiPrev'?-1:1);render(true);return}
   if(a==='kpiNilai')return kpiForm(id);
@@ -1102,6 +1155,8 @@ function kpiClick(a,id){
   if(a==='kpiImport')return kpiImportForm();
   if(a==='kpiImportGo')return kpiImportGo();
   if(a==='kpiExport')return kpiExport();
+  if(a==='kpiAuto')return kpiAutoForm();
+  if(a==='kpiAutoGo')return kpiAutoGo();
 }
 
 // ===== Pengaturan =====
