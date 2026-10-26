@@ -262,14 +262,15 @@ const ICONS={
   loan:'<path d="M12 2v20M17 6H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>',
   leave:'<path d="M2 20h20M5 20V9l7-5 7 5v11"/><path d="M10 20v-6h4v6"/>',
   ctr:'<path d="M4 4h16v16H4z"/><path d="M8 9h8M8 13h5"/><circle cx="17" cy="17" r="3"/>',
+  kpi:'<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
   note:'<path d="M5 3h11l4 4v14H5z"/><path d="M15 3v5h5M8.5 12h8M8.5 16h5"/>',
   set:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>'
 };
 const TABS=[
   ['dash','Dasbor','dash'],['emp','Karyawan','emp'],['att','Absensi','att'],['ot','Lembur','ot'],['pay','Payroll','pay'],
-  ['slip','Slip Gaji','slip'],['loan','Kasbon','loan'],['leave','Cuti','leave'],['ctr','Kontrak & PKL','ctr'],['note','Catatan','note'],['set','Pengaturan','set']];
+  ['slip','Slip Gaji','slip'],['loan','Kasbon','loan'],['leave','Cuti','leave'],['ctr','Kontrak & PKL','ctr'],['note','Catatan','note'],['kpi','KPI','kpi'],['set','Pengaturan','set']];
 
-const S={db:null,dl:null,settings:null,emps:{},loans:{},interns:{},notes:{},nCat:'',nSt:'aktif',periods:{},ready:{},tab:'dash',periodKey:null,brush:'H',q:'',status:'',slipEmp:null,dirty:false,saving:0,readonly:false,armed:null};
+const S={db:null,dl:null,settings:null,emps:{},loans:{},interns:{},notes:{},kpiD:{},kpiN:{},kDiv:'',kpiMonth:null,kpiEmp:null,nCat:'',nSt:'aktif',periods:{},ready:{},tab:'dash',periodKey:null,brush:'H',q:'',status:'',slipEmp:null,dirty:false,saving:0,readonly:false,armed:null};
 
 // ---------- utils ----------
 const $=s=>document.querySelector(s);
@@ -448,7 +449,7 @@ function render(force){
   if(!S.db){main.innerHTML=S.dbMissing?'<div class="panel empty"><b>Database tidak bisa dibuka di tampilan ini.</b><br>Buka halaman ini lewat claude.ai dalam keadaan masuk (login) agar data HRD bisa dibaca dan disimpan.</div>':'<div class="empty">Memuat data HRD…</div>';return}
   if(!S.ready.emps||!S.ready.settings){main.innerHTML='<div class="empty">Memuat data HRD…</div>';return}
   const sx=window.scrollX,sy=window.scrollY;const gw=main.querySelector('.tablewrap');const gl=gw?gw.scrollLeft:0;const gt=gw?gw.scrollTop:0;
-  const f={dash:vDash,emp:vEmp,att:vAtt,ot:vOt,pay:vPay,slip:vSlip,loan:vLoan,leave:vLeave,ctr:vCtr,note:vNote,set:vSet}[S.tab]||vDash;
+  const f={dash:vDash,emp:vEmp,att:vAtt,ot:vOt,pay:vPay,slip:vSlip,loan:vLoan,leave:vLeave,ctr:vCtr,note:vNote,kpi:vKpi,set:vSet}[S.tab]||vDash;
   main.innerHTML=f();
   const gw2=main.querySelector('.tablewrap');if(gw2&&!force){gw2.scrollLeft=gl;gw2.scrollTop=gt}
   if(!force)window.scrollTo(sx,sy);
@@ -952,6 +953,238 @@ function pklForm(id){
   '</div><div class="row"><button class="btn primary" data-act="savePkl" data-id="'+esc(id||'')+'">Simpan</button><button class="btn" data-act="closeModal">Batal</button><span class="spacer"></span>'+(id?'<button class="btn danger" data-act="delPkl" data-id="'+esc(id)+'">'+(S.armed==='delP'+id?'Klik lagi untuk hapus':'Hapus')+'</button>':'')+'</div>');
 }
 
+// ===== KPI =====
+// Penilaian bulanan per karyawan. Templat indikator per "Divisi KPI" (kpiDivisi), nilai 1–10 per indikator (kpiNilai/YYYY-MM).
+// Skor = rata-rata nilai berbobot (nilai × bobot ÷ total bobot), jadi total bobot 100 atau 120 sama-sama menghasilkan skala 1–10.
+const KPI_PRED=[[9,'Sangat Baik','p-ok'],[7,'Baik','p-ok'],[6,'Cukup','p-warn'],[0,'Kurang','p-bad']];
+const kpiSlug=n=>String(n).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+function kpiPred(s){return s==null?null:KPI_PRED.find(p=>s>=p[0])}
+function kpiPill(s){const p=kpiPred(s);return p?'<span class="pill '+p[2]+'">'+p[1]+'</span>':'<span class="pill p-mute">—</span>'}
+function kpiKey(){return S.kpiMonth||(S.kpiMonth=todayISO().slice(0,7))}
+function kpiMonthLabel(k){const [y,m]=k.split('-').map(Number);return MONTHS[m-1]+' '+y}
+function kpiShift(k,n){const [y,m]=k.split('-').map(Number);const d=new Date(y,m-1+n,1);return d.getFullYear()+'-'+pad(d.getMonth()+1)}
+function kpiTpl(e){return e.kpiDivisi?S.kpiD[kpiSlug(e.kpiDivisi)]:null}
+function kpiScore(e,key){
+  const t=kpiTpl(e),doc=S.kpiN[key]||{},v=(doc.nilai||{})[e.id]||{},total=t?t.indikator.length:0;
+  if(t){let sw=0,sv=0,n=0;t.indikator.forEach((x,i)=>{const val=v[i];if(val!=null&&val!==''&&!isNaN(+val)){sw+=+x.bobot;sv+=+x.bobot*(+val);n++}});
+    if(n&&sw)return {skor:sv/sw,done:n,total,def:Object.keys(((doc.def||{})[e.id])||{}).length}}
+  const h=(doc.hist||{})[e.id];
+  if(h!=null&&h!==''&&!isNaN(+h))return {skor:+h,done:total,total,imp:true};
+  return {skor:null,done:0,total};
+}
+function kpiStatusPill(r,e){
+  if(!e.kpiDivisi||!kpiTpl(e))return '<span class="pill p-warn">Divisi belum diatur</span>';
+  if(r.imp)return '<span class="pill p-ok">Selesai (impor)</span>';
+  if(!r.done)return '<span class="pill p-mute">Belum dinilai</span>';
+  if(r.def)return '<span class="pill p-warn">Perlu dikoreksi ('+r.def+')</span>';
+  return r.done>=r.total?'<span class="pill p-ok">Selesai</span>':'<span class="pill p-warn">'+r.done+'/'+r.total+' indikator</span>';
+}
+function vKpi(){
+  const key=kpiKey(),q=S.q.toLowerCase();
+  const nav='<div class="period"><button class="btn ghost icon" data-act="kpiPrev" aria-label="Bulan sebelumnya">‹</button><div class="lbl"><b>'+kpiMonthLabel(key)+'</b><small>'+periodSub(key)+'</small></div><button class="btn ghost icon" data-act="kpiNext" aria-label="Bulan berikutnya">›</button></div>';
+  const btns='<button class="btn" data-act="kpiAuto">Lengkapi otomatis</button><button class="btn" data-act="kpiExport">Ekspor Excel</button><button class="btn primary" data-act="kpiImport">Impor dari Excel</button>';
+  const bar=topbar('KPI',false,btns+nav);
+  if(!Object.keys(S.kpiD).length)return bar+'<div class="panel" style="max-width:640px"><h2>Belum ada templat KPI</h2><p class="note">Impor sheet KPI (file Excel dengan sheet <b>Rekap Okt</b>, <b>Rekap Jun-Des</b> dan <b>Detail Indikator</b>) untuk membuat templat indikator tiap divisi dan menetapkan divisi serta penilai tiap karyawan. Setelah itu nilai diisi per karyawan di sini.</p><div class="row"><button class="btn primary" data-act="kpiImport">Impor dari Excel</button></div></div>';
+  const all=empList();
+  const divs=[...new Set(all.map(e=>e.kpiDivisi).filter(Boolean))].sort();
+  const rows=all.filter(e=>(!S.kDiv||(S.kDiv==='-'?!e.kpiDivisi:e.kpiDivisi===S.kDiv))&&(!q||(e.nama+' '+e.jabatan+' '+e.id+' '+(e.kpiDivisi||'')).toLowerCase().includes(q)));
+  const sc=rows.map(e=>[e,kpiScore(e,key)]);
+  const got=sc.filter(x=>x[1].skor!=null);
+  const avg=got.length?got.reduce((a,x)=>a+x[1].skor,0)/got.length:null;
+  const cnt={};got.forEach(x=>{const p=kpiPred(x[1].skor)[1];cnt[p]=(cnt[p]||0)+1});
+  const noDiv=all.filter(e=>!kpiTpl(e)).length;
+  const kp='<div class="kpis"><div class="kpi"><span class="k">Sudah dinilai</span><span class="v">'+got.length+'<small style="font-size:14px;color:var(--muted)"> / '+rows.length+'</small></span><span class="s">'+kpiMonthLabel(key)+'</span></div>'+
+   '<div class="kpi"><span class="k">Rata-rata skor</span><span class="v">'+(avg==null?'—':avg.toFixed(1))+'</span><span class="s">'+(avg==null?'Belum ada nilai':kpiPred(avg)[1])+'</span></div>'+
+   '<div class="kpi"><span class="k">Sebaran predikat</span><span class="v" style="font-size:16px">'+(KPI_PRED.map(p=>cnt[p[1]]?p[1]+' '+cnt[p[1]]:'').filter(Boolean).join(' · ')||'—')+'</span></div>'+
+   '<div class="kpi"><span class="k">Divisi belum diatur</span><span class="v">'+noDiv+'</span><span class="s">Karyawan tanpa templat KPI</span></div></div>';
+  const filt='<div class="row"><input id="q" class="search" type="search" placeholder="Cari nama, jabatan, ID…" value="'+esc(S.q)+'"><select id="kpiDiv"><option value="">Semua divisi KPI</option>'+divs.map(d=>'<option'+(S.kDiv===d?' selected':'')+'>'+esc(d)+'</option>').join('')+'<option value="-"'+(S.kDiv==='-'?' selected':'')+'>Belum diatur</option></select><span class="sub">'+rows.length+' orang</span></div>';
+  const tbl='<div class="tablewrap"><table><thead><tr><th class="num">No</th><th>ID</th><th>Nama & jabatan</th><th>Divisi KPI</th><th>Penilai</th><th>Status</th><th class="num">Skor</th><th>Predikat</th><th></th></tr></thead><tbody>'+
+   (sc.length?sc.map(([e,r],i)=>'<tr><td class="num sub">'+(i+1)+'</td><td class="sub">'+esc(e.id)+'</td><td><div class="name">'+esc(e.nama)+'</div><div class="sub">'+esc(e.jabatan)+'</div></td><td>'+esc(e.kpiDivisi||'—')+'</td><td class="sub">'+esc(e.kpiPenilai||'—')+'</td><td>'+kpiStatusPill(r,e)+'</td><td class="num"><b>'+(r.skor==null?'—':r.skor.toFixed(1))+'</b></td><td>'+kpiPill(r.skor)+'</td><td><button class="btn" data-act="kpiNilai" data-id="'+esc(e.id)+'">'+(r.done?'Ubah nilai':'Isi nilai')+'</button></td></tr>').join(''):'<tr><td colspan="9" class="empty">Tidak ada karyawan yang cocok.</td></tr>')+
+   '</tbody></table></div>';
+  // rekap setahun
+  const y=+key.slice(0,4),mk=Array.from({length:12},(_,i)=>y+'-'+pad(i+1));
+  const rec='<h2 style="margin-top:22px">Rekap '+y+'</h2><div class="tablewrap"><table><thead><tr><th>Nama</th><th>Divisi KPI</th>'+MS.map(m=>'<th class="num">'+m+'</th>').join('')+'<th class="num">Rata-rata</th><th>Predikat</th></tr></thead><tbody>'+
+   rows.map(e=>{const v=mk.map(k=>kpiScore(e,k).skor);const f=v.filter(x=>x!=null);const a=f.length?f.reduce((s,x)=>s+x,0)/f.length:null;
+    return '<tr><td><div class="name">'+esc(e.nama)+'</div></td><td class="sub">'+esc(e.kpiDivisi||'—')+'</td>'+v.map(x=>'<td class="num">'+(x==null?'<span class="sub">·</span>':x.toFixed(1))+'</td>').join('')+'<td class="num"><b>'+(a==null?'—':a.toFixed(1))+'</b></td><td>'+kpiPill(a)+'</td></tr>'}).join('')+'</tbody></table></div>'+
+   '<p class="note">Skor = rata-rata nilai 1–10 berbobot. Predikat: Sangat Baik ≥ 9, Baik ≥ 7, Cukup ≥ 6, Kurang di bawahnya.</p>';
+  return bar+kp+filt+tbl+rec;
+}
+function kpiForm(id){
+  const e=S.emps[id];if(!e)return;const key=kpiKey(),doc=S.kpiN[key]||{},v=(doc.nilai||{})[id]||{},df=(doc.def||{})[id]||{},t=kpiTpl(e);
+  const divs=Object.values(S.kpiD).map(d=>d.nama).sort();
+  let h='<h3>KPI '+esc(e.nama)+' · '+kpiMonthLabel(key)+'</h3><div class="form">'+
+   '<label>Divisi KPI<select data-kpidiv="'+esc(id)+'"><option value="">— Pilih —</option>'+divs.map(d=>'<option'+(d===e.kpiDivisi?' selected':'')+'>'+esc(d)+'</option>').join('')+'</select></label>'+
+   '<label>Penilai<input id="kp_penilai" type="text" maxlength="60" value="'+esc(e.kpiPenilai||'')+'"></label></div>';
+  if(!t){h+='<p class="note">Pilih divisi KPI dulu untuk menampilkan indikator.</p><div class="row"><button class="btn" data-act="closeModal">Tutup</button></div>';openModal(h);return}
+  let cat='';
+  h+='<div class="tablewrap" style="max-height:52vh"><table><thead><tr><th>Indikator</th><th>Target</th><th class="num">Bobot</th><th class="num">Nilai (1–10)</th></tr></thead><tbody>'+
+   t.indikator.map((x,i)=>{let r='';if(x.kategori!==cat){cat=x.kategori;r='<tr><td colspan="4" class="sub"><b>'+esc(cat)+'</b></td></tr>'}
+    return r+'<tr><td>'+esc(x.nama)+'</td><td class="sub">'+esc(x.arah)+' '+esc(x.target)+' '+esc(x.satuan)+'</td><td class="num">'+esc(x.bobot)+'</td><td class="num"><input type="number" min="1" max="10" step="0.1" style="width:72px" data-kn="'+i+'"'+(df[i]?' title="Terisi otomatis, mohon dikoreksi" style="width:72px;outline:2px solid var(--warn)"':'')+' value="'+(v[i]==null?'':esc(v[i]))+'" aria-label="Nilai '+esc(x.nama)+'"></td></tr>'}).join('')+'</tbody></table></div>'+
+   '<label class="full">Catatan penilai<textarea id="kp_cat" rows="3">'+esc(((doc.catatan||{})[id])||'')+'</textarea></label>'+
+   '<div class="row"><b>Skor: <span id="kpLive">—</span></b> <span id="kpLivePred"></span><span class="spacer"></span><button class="btn primary" data-act="kpiSave" data-id="'+esc(id)+'">Simpan</button><button class="btn" data-act="closeModal">Batal</button></div>';
+  openModal(h);kpiLive(id);
+}
+function kpiLive(id){
+  id=id||S.kpiEmp;S.kpiEmp=id;const e=S.emps[id],t=e&&kpiTpl(e);if(!t)return;
+  let sw=0,sv=0;document.querySelectorAll('#modalRoot [data-kn]').forEach(i=>{const n=parseFloat(i.value);if(!isNaN(n)){sw+=+t.indikator[i.dataset.kn].bobot;sv+=+t.indikator[i.dataset.kn].bobot*n}});
+  const s=sw?sv/sw:null,a=$('#kpLive'),b=$('#kpLivePred');if(a)a.textContent=s==null?'—':s.toFixed(1);if(b)b.innerHTML=kpiPill(s);
+}
+function kpiSave(id){
+  const e=S.emps[id],key=kpiKey(),t=e&&kpiTpl(e);if(!t)return;
+  const nilai={};let bad=false;
+  document.querySelectorAll('#modalRoot [data-kn]').forEach(i=>{const raw=i.value.trim();if(raw===''){nilai[i.dataset.kn]=null;return}const n=parseFloat(raw);if(isNaN(n)||n<1||n>10){bad=true;i.style.outline='2px solid var(--bad)';return}nilai[i.dataset.kn]=Math.round(n*10)/10});
+  if(bad){toast('Nilai harus antara 1 dan 10.');return}
+  const penilai=$('#kp_penilai').value.trim();
+  if(penilai!==(e.kpiPenilai||'')){e.kpiPenilai=penilai;queuePatch('employees/'+id,{kpiPenilai:penilai})}
+  const patch={nilai:{[id]:nilai},catatan:{[id]:$('#kp_cat').value.trim()},def:{[id]:null}};
+  if(!S.kpiN[key])S.kpiN[key]={key,nilai:{},catatan:{},hist:{},def:{}};
+  deepMerge(S.kpiN[key],patch);queuePatch('kpiNilai/'+key,patch,{key,nilai:{},catatan:{},hist:{},def:{}});
+  closeModal();toast('Nilai KPI '+e.nama+' disimpan.');render(true);
+}
+const KPI_BLN={jan:1,feb:2,mar:3,apr:4,mei:5,jun:6,jul:7,agu:8,sep:9,okt:10,nov:11,des:12};
+function kpiImportForm(){
+  openModal('<h3>Impor sheet KPI</h3><p class="note">Pilih file Excel KPI. Yang dibaca: <b>Detail Indikator</b> (templat indikator tiap divisi — menimpa templat lama), <b>Rekap Okt</b> (divisi KPI &amp; penilai tiap karyawan, dicocokkan lewat ID) dan <b>Rekap Jun-Des</b> (skor bulanan yang sudah ada). Nilai per indikator yang sudah terisi di kolom <i>Nilai (1–10)</i> ikut diimpor ke bulan di bawah.</p>'+
+   '<div class="form"><label>Bulan untuk sheet Rekap &amp; Detail<input id="kpi_bln" type="month" value="'+kpiKey()+'"></label><label>File Excel<input id="kpi_file" type="file" accept=".xlsx,.xls"></label></div>'+
+   '<div class="row"><button class="btn primary" data-act="kpiImportGo">Impor</button><button class="btn" data-act="closeModal">Batal</button></div>');
+}
+async function kpiImportGo(){
+  if(!window.XLSX){toast('Pustaka Excel belum termuat. Coba lagi sebentar.');return}
+  const f=$('#kpi_file').files[0],bln=$('#kpi_bln').value;if(!f){toast('Pilih file Excel dulu.');return}if(!bln){toast('Pilih bulan dulu.');return}
+  try{
+    const wb=XLSX.read(await f.arrayBuffer(),{type:'array'});
+    const rowsOf=n=>wb.Sheets[n]?XLSX.utils.sheet_to_json(wb.Sheets[n],{defval:null}):null;
+    const det=rowsOf('Detail Indikator'),rek=rowsOf('Rekap Okt'),hist=rowsOf('Rekap Jun-Des');
+    if(!det||!rek){toast('Sheet "Detail Indikator" dan "Rekap Okt" tidak ditemukan.');return}
+    const tpl={},nil={};
+    det.forEach(r=>{const id=String(r['ID']||'').trim(),dv=String(r['Divisi KPI']||'').trim();if(!id||!dv)return;
+      const t=tpl[dv]||(tpl[dv]={nama:dv,indikator:[],_id:id});
+      if(t._id===id)t.indikator.push({kategori:String(r['Kategori']||''),nama:String(r['Indikator']||''),satuan:String(r['Satuan']||''),arah:String(r['Arah']||'≥'),target:+r['Target']||0,bobot:+r['Bobot %']||0});
+      const n=r['Nilai (1–10)'];const m=nil[id]||(nil[id]={k:0});
+      if(n!=null&&n!==''&&!isNaN(+n))m[m.k]=+n;m.k++});
+    // nilai per indikator hanya valid jika urutan indikator karyawan sama dengan templat divisinya (urutan baris sama)
+    const divOf={},pen={},histBln={};
+    rek.forEach(r=>{const id=String(r['ID']||'').trim();if(!id)return;divOf[id]=String(r['Divisi KPI']||'').trim();pen[id]=String(r['Penilai']||'').trim();
+      if(r['Skor']!=null&&r['Skor']!==''&&!isNaN(+r['Skor']))(histBln[bln]||(histBln[bln]={}))[id]=+r['Skor']});
+    (hist||[]).forEach(r=>{const id=String(r['ID']||'').trim();if(!id)return;Object.keys(r).forEach(c=>{const m=/^([A-Za-z]{3})\w*\s+(\d{4})$/.exec(c.trim());if(!m||!KPI_BLN[m[1].toLowerCase()])return;
+      const k=m[2]+'-'+pad(KPI_BLN[m[1].toLowerCase()]);if(r[c]!=null&&r[c]!==''&&!isNaN(+r[c]))(histBln[k]||(histBln[k]={}))[id]=+r[c]})});
+    let nT=0;for(const dv in tpl){const t={nama:dv,indikator:tpl[dv].indikator};if(await saveDoc('kpiDivisi/'+kpiSlug(dv),t)){S.kpiD[kpiSlug(dv)]=t;nT++}}
+    let nE=0,miss=[];
+    for(const id in divOf){const e=S.emps[id];if(!e){miss.push(id);continue}
+      if(e.kpiDivisi!==divOf[id]||e.kpiPenilai!==pen[id]){e.kpiDivisi=divOf[id];e.kpiPenilai=pen[id];queuePatch('employees/'+id,{kpiDivisi:divOf[id],kpiPenilai:pen[id]})}nE++}
+    // nilai per indikator (jika sheet sudah diisi)
+    const nv={};let nN=0;
+    for(const id in nil){const e=S.emps[id],t=e&&tpl[divOf[id]];if(!t)continue;const o={};for(let i=0;i<t.indikator.length;i++)if(nil[id][i]!=null){o[i]=nil[id][i]}
+      if(Object.keys(o).length){nv[id]=o;nN++}}
+    const bulan={};
+    for(const k in histBln){const ids=Object.fromEntries(Object.entries(histBln[k]).filter(([id])=>S.emps[id]));if(Object.keys(ids).length)(bulan[k]=bulan[k]||{}).hist=ids}
+    if(nN){(bulan[bln]=bulan[bln]||{}).nilai=nv}
+    for(const k in bulan){const p=bulan[k];if(!S.kpiN[k])S.kpiN[k]={key:k,nilai:{},catatan:{},hist:{}};deepMerge(S.kpiN[k],p);queuePatch('kpiNilai/'+k,p,{key:k,nilai:{},catatan:{},hist:{}})}
+    S.kpiMonth=bln;closeModal();render(true);
+    toast('Impor selesai: '+nT+' templat divisi, '+nE+' karyawan'+(miss.length?' ('+miss.length+' ID tidak ada di sistem: '+miss.slice(0,4).join(', ')+')':'')+', '+Object.keys(bulan).length+' bulan skor.');
+  }catch(err){console.error(err);toast('Impor gagal: '+(err.message||'file tidak terbaca'))}
+}
+async function kpiExport(){
+  if(!window.XLSX){toast('Pustaka Excel belum termuat. Coba lagi sebentar.');return}
+  if(!S.dl){toast('Unduhan tidak tersedia di tampilan ini.');return}
+  const key=kpiKey(),y=+key.slice(0,4),mk=Array.from({length:12},(_,i)=>y+'-'+pad(i+1));
+  const list=empList().filter(e=>e.kpiDivisi);const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([['No','ID','Nama','Jabatan','Divisi KPI','Penilai','Indikator terisi','Skor','Predikat','Catatan']].concat(list.map((e,i)=>{const r=kpiScore(e,key);const p=kpiPred(r.skor);return [i+1,e.id,e.nama,e.jabatan,e.kpiDivisi,e.kpiPenilai||'',r.done+'/'+r.total,r.skor==null?'':Math.round(r.skor*10)/10,p?p[1]:'',((S.kpiN[key]||{}).catatan||{})[e.id]||'']}))),'Rekap '+kpiMonthLabel(key).slice(0,28));
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([['ID','Nama','Divisi KPI'].concat(MS.map(m=>m+' '+y)).concat(['Rata-rata','Predikat'])].concat(list.map(e=>{const v=mk.map(k=>kpiScore(e,k).skor);const f=v.filter(x=>x!=null);const a=f.length?f.reduce((s,x)=>s+x,0)/f.length:null;const p=kpiPred(a);return [e.id,e.nama,e.kpiDivisi].concat(v.map(x=>x==null?'':Math.round(x*10)/10)).concat([a==null?'':Math.round(a*10)/10,p?p[1]:''])}))),'Rekap '+y);
+  const det=[['ID','Nama','Divisi KPI','Kategori','Indikator','Satuan','Arah','Target','Bobot %','Nilai (1–10)']];
+  list.forEach(e=>{const t=kpiTpl(e);if(!t)return;const v=(((S.kpiN[key]||{}).nilai||{})[e.id])||{};t.indikator.forEach((x,i)=>det.push([e.id,e.nama,e.kpiDivisi,x.kategori,x.nama,x.satuan,x.arah,x.target,x.bobot,v[i]==null?'':v[i]]))});
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(det),'Detail Indikator');
+  const buf=XLSX.write(wb,{type:'array',bookType:'xlsx'});
+  try{await S.dl.save({filename:'KPI '+kpiMonthLabel(key)+'.xlsx',data:new Blob([buf])});toast('File Excel diunduh.')}catch(e){if(e&&e.code!=='declined')toast('Unduhan gagal ('+(e&&e.code||'error')+').')}
+}
+
+// Lengkapi otomatis: indikator kehadiran dihitung dari Absensi, indikator lain diisi nilai awal (7) dan ditandai "perlu dikoreksi".
+// Hanya sel kosong yang diisi. Bulan yang sudah punya skor impor (Rekap Jun-Des) dan bulan sebelum tanggal bergabung dilewati.
+const KPI_DEF=7;
+function kpiAttend(id,key){
+  const z=c=>c&&(c.H||0)+(c.SH||0)+(c.I||0)+(c.S||0)+(c.A||0)>0;
+  let c=null;const a=((S.periods[key]||{}).absensi||{})[id];
+  if(a){const {start,end}=periodRange(key),f=iso(start),t=iso(end);c={H:0,SH:0,I:0,S:0,C:0,A:0};for(const d in a){if(d<f||d>t)continue;if(c[a[d]]!=null)c[a[d]]++}}
+  if(!z(c))c=((S.kpiN[key]||{}).absen||{})[id];
+  if(!z(c))return null;
+  // cuti (C) dianggap izin resmi: tidak masuk pembagi kehadiran
+  const den=(c.H||0)+(c.SH||0)+(c.I||0)+(c.S||0)+(c.A||0);
+  return {den,hadir:((c.H||0)+(c.SH||0)*.5)/den*100,alpha:(c.A||0)/den*100};
+}
+function kpiNilaiFrom(x,actual){
+  const tg=+x.target;let n;
+  if(x.arah==='≤'){n=actual<=tg?10:(tg>0?10*tg/actual:1)}else{n=tg>0?10*actual/tg:10}
+  return Math.max(1,Math.min(10,Math.round(n*10)/10));
+}
+function kpiAutoValue(e,x,key){
+  const nm=x.nama.toLowerCase(),at=kpiAttend(e.id,key);
+  if(at){
+    if(nm==='kehadiran'||nm==='attendance rate')return {v:kpiNilaiFrom(x,at.hadir),auto:true};
+    if(nm.startsWith('absenteeism'))return {v:kpiNilaiFrom(x,at.alpha),auto:true};
+  }
+  return {v:KPI_DEF,auto:false};
+}
+function kpiAutoPlan(from,to){
+  const plan=[];let k=from;
+  while(k<=to){
+    const last=iso(periodRange(k).end);
+    empList().forEach(e=>{const t=kpiTpl(e);if(!t)return;
+      if(e.tglBergabung&&e.tglBergabung>last)return;
+      const doc=S.kpiN[k]||{},cur=((doc.nilai||{})[e.id])||{};
+      if((doc.hist||{})[e.id]!=null&&!Object.keys(cur).length)return;
+      const nilai={},def={};let nAuto=0;
+      t.indikator.forEach((x,i)=>{if(cur[i]!=null&&cur[i]!=='')return;const r=kpiAutoValue(e,x,k);nilai[i]=r.v;if(r.auto)nAuto++;else def[i]=true});
+      if(Object.keys(nilai).length)plan.push({k,e,nilai,def,nAuto});
+    });
+    k=kpiShift(k,1);
+  }
+  return plan;
+}
+function kpiAutoForm(){
+  const to=kpiKey();
+  openModal('<h3>Lengkapi KPI otomatis</h3><p class="note">Mengisi <b>sel indikator yang masih kosong</b>; nilai yang sudah ada tidak diubah. <b>Kehadiran</b>, <b>Attendance Rate</b> dan <b>Absenteeism</b> dihitung dari menu Absensi atau dari file HR_SISTEM di bawah; cuti tidak dihitung sebagai tidak hadir (target tercapai = 10, di bawah target dikurangi sebanding). Indikator lain diisi nilai awal <b>'+KPI_DEF+'</b> dan ditandai oranye serta status <i>Perlu dikoreksi</i> sampai Anda simpan ulang nilainya. Karyawan yang belum bergabung di bulan itu dan bulan yang sudah punya skor impor dilewati.</p>'+
+   '<div class="form"><label>Dari bulan<input id="ka_from" type="month" value="2026-06"></label><label>Sampai bulan<input id="ka_to" type="month" value="'+to+'"></label><label class="full">Absensi bulan lain (opsional): file HR_SISTEM_*.xlsx<input id="ka_files" type="file" accept=".xlsx" multiple><span class="hint">Bulan dibaca dari nama file (JUNI, JULI, …) dan disamakan dengan nama periode payroll. Data hanya dipakai untuk KPI, tidak mengubah menu Absensi.</span></label></div>'+
+   '<div class="row"><button class="btn primary" data-act="kpiAutoGo">Isi sekarang</button><button class="btn" data-act="closeModal">Batal</button></div>');
+}
+const KPI_NM={januari:1,februari:2,maret:3,april:4,mei:5,juni:6,juli:7,agustus:8,september:9,oktober:10,november:11,desember:12};
+async function kpiReadAbsen(f){
+  const m=Object.keys(KPI_NM).find(n=>f.name.toLowerCase().includes(n)),y=(/20\d\d/.exec(f.name)||['2026'])[0];
+  if(!m)throw new Error('Bulan tidak terbaca dari nama file '+f.name);
+  const key=y+'-'+pad(KPI_NM[m]);
+  const wb=XLSX.read(await f.arrayBuffer(),{type:'array'}),ws=wb.Sheets['ABSENSI'];if(!ws)throw new Error('Sheet ABSENSI tidak ada di '+f.name);
+  const rg=XLSX.utils.decode_range(ws['!ref']);rg.s.c=0;rg.s.r=0;ws['!ref']=XLSX.utils.encode_range(rg);
+  const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:null}),out={};
+  rows.forEach(r=>{const id=String(r[1]||'').trim();if(!/^[A-Z]\d+$/.test(id))return;const c={H:0,SH:0,I:0,S:0,C:0,A:0};
+    r.slice(4,35).forEach(x=>{if(typeof x==='string'&&c[x]!=null)c[x]++});if(c.H+c.SH+c.I+c.S+c.C+c.A)out[id]=c});
+  return {key,out};
+}
+async function kpiAutoGo(){
+  const from=$('#ka_from').value,to=$('#ka_to').value;if(!from||!to||from>to){toast('Rentang bulan tidak valid.');return}
+  const files=[...($('#ka_files').files||[])];let nAb=0;
+  if(files.length){
+    if(!window.XLSX){toast('Pustaka Excel belum termuat. Coba lagi sebentar.');return}
+    try{for(const f of files){const {key,out}=await kpiReadAbsen(f);const ids=Object.fromEntries(Object.entries(out).filter(([id])=>S.emps[id]));
+      if(!S.kpiN[key])S.kpiN[key]={key,nilai:{},catatan:{},hist:{},def:{}};S.kpiN[key].absen=Object.assign(S.kpiN[key].absen||{},ids);
+      queuePatch('kpiNilai/'+key,{absen:ids},{key,nilai:{},catatan:{},hist:{},def:{}});nAb+=Object.keys(ids).length}}
+    catch(err){console.error(err);toast('Impor absensi gagal: '+err.message);return}
+  }
+  const plan=kpiAutoPlan(from,to);
+  if(!plan.length){closeModal();render(true);toast(nAb?'Absensi '+nAb+' baris tersimpan, tapi tidak ada sel kosong untuk dilengkapi.':'Tidak ada sel kosong untuk dilengkapi.');return}
+  const by={};plan.forEach(p=>{const m=by[p.k]||(by[p.k]={nilai:{},def:{}});m.nilai[p.e.id]=p.nilai;if(Object.keys(p.def).length)m.def[p.e.id]=p.def});
+  for(const k in by){if(!S.kpiN[k])S.kpiN[k]={key:k,nilai:{},catatan:{},hist:{},def:{}};deepMerge(S.kpiN[k],by[k]);queuePatch('kpiNilai/'+k,by[k],{key:k,nilai:{},catatan:{},hist:{},def:{}})}
+  const nAuto=plan.reduce((a,p)=>a+p.nAuto,0);
+  closeModal();render(true);toast('Terisi: '+plan.length+' penilaian ('+Object.keys(by).length+' bulan), '+nAuto+' indikator dihitung dari absensi, sisanya nilai awal '+KPI_DEF+'.');
+}
+function kpiClick(a,id){
+  if(a==='kpiPrev'||a==='kpiNext'){S.kpiMonth=kpiShift(kpiKey(),a==='kpiPrev'?-1:1);render(true);return}
+  if(a==='kpiNilai')return kpiForm(id);
+  if(a==='kpiSave')return kpiSave(id);
+  if(a==='kpiImport')return kpiImportForm();
+  if(a==='kpiImportGo')return kpiImportGo();
+  if(a==='kpiExport')return kpiExport();
+  if(a==='kpiAuto')return kpiAutoForm();
+  if(a==='kpiAutoGo')return kpiAutoGo();
+}
+
 // ===== Pengaturan =====
 function ttdField(k,label,hint){const v=(S.settings||{})[k];return '<label class="full">'+label+'<span class="row" style="font-weight:400"><img id="ttdimg_'+k+'" alt="" style="max-height:48px;background:#fff;border:1px solid var(--line,#ccc);border-radius:4px;'+(v?'':'display:none')+'" src="'+(v?esc(v):'')+'"><input type="file" accept="image/png,image/jpeg" data-ttd="'+k+'"><button type="button" class="btn ghost" data-act="delTtd" data-id="'+k+'">Hapus</button></span><span class="hint">'+(hint||'Unggah foto/scan tanda tangan (PNG latar transparan paling rapi). Tampil di slip PDF. Klik Simpan setelah memilih.')+'</span></label>'}
 function ttdLoad(file,k){
@@ -992,6 +1225,7 @@ document.addEventListener('click',async ev=>{
   if(b.matches('.att th[data-date]')){fillDates([b.dataset.date],false);return}
   if(b.dataset.brush!=null&&!b.dataset.act){S.brush=b.dataset.brush;document.querySelectorAll('.brush[data-brush]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.brush===S.brush));return}
   const a=b.dataset.act,id=b.dataset.id;
+  if(a&&a.startsWith('kpi'))return kpiClick(a,id);
   if(a==='overlay'){if(ev.target===b)closeModal();return}
   if(a==='prev'||a==='next'){S.periodKey=shiftKey(S.periodKey,a==='prev'?-1:1);render(true);return}
   if(a==='impLembur'){openModal('<h3>Impor laporan lembur</h3><p class="note">Pilih karyawan, tempel laporan (satu tanggal per baris, contoh: <i>Jumat 25 sep = 2 jam</i>). Periode: <b>'+periodLabel(S.periodKey)+'</b>.</p><label>Karyawan<select id="imp_emp">'+Object.values(S.emps).sort((x,y)=>x.nama.localeCompare(y.nama)).map(e=>'<option value="'+esc(e.id)+'">'+esc(e.nama)+'</option>').join('')+'</select></label><textarea id="imp_txt" rows="12" style="width:100%"></textarea><div class="row"><button class="btn primary" data-act="doImpLembur">Impor</button><button class="btn" data-act="closeModal">Batal</button></div>');return}
@@ -1037,12 +1271,15 @@ document.addEventListener('click',async ev=>{
 });
 document.addEventListener('input',ev=>{
   const t=ev.target;
+  if(t.dataset.kn!=null){kpiLive();return}
   if(t.id==='q'){S.q=t.value;clearTimeout(S.qt);S.qt=setTimeout(()=>{const pos=t.selectionStart;render(true);const n=$('#q');if(n){n.focus();try{n.setSelectionRange(pos,pos)}catch(e){}}},200);return}
 });
 function bigWarn(id,v,lbl){const e=S.emps[id];const gp=e&&+e.gajiPokok||0;if(gp&&v>gp*0.5)toast('Cek lagi: '+lbl+' '+e.nama+' Rp '+rp(v)+', lebih dari setengah gaji pokok.')}
 document.addEventListener('change',ev=>{
   const t=ev.target;
   if(t.id==='statusF'){S.status=t.value;render(true);return}
+  if(t.id==='kpiDiv'){S.kDiv=t.value;render(true);return}
+  if(t.dataset.kpidiv){const id=t.dataset.kpidiv,e=S.emps[id];if(!e)return;e.kpiDivisi=t.value;queuePatch('employees/'+id,{kpiDivisi:t.value});kpiForm(id);return}
   if(t.id==='noteCat'){S.nCat=t.value;render(true);return}
   if(t.id==='noteSt'){S.nSt=t.value;render(true);return}
   if(t.dataset.noteDone){const id=t.dataset.noteDone,n=S.notes[id];if(!n)return;const n2=Object.assign({},n,{selesai:t.checked});S.notes[id]=n2;render(true);saveDoc('notes/'+id,n2);return}
@@ -1072,9 +1309,9 @@ function db_subscribe(db,err){
   db.doc('settings/company').onSnapshot(s=>{S.settings=s.exists?clone(s.data()):{nama:'Perusahaan',alamat:'',uangLembur:20000,cutoff:21};S.ready.settings=true;if(!S.periodKey)S.periodKey=keyFor(new Date());render()},err);
   const coll=(name,target)=>db.collection(name).onSnapshot(snap=>{const o={};snap.docs.forEach(d=>o[d.id]=clone(d.data()));S[target]=o;S.ready[target]=true;
     if(target==='emps'&&snap.docs.length)S.needImport=false;
-    if(target==='periods'){for(const p in Q)if(p.startsWith('periods/')){const k=p.slice(8);if(o[k])deepMerge(o[k],clone(Q[p].patch))}}
+    if(target==='periods'||target==='kpiN'){const pre=target==='periods'?'periods/':'kpiNilai/';for(const p in Q)if(p.startsWith(pre)){const k=p.slice(pre.length);if(o[k])deepMerge(o[k],clone(Q[p].patch))}}
     render()},err);
-  coll('employees','emps');coll('loans','loans');coll('interns','interns');coll('notes','notes');coll('periods','periods');
+  coll('employees','emps');coll('loans','loans');coll('interns','interns');coll('notes','notes');coll('periods','periods');coll('kpiDivisi','kpiD');coll('kpiNilai','kpiN');
 }
 async function runImport(btn){
   btn.disabled=true;btn.textContent='Mengimpor…';
