@@ -1116,7 +1116,7 @@ function kpiNilaiFrom(x,actual){
   return Math.max(1,Math.min(10,Math.round(n*10)/10));
 }
 // indikator "dari laporan harian" -> kolom hasil hitung di kpiNilai/{bulan}.lap.{id}
-const KPI_LAP={'kelengkapan laporan harian':'kelengkapan','tugas selesai (status done)':'tugas','pencapaian target harian':'target','pekerjaan tercatat per hari kerja':'perHari','orderan pending':'pending','konten terbit (upload/posting)':'konten','interaksi medsos harian (story, reply dm/komentar)':'interaksi'};
+const KPI_LAP={'kelengkapan laporan harian':'kelengkapan','tugas selesai (status done)':'tugas','pencapaian target harian':'target','pekerjaan tercatat per hari kerja':'perHari','orderan pending':'pending','orderan diproses per hari':'diproses','konten terbit (upload/posting)':'konten','interaksi medsos harian (story, reply dm/komentar)':'interaksi'};
 function kpiAutoValue(e,x,key){
   const nm=x.nama.toLowerCase(),at=kpiAttend(e.id,key);
   if(at){
@@ -1194,7 +1194,7 @@ function kpiLapMetrics(recs,wd){
   const m={hari:days,kelengkapan:wd?R(Math.min(100,days/wd*100)):null,perHari:days?R(n/days):null};
   const st=recs.filter(r=>r.st);if(st.length)m.tugas=R(st.filter(r=>r.st.startsWith('done')).length/st.length*100);
   const tp=recs.filter(r=>r.tgt!=null&&r.real!=null),tg=tp.reduce((a,r)=>a+r.tgt,0);if(tp.length&&tg>0)m.target=R(tp.reduce((a,r)=>a+r.real,0)/tg*100);
-  const pd=recs.filter(r=>r.pend!=null||r.done!=null);if(pd.some(r=>r.pend!=null)){const P=pd.reduce((a,r)=>a+(r.pend||0),0),D=pd.reduce((a,r)=>a+(r.done||0),0);if(P+D>0)m.pending=R(P/(P+D)*100)}
+  const pd=recs.filter(r=>r.done!=null);if(pd.length){const P=pd.reduce((a,r)=>a+(r.pend||0),0),D=pd.reduce((a,r)=>a+(r.done||0),0);if(P+D>0)m.pending=R(P/(P+D)*100);if(days)m.orderHari=D/days}
   if(recs.some(r=>r.plat)){m.konten=recs.filter(r=>r.plat&&r.plat!=='-'&&/upload|posting|publish/i.test(r.akt)).length;
     const dd=new Set(recs.filter(r=>/story|reply|comment|komentar|\bdm\b/i.test(r.akt)).map(r=>r.d)).size;m.interaksi=wd?R(Math.min(100,dd/wd*100)):null}
   return m;
@@ -1211,6 +1211,9 @@ async function kpiReadLaporan(f){
     for(const k in by){const [y,m]=k.split('-').map(Number);const a=iso(new Date(y,m-1,1))<dmin?dmin:iso(new Date(y,m-1,1));let b=iso(new Date(y,m,0));if(b>dmax)b=dmax;
       let wd=0;for(let d=parse(a);d<=parse(b);d.setDate(d.getDate()+1)){if(d.getDay()!==0&&!hol.has(iso(d)))wd++}
       (res[k]||(res[k]={}))[e.id]=kpiLapMetrics(by[k],wd)}});
+  // target pribadi orderan/hari = rata-rata orderan/hari orang itu selama seluruh data laporan
+  const tot={};for(const k in res)for(const id in res[k]){const m=res[k][id];if(m.orderHari!=null){const t=tot[id]||(tot[id]={d:0,o:0});t.d+=m.hari;t.o+=m.orderHari*m.hari}}
+  for(const k in res)for(const id in res[k]){const m=res[k][id];if(m.orderHari!=null&&tot[id]&&tot[id].o>0)m.diproses=Math.round(m.orderHari/(tot[id].o/tot[id].d)*1000)/10;delete m.orderHari}
   return {res,miss:[...miss]};
 }
 async function kpiAutoGo(){
