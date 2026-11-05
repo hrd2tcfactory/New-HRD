@@ -257,6 +257,7 @@ const ICONS={
   ot:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
   pay:'<rect x="2" y="6" width="20" height="13" rx="2"/><circle cx="12" cy="12.5" r="2.5"/><path d="M6 10v5M18 10v5"/>',
   slip:'<path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6M9 13h8M9 17h8"/>',
+  sp:'<path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18v.5"/>',
   loan:'<path d="M12 2v20M17 6H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>',
   leave:'<path d="M2 20h20M5 20V9l7-5 7 5v11"/><path d="M10 20v-6h4v6"/>',
   ctr:'<path d="M4 4h16v16H4z"/><path d="M8 9h8M8 13h5"/><circle cx="17" cy="17" r="3"/>',
@@ -264,9 +265,9 @@ const ICONS={
 };
 const TABS=[
   ['dash','Dasbor','dash'],['emp','Karyawan','emp'],['att','Absensi','att'],['ot','Lembur','ot'],['pay','Payroll','pay'],
-  ['slip','Slip Gaji','slip'],['loan','Kasbon','loan'],['leave','Cuti','leave'],['ctr','Kontrak & PKL','ctr'],['set','Pengaturan','set']];
+  ['slip','Slip Gaji','slip'],['sp','Surat Peringatan','sp'],['loan','Kasbon','loan'],['leave','Cuti','leave'],['ctr','Kontrak & PKL','ctr'],['set','Pengaturan','set']];
 
-const S={db:null,dl:null,settings:null,emps:{},loans:{},interns:{},periods:{},ready:{},tab:'dash',periodKey:null,brush:'H',q:'',status:'',slipEmp:null,dirty:false,saving:0,readonly:false,armed:null};
+const S={db:null,dl:null,settings:null,emps:{},loans:{},warns:{},interns:{},periods:{},ready:{},tab:'dash',periodKey:null,brush:'H',q:'',status:'',slipEmp:null,dirty:false,saving:0,readonly:false,armed:null};
 
 // ---------- utils ----------
 const $=s=>document.querySelector(s);
@@ -443,7 +444,7 @@ function render(force){
   if(!S.db){main.innerHTML=S.dbMissing?'<div class="panel empty"><b>Database tidak bisa dibuka di tampilan ini.</b><br>Buka halaman ini lewat claude.ai dalam keadaan masuk (login) agar data HRD bisa dibaca dan disimpan.</div>':'<div class="empty">Memuat data HRD…</div>';return}
   if(!S.ready.emps||!S.ready.settings){main.innerHTML='<div class="empty">Memuat data HRD…</div>';return}
   const sx=window.scrollX,sy=window.scrollY;const gw=main.querySelector('.tablewrap');const gl=gw?gw.scrollLeft:0;const gt=gw?gw.scrollTop:0;
-  const f={dash:vDash,emp:vEmp,att:vAtt,ot:vOt,pay:vPay,slip:vSlip,loan:vLoan,leave:vLeave,ctr:vCtr,set:vSet}[S.tab]||vDash;
+  const f={dash:vDash,emp:vEmp,att:vAtt,ot:vOt,pay:vPay,slip:vSlip,loan:vLoan,sp:vWarn,leave:vLeave,ctr:vCtr,set:vSet}[S.tab]||vDash;
   main.innerHTML=f();
   const gw2=main.querySelector('.tablewrap');if(gw2&&!force){gw2.scrollLeft=gl;gw2.scrollTop=gt}
   if(!force)window.scrollTo(sx,sy);
@@ -464,6 +465,7 @@ function vDash(){
   emps.forEach(e=>{if(e.kontrakSelesai){const d=daysBetween(t,e.kontrakSelesai);if(d<=90)alerts.push({d,html:'<span class="pill '+(d<0?'p-bad':d<=30?'p-bad':'p-warn')+'">'+(d<0?'Lewat '+(-d)+' hr':d+' hari')+'</span>',t:'Kontrak '+e.nama+' berakhir',s:fmtD(e.kontrakSelesai)+' · '+e.jabatan})}});
   emps.forEach(e=>{if(e.status==='BELUM KONTRAK'||e.status==='TRAINING'){alerts.push({d:200,html:'<span class="pill p-mute">'+esc(e.status)+'</span>',t:e.nama+' belum punya kontrak',s:(e.tglBergabung?'Bergabung '+fmtD(e.tglBergabung):'Tanggal bergabung belum diisi')+' · '+e.jabatan})}});
   Object.values(S.interns).forEach(p=>{if(p.selesai){const d=daysBetween(t,p.selesai);if(d>=0&&d<=30)alerts.push({d,html:'<span class="pill p-warn">'+d+' hari</span>',t:'PKL '+p.nama+' selesai',s:fmtD(p.selesai)+' · '+p.sekolah})}});
+  Object.values(S.warns).forEach(w=>{const st=warnStatus(w,t);if(st.k==='soon'){const e=S.emps[w.empId]||{nama:w.empId};alerts.push({d:st.d,html:'<span class="pill p-warn">'+st.d+' hari</span>',t:w.tingkat+' '+e.nama+' berakhir',s:fmtD(w.sampai)+(w.pelanggaran?' · '+w.pelanggaran:'')})}});
   ((S.settings&&S.settings.reminders)||[]).forEach(r=>{const d=daysBetween(t,r.tanggal);if(d>=-7&&d<=120)alerts.push({d,html:'<span class="pill '+(d<=30?'p-warn':'p-mute')+'">'+(d<0?'Lewat':d+' hari')+'</span>',t:r.judul,s:fmtD(r.tanggal)})});
   {const pk=shiftKey(keyFor(new Date()),-1);const pp=S.periods[pk];if(pp&&Object.keys(pp.absensi||{}).length&&!isLocked(pk))alerts.push({d:-999,html:'<span class="pill p-warn">Belum dikunci</span>',t:'Payroll '+periodLabel(pk)+' belum dikunci',s:'Kunci di halaman Payroll setelah gaji dibayar'});
    const nk=keyFor(new Date());const ny=cutiYearOf(new Date())+1;const dReset=daysBetween(t,cutiRange(ny).from);if(dReset>=0&&dReset<=45)alerts.push({d:dReset,html:'<span class="pill p-mute">'+dReset+' hari</span>',t:'Saldo cuti diperbarui',s:'Kuota cuti tahun baru mulai '+fmtD(cutiRange(ny).from)})}
@@ -779,6 +781,51 @@ function vLeave(){
   '</tbody></table></div>';
 }
 
+// ===== Surat Peringatan =====
+const SP_LEVELS=['SP 1','SP 2','SP 3'];
+function addMonthsISO(s,n){const d=parse(s);if(!d)return '';const y=d.getFullYear(),m=d.getMonth()+n;const r=new Date(y,m,Math.min(d.getDate(),new Date(y,m+1,0).getDate()));r.setDate(r.getDate()-1);return iso(r)}
+function warnStatus(w,t){t=t||todayISO();const d=daysBetween(t,w.sampai);
+  if(w.tanggal&&w.tanggal>t)return {k:'next',label:'Belum mulai',cls:'p-mute',d};
+  if(d<0)return {k:'end',label:'Berakhir',cls:'p-mute',d};
+  if(d<=30)return {k:'soon',label:'Berakhir '+d+' hari lagi',cls:'p-warn',d};
+  return {k:'on',label:'Berlaku',cls:'p-bad',d}}
+function activeWarns(empId){const t=todayISO();return Object.values(S.warns).filter(w=>w.empId===empId&&['on','soon'].includes(warnStatus(w,t).k))}
+function vWarn(){
+  const t=todayISO();
+  const list=Object.entries(S.warns).map(([id,w])=>Object.assign({_id:id,st:warnStatus(w,t)},w))
+    .sort((a,b)=>(['on','soon'].includes(b.st.k)-['on','soon'].includes(a.st.k))||(b.tanggal||'').localeCompare(a.tanggal||''));
+  const act=list.filter(w=>['on','soon'].includes(w.st.k));const soon=act.filter(w=>w.st.k==='soon');
+  return topbar('Surat Peringatan',false,'<button class="btn primary" data-act="addWarn">+ Catat SP</button>')+
+  '<div class="kpis"><div class="kpi"><span class="k">SP sedang berlaku</span><span class="v">'+act.length+'</span></div>'+
+  '<div class="kpi"><span class="k">Karyawan sedang ber-SP</span><span class="v">'+new Set(act.map(w=>w.empId)).size+'</span></div>'+
+  '<div class="kpi"><span class="k">Berakhir dalam 30 hari</span><span class="v">'+soon.length+'</span></div></div>'+
+  '<p class="note" style="margin:0">Catat setiap SP beserta lama berlakunya. Tanggal “Berlaku sampai” terisi otomatis dari tanggal terbit + lama (bulan), dan masih bisa diubah manual. SP yang akan berakhir dalam 30 hari muncul di Dasbor.</p>'+
+  '<div class="tablewrap"><table><thead><tr><th>Karyawan</th><th>Tingkat</th><th>No. surat</th><th>Tanggal terbit</th><th class="num">Lama</th><th>Berlaku sampai</th><th>Status</th><th>Pelanggaran</th><th></th></tr></thead><tbody>'+
+  (list.length?list.map(w=>{const e=S.emps[w.empId]||{nama:w.empId+' (data karyawan dihapus)',jabatan:''};
+    return '<tr><td><div class="name">'+esc(e.nama)+keluarPill(e)+'</div><div class="sub">'+esc(w.empId)+(e.jabatan?' · '+esc(e.jabatan):'')+'</div></td><td><b>'+esc(w.tingkat)+'</b></td><td class="sub">'+esc(w.nomor||'—')+'</td><td class="sub">'+fmtD(w.tanggal)+'</td><td class="num">'+(w.lama?w.lama+' bln':'—')+'</td><td class="sub">'+fmtD(w.sampai)+'</td><td><span class="pill '+w.st.cls+'">'+esc(w.st.label)+'</span></td><td class="sub" style="white-space:normal;min-width:180px">'+esc(w.pelanggaran||'—')+'</td><td><button class="btn" data-act="editWarn" data-id="'+esc(w._id)+'">Ubah</button></td></tr>'}).join(''):'<tr><td colspan="9" class="empty">Belum ada surat peringatan.</td></tr>')+
+  '</tbody></table></div>';
+}
+function warnForm(id){
+  const w=id?S.warns[id]:{empId:'',tingkat:'SP 1',nomor:'',tanggal:todayISO(),lama:6,sampai:addMonthsISO(todayISO(),6),pelanggaran:''};
+  openModal('<h3>'+(id?'Ubah surat peringatan':'Catat surat peringatan')+'</h3><div class="form">'+
+   '<label class="full">Karyawan<select id="w_emp">'+empList().map(e=>'<option value="'+esc(e.id)+'"'+(e.id===w.empId?' selected':'')+'>'+esc(e.id+' — '+e.nama)+'</option>').join('')+'</select></label>'+
+   '<label>Tingkat<select id="w_lvl">'+SP_LEVELS.map(l=>'<option'+(l===w.tingkat?' selected':'')+'>'+l+'</option>').join('')+'</select></label>'+
+   '<label>Nomor surat<input id="w_no" type="text" value="'+esc(w.nomor)+'"></label>'+
+   '<label>Tanggal terbit<input id="w_tgl" type="date" value="'+esc(w.tanggal)+'"></label>'+
+   '<label>Lama berlaku (bulan)<input id="w_lama" type="number" min="1" max="36" step="1" value="'+(+w.lama||'')+'"><span class="hint">Umumnya 6 bulan, sesuai peraturan perusahaan</span></label>'+
+   '<label>Berlaku sampai<input id="w_sampai" type="date" value="'+esc(w.sampai)+'"><span class="hint">Terisi otomatis, bisa diubah</span></label>'+
+   '<label class="full">Pelanggaran / alasan<input id="w_pel" type="text" value="'+esc(w.pelanggaran)+'"></label>'+
+  '</div><div class="row"><button class="btn primary" data-act="saveWarn" data-id="'+esc(id||'')+'">Simpan</button><button class="btn" data-act="closeModal">Batal</button><span class="spacer"></span>'+(id?'<button class="btn danger" data-act="delWarn" data-id="'+esc(id)+'">'+(S.armed==='delW'+id?'Klik lagi untuk hapus':'Hapus')+'</button>':'')+'</div>');
+}
+async function saveWarn(id){
+  const w=Object.assign({},id?S.warns[id]:{},{empId:$('#w_emp').value,tingkat:$('#w_lvl').value,nomor:$('#w_no').value.trim(),tanggal:$('#w_tgl').value,lama:+$('#w_lama').value||0,sampai:$('#w_sampai').value,pelanggaran:$('#w_pel').value.trim()});
+  if(!w.empId){toast('Pilih karyawan.');return}
+  if(!w.tanggal||!w.sampai){toast('Isi tanggal terbit dan berlaku sampai.');return}
+  if(w.sampai<w.tanggal){toast('Tanggal berlaku sampai tidak boleh sebelum tanggal terbit.');return}
+  const nid=id||('W'+Date.now().toString(36));
+  if(await saveDoc('warnings/'+nid,w)){S.warns[nid]=w;closeModal();toast('Surat peringatan disimpan.');render(true)}
+}
+
 // ===== Kontrak & PKL =====
 function vCtr(){
   const t=todayISO();
@@ -852,6 +899,10 @@ document.addEventListener('click',async ev=>{
   if(a==='lockPay'){if(armed('lockPay'))lockPay();return}
   if(a==='unlockPay'){if(armed('unlockPay'))unlockPay();return}
   if(a==='cyPrev'||a==='cyNext'){S.cutiYear+=(a==='cyPrev'?-1:1);render(true);return}
+  if(a==='addWarn')return warnForm(null);
+  if(a==='editWarn')return warnForm(id);
+  if(a==='saveWarn')return saveWarn(id||null);
+  if(a==='delWarn'){if(S.armed==='delW'+id){S.armed=null;if(await delDoc('warnings/'+id)){delete S.warns[id];closeModal();toast('Surat peringatan dihapus.');render(true)}}else{S.armed='delW'+id;b.textContent='Klik lagi untuk hapus'}return}
   if(a==='addLoan')return loanForm(null);
   if(a==='editLoan')return loanForm(id);
   if(a==='saveLoan')return saveLoan(id||null);
@@ -869,6 +920,7 @@ document.addEventListener('input',ev=>{
 function bigWarn(id,v,lbl){const e=S.emps[id];const gp=e&&+e.gajiPokok||0;if(gp&&v>gp*0.5)toast('Cek lagi: '+lbl+' '+e.nama+' Rp '+rp(v)+', lebih dari setengah gaji pokok.')}
 document.addEventListener('change',ev=>{
   const t=ev.target;
+  if(t.id==='w_tgl'||t.id==='w_lama'){const s=addMonthsISO($('#w_tgl').value,+$('#w_lama').value||0);if(s&&+$('#w_lama').value)$('#w_sampai').value=s;return}
   if(t.id==='statusF'){S.status=t.value;render(true);return}
   if(t.id==='slipSel'){S.slipEmp=t.value;render(true);return}
   if((t.dataset.ot||t.dataset.reimb||t.dataset.pot)&&isLocked()){toast('Periode ini sudah dikunci.');render(true);return}
@@ -897,7 +949,7 @@ function db_subscribe(db,err){
     if(target==='emps'&&snap.docs.length)S.needImport=false;
     if(target==='periods'){for(const p in Q)if(p.startsWith('periods/')){const k=p.slice(8);if(o[k])deepMerge(o[k],clone(Q[p].patch))}}
     render()},err);
-  coll('employees','emps');coll('loans','loans');coll('interns','interns');coll('periods','periods');
+  coll('employees','emps');coll('loans','loans');coll('warnings','warns');coll('interns','interns');coll('periods','periods');
 }
 async function runImport(btn){
   btn.disabled=true;btn.textContent='Mengimpor…';
