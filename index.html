@@ -948,7 +948,7 @@ function vWarn(){
   const list=Object.entries(S.warns).map(([id,w])=>Object.assign({_id:id,st:warnStatus(w,t)},w))
     .sort((a,b)=>(['on','soon'].includes(b.st.k)-['on','soon'].includes(a.st.k))||(b.tanggal||'').localeCompare(a.tanggal||''));
   const act=list.filter(w=>['on','soon'].includes(w.st.k));const soon=act.filter(w=>w.st.k==='soon');
-  return topbar('Surat Peringatan',false,'<button class="btn primary" data-act="addWarn">+ Catat SP</button>')+
+  return topbar('Surat Peringatan',false,'<button class="btn" data-act="impWarn">Impor dari file</button><input id="impWarnFile" type="file" accept=".json,application/json" hidden><button class="btn primary" data-act="addWarn">+ Catat SP</button>')+
   '<div class="kpis"><div class="kpi"><span class="k">SP sedang berlaku</span><span class="v">'+act.length+'</span></div>'+
   '<div class="kpi"><span class="k">Karyawan sedang ber-SP</span><span class="v">'+new Set(act.map(w=>w.empId)).size+'</span></div>'+
   '<div class="kpi"><span class="k">Berakhir dalam 30 hari</span><span class="v">'+soon.length+'</span></div></div>'+
@@ -979,6 +979,15 @@ async function saveWarn(id){
   if(await saveDoc('warnings/'+nid,w)){S.warns[nid]=w;closeModal();toast('Surat peringatan disimpan.');render(true)}
 }
 
+async function importWarns(file){
+  let j;try{j=JSON.parse(await file.text())}catch(e){toast('File bukan JSON yang valid.');return}
+  const arr=Array.isArray(j)?j:(j&&j.warnings);if(!Array.isArray(arr)){toast('Isi file bukan data surat peringatan.');return}
+  let n=0,skip=0;
+  for(const w of arr){const e=S.emps[w.empId];
+    if(!e||!w.tanggal||!w.sampai||Object.values(S.warns).some(x=>x.empId===w.empId&&x.nomor&&x.nomor===w.nomor)){skip++;continue}
+    const d={empId:w.empId,tingkat:w.tingkat||'SP 1',nomor:w.nomor||'',tanggal:w.tanggal,lama:+w.lama||0,sampai:w.sampai,pelanggaran:w.pelanggaran||''};
+    const nid='W'+Date.now().toString(36)+n;if(await saveDoc('warnings/'+nid,d)){S.warns[nid]=d;n++}}
+  toast(n+' surat peringatan diimpor'+(skip?', '+skip+' dilewati (karyawan tidak ditemukan atau sudah ada).':'.'));render(true)}
 // ===== Kontrak & PKL =====
 function vCtr(){
   const t=todayISO();
@@ -1367,6 +1376,7 @@ document.addEventListener('click',async ev=>{
   if(a==='lockPay'){if(armed('lockPay'))lockPay();return}
   if(a==='unlockPay'){if(armed('unlockPay'))unlockPay();return}
   if(a==='cyPrev'||a==='cyNext'){S.cutiYear+=(a==='cyPrev'?-1:1);render(true);return}
+  if(a==='impWarn'){$('#impWarnFile').click();return}
   if(a==='addWarn')return warnForm(null);
   if(a==='editWarn')return warnForm(id);
   if(a==='saveWarn')return saveWarn(id||null);
@@ -1395,6 +1405,7 @@ function bigWarn(id,v,lbl){const e=S.emps[id];const gp=e&&+e.gajiPokok||0;if(gp&
 document.addEventListener('change',ev=>{
   const t=ev.target;
   if(t.id==='w_tgl'||t.id==='w_lama'){const s=addMonthsISO($('#w_tgl').value,+$('#w_lama').value||0);if(s&&+$('#w_lama').value)$('#w_sampai').value=s;return}
+  if(t.id==='impWarnFile'){if(t.files[0])importWarns(t.files[0]);t.value='';return}
   if(t.id==='statusF'){S.status=t.value;render(true);return}
   if(t.id==='kpiDiv'){S.kDiv=t.value;render(true);return}
   if(t.dataset.kpidiv){const id=t.dataset.kpidiv,e=S.emps[id];if(!e)return;e.kpiDivisi=t.value;queuePatch('employees/'+id,{kpiDivisi:t.value});kpiForm(id);return}
