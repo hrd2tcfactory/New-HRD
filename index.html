@@ -539,7 +539,8 @@ async function saveNote(id){
 
 // ===== Surat Peringatan (SP) =====
 const SP_LEVELS=['SP1','SP2','SP3'];
-function spExpiry(sp){const d=parse(sp.tanggal);if(!d)return '';const m=+sp.berlakuBulan||6;const y=d.getFullYear(),mo=d.getMonth()+m,day=d.getDate();const last=new Date(y,mo+1,0).getDate();return iso(new Date(y,mo,Math.min(day,last)))}
+function spAddMonths(str,m){const d=parse(str);if(!d)return '';const y=d.getFullYear(),mo=d.getMonth()+m,last=new Date(y,mo+1,0).getDate();return iso(new Date(y,mo,Math.min(d.getDate(),last)))}
+function spExpiry(sp){return sp.berlakuSampai||spAddMonths(sp.tanggal,+sp.berlakuBulan||6)}
 function spActive(sp){const x=spExpiry(sp);return !!x&&x>=todayISO()}
 function spActiveOf(empId,exceptId){return Object.entries(S.sp).filter(([id,s])=>s.empId===empId&&id!==exceptId&&spActive(s))}
 function spNextLevel(empId,exceptId){const hi=spActiveOf(empId,exceptId).reduce((m,[,s])=>Math.max(m,SP_LEVELS.indexOf(s.level)+1),0);return SP_LEVELS[Math.min(hi,2)]}
@@ -559,19 +560,19 @@ function vSp(){
   '<div class="list">'+(rows.length?rows.map(s=>{
     const e=S.emps[s.empId];const d=s._exp?daysBetween(t,s._exp):0;
     const lp='<span class="pill '+(s.level==='SP3'?'p-bad':s.level==='SP2'?'p-warn':'p-mute')+'">'+esc(s.level)+'</span> ';
-    const sp=s._act?'<span class="pill '+(d<=30?'p-warn':'p-ok')+'">Berlaku s/d '+fmtD(s._exp)+'</span>':'<span class="pill p-mute">Kadaluarsa '+fmtD(s._exp)+'</span>';
+    const sp='<span class="pill '+(s._act?(d<=30?'p-warn':'p-ok'):'p-mute')+'">'+fmtD(s.tanggal)+' → '+fmtD(s._exp)+'</span> <span class="sub">'+(s._act?'sisa '+d+' hari':'kadaluarsa')+'</span>';
     return '<div class="li" style="align-items:flex-start;gap:12px;'+(s._act?'':'opacity:.6')+'"><div class="t" style="flex:1;min-width:0"><div class="name">'+lp+esc(e?e.nama:(s.empId||'Karyawan dihapus'))+(e?' <span class="sub">· '+esc(e.jabatan||'')+'</span>':'')+'</div>'+
     '<div class="sub" style="white-space:pre-wrap">'+esc(s.pelanggaran||'')+'</div>'+
-    '<div class="sub" style="margin-top:4px">'+sp+' · terbit '+fmtD(s.tanggal)+(s.nomor?' · No. '+esc(s.nomor):'')+'</div></div>'+
+    '<div class="sub" style="margin-top:4px">'+sp+(s.nomor?' · No. '+esc(s.nomor):'')+'</div></div>'+
     '<button class="btn" data-act="printSp" data-id="'+esc(s._id)+'">Cetak</button><button class="btn" data-act="editSp" data-id="'+esc(s._id)+'">Ubah</button></div>'}).join(''):'<div class="empty">Belum ada surat peringatan.</div>')+'</div>';
 }
 function spForm(id){
-  const s=id?S.sp[id]:{empId:'',level:'SP1',tanggal:todayISO(),berlakuBulan:6,nomor:'',pelanggaran:'',tindakan:''};
+  const s=id?S.sp[id]:{empId:'',level:'SP1',tanggal:todayISO(),berlakuSampai:spAddMonths(todayISO(),6),nomor:'',pelanggaran:'',tindakan:''};
   openModal('<h3>'+(id?'Ubah surat peringatan':'Terbitkan surat peringatan')+'</h3><div class="form">'+
    '<label class="full">Karyawan<select id="sp_emp"><option value="">— Pilih karyawan —</option>'+empList().map(e=>'<option value="'+esc(e.id)+'"'+(e.id===s.empId?' selected':'')+'>'+esc(e.id+' — '+e.nama)+'</option>').join('')+'</select><span class="hint" id="sp_hint"></span></label>'+
    '<label>Tingkat<select id="sp_lvl">'+SP_LEVELS.map(c=>'<option'+(c===s.level?' selected':'')+'>'+c+'</option>').join('')+'</select></label>'+
-   '<label>Tanggal terbit<input id="sp_tgl" type="date" value="'+esc(s.tanggal||'')+'"></label>'+
-   '<label>Masa berlaku (bulan)<input id="sp_bln" type="number" min="1" max="36" value="'+esc(s.berlakuBulan||6)+'"></label>'+
+   '<label>Berlaku mulai (tanggal terbit)<input id="sp_tgl" type="date" value="'+esc(s.tanggal||'')+'"></label>'+
+   '<label>Berlaku sampai (tenggat)<input id="sp_akhir" type="date" value="'+esc(spExpiry(s))+'"><span class="hint">Otomatis 6 bulan dari tanggal terbit, bisa diubah manual</span></label>'+
    '<label>Nomor surat (opsional)<input id="sp_no" type="text" maxlength="60" value="'+esc(s.nomor||'')+'"></label>'+
    '<label class="full">Pelanggaran<textarea id="sp_pel" rows="4">'+esc(s.pelanggaran)+'</textarea></label>'+
    '<label class="full">Tindakan / sanksi lanjutan (opsional)<textarea id="sp_tin" rows="3">'+esc(s.tindakan||'')+'</textarea></label>'+
@@ -580,9 +581,12 @@ function spForm(id){
 }
 function spHint(id){const el=$('#sp_hint'),emp=$('#sp_emp');if(!el||!emp)return;const v=emp.value;if(!v){el.textContent='';return}const a=spActiveOf(v,id||null);el.textContent=a.length?'SP aktif saat ini: '+a.map(([,s])=>s.level+' (s/d '+fmtD(spExpiry(s))+')').join(', ')+'. Saran tingkat berikutnya: '+spNextLevel(v,id||null)+'.':'Tidak ada SP aktif. Saran tingkat: SP1.'}
 async function saveSp(id){
-  const s=Object.assign({dibuat:new Date().toISOString()},id?S.sp[id]:{},{empId:$('#sp_emp').value,level:$('#sp_lvl').value,tanggal:$('#sp_tgl').value,berlakuBulan:Math.max(1,Math.min(36,+$('#sp_bln').value||6)),nomor:$('#sp_no').value.trim(),pelanggaran:$('#sp_pel').value.trim(),tindakan:$('#sp_tin').value.trim()});
+  const s=Object.assign({dibuat:new Date().toISOString()},id?S.sp[id]:{},{empId:$('#sp_emp').value,level:$('#sp_lvl').value,tanggal:$('#sp_tgl').value,berlakuSampai:$('#sp_akhir').value,nomor:$('#sp_no').value.trim(),pelanggaran:$('#sp_pel').value.trim(),tindakan:$('#sp_tin').value.trim()});
   if(!s.empId){toast('Pilih karyawan dulu.');return}
   if(!s.tanggal){toast('Tanggal terbit wajib diisi.');return}
+  if(!s.berlakuSampai){toast('Tanggal berlaku sampai wajib diisi.');return}
+  if(s.berlakuSampai<s.tanggal){toast('Tanggal berlaku sampai tidak boleh sebelum tanggal terbit.');return}
+  delete s.berlakuBulan;
   if(!s.pelanggaran){toast('Pelanggaran wajib diisi.');return}
   const nid=id||('SP'+Date.now().toString(36));
   if(await saveDoc('sp/'+nid,s)){S.sp[nid]=s;closeModal();toast('Surat peringatan disimpan.');render(true)}
@@ -598,7 +602,7 @@ function printSp(id){
   '<p>Yang bertanda tangan di bawah ini menerangkan bahwa:</p>'+
   '<table><tr><td>Nama</td><td>: '+esc(e?e.nama:s.empId)+'</td></tr><tr><td>ID Karyawan</td><td>: '+esc(s.empId)+'</td></tr><tr><td>Jabatan</td><td>: '+esc(e?e.jabatan||'':'')+'</td></tr></table>'+
   '<p>telah melakukan pelanggaran tata tertib perusahaan berupa:</p><p style="white-space:pre-wrap;margin-left:16px">'+esc(s.pelanggaran)+'</p>'+
-  '<p>Sehubungan dengan hal tersebut, perusahaan memberikan <b>Surat Peringatan '+esc(lvl)+'</b> yang berlaku selama '+esc(s.berlakuBulan)+' bulan, terhitung sejak '+esc(fmtD(s.tanggal))+' sampai dengan '+esc(fmtD(exp))+'.</p>'+
+  '<p>Sehubungan dengan hal tersebut, perusahaan memberikan <b>Surat Peringatan '+esc(lvl)+'</b> yang berlaku terhitung sejak '+esc(fmtD(s.tanggal))+' sampai dengan '+esc(fmtD(exp))+'.</p>'+
   (s.tindakan?'<p style="white-space:pre-wrap">'+esc(s.tindakan)+'</p>':'')+
   '<p>Apabila pelanggaran serupa atau pelanggaran lain terulang selama masa berlaku surat ini, perusahaan akan memberikan sanksi yang lebih berat sesuai ketentuan yang berlaku.</p><p>Demikian surat peringatan ini dibuat untuk dipatuhi.</p>'+
   '<p>'+esc(fmtD(s.tanggal))+'</p><div class="ttd"><div>Karyawan yang bersangkutan<br><br><br><br>( '+esc(e?e.nama:'')+' )</div><div>HRD / Pimpinan<br><br><br><br>( ............................ )</div></div>'+
@@ -1424,6 +1428,7 @@ document.addEventListener('change',ev=>{
   if(t.dataset.kpidiv){const id=t.dataset.kpidiv,e=S.emps[id];if(!e)return;e.kpiDivisi=t.value;queuePatch('employees/'+id,{kpiDivisi:t.value});kpiForm(id);return}
   if(t.id==='spLvl'){S.spLvl=t.value;render(true);return}
   if(t.id==='spSt'){S.spSt=t.value;render(true);return}
+  if(t.id==='sp_tgl'){const a=$('#sp_akhir');if(a&&t.value)a.value=spAddMonths(t.value,6);return}
   if(t.id==='sp_emp'){const l=$('#sp_lvl');if(t.value&&l)l.value=spNextLevel(t.value,null);spHint(null);return}
   if(t.id==='noteCat'){S.nCat=t.value;render(true);return}
   if(t.id==='noteSt'){S.nSt=t.value;render(true);return}
