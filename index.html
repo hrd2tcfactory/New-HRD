@@ -304,7 +304,11 @@ function P(){return S.periods[S.periodKey]||{absensi:{},lembur:{},reimburse:{},p
 // ---------- employees ----------
 const DEFAULT_ORDER=['PENASEHAT','GENERAL MANAGER','MANAGER','MANAGER CNC','KABAG PRODUKSI','HRD','FINANCE','CAM PRODUKSI','PROGRAMMER','PPIC','DESIGN','SUPERVISIOR CNC','WAKIL SUPERVISIOR','OPERATOR CNC','OPERATOR CUTTING','WELDING','ASSEMBLY','LASER MARKING','ADMIN','CONTENT CREATOR','GUDANG','PACKER','DRIVER','OB'];
 function jabOrder(){const o=S.settings&&S.settings.jabatanOrder;return (o&&o.length)?o:DEFAULT_ORDER}
-function jabRank(j){const i=jabOrder().indexOf(String(j||'').trim().toUpperCase());return i<0?999:i}
+// Samakan ejaan sebelum dibandingkan (SUPERVISIOR = SUPERVISOR, DEVISI = DIVISI, spasi ganda, OB = OFFICE BOY, dst.)
+function normJab(j){return String(j||'').toUpperCase().replace(/[^A-Z0-9 ]/g,' ').replace(/SUPERVISIOR/g,'SUPERVISOR').replace(/\bSPV\b/g,'SUPERVISOR').replace(/\bDEVISI\b/g,'DIVISI').replace(/\bKEPALA BAGIAN\b/g,'KABAG').replace(/\bOFFICE BOY\b/g,'OB').replace(/\s+/g,' ').trim()}
+function jabRank(j){const o=jabOrder().map(normJab),n=normJab(j);if(!n)return 999;let i=o.indexOf(n);if(i>=0)return i;
+  i=o.findIndex(x=>x&&(x.startsWith(n+' ')||n.startsWith(x+' ')));if(i>=0)return i;
+  i=o.findIndex(x=>x&&(x.includes(n)||n.includes(x)));return i<0?999:i}
 function byRank(a,b){return jabRank(a.jabatan)-jabRank(b.jabatan)||(a.jabatan||'').localeCompare(b.jabatan||'')||a.id.localeCompare(b.id)}
 function empList(includeInactive){return Object.values(S.emps).filter(e=>includeInactive||e.aktif!==false).sort(byRank)}
 // active staff plus anyone who left but still has attendance/overtime in this period (they are still owed pay)
