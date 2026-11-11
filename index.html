@@ -302,7 +302,7 @@ function holidays(){return new Set(((S.settings&&S.settings.libur)||[]))}
 function P(){return S.periods[S.periodKey]||{absensi:{},lembur:{},reimburse:{},potonganLain:{}}}
 
 // ---------- employees ----------
-const DEFAULT_ORDER=['GENERAL MANAGER','MANAGER','MANAGER CNC','KABAG PRODUKSI','HRD','CAM PRODUKSI','PROGRAMMER','PPIC','DESIGN','PROTOTYPE','SUPERVISIOR CNC','WAKIL SUPERVISIOR','OPERATOR CNC','OPERATOR CUTTING','DEVISI PULLEY','WELDING','ASSEMBLY','LASER MARKING','ADMIN','CONTENT CREATOR','GUDANG','PACKER','DRIVER','OB'];
+const DEFAULT_ORDER=['PENASEHAT','GENERAL MANAGER','MANAGER','MANAGER CNC','KABAG PRODUKSI','HRD','FINANCE','CAM PRODUKSI','PROGRAMMER','PPIC','DESIGN','SUPERVISIOR CNC','WAKIL SUPERVISIOR','OPERATOR CNC','OPERATOR CUTTING','WELDING','ASSEMBLY','LASER MARKING','ADMIN','CONTENT CREATOR','GUDANG','PACKER','DRIVER','OB'];
 function jabOrder(){const o=S.settings&&S.settings.jabatanOrder;return (o&&o.length)?o:DEFAULT_ORDER}
 function jabRank(j){const i=jabOrder().indexOf(String(j||'').trim().toUpperCase());return i<0?999:i}
 function byRank(a,b){return jabRank(a.jabatan)-jabRank(b.jabatan)||(a.jabatan||'').localeCompare(b.jabatan||'')||a.id.localeCompare(b.id)}
@@ -1433,7 +1433,27 @@ S.tab=lsGet('hrd.tab')||'dash';renderNav();render();window.__runImport=b=>runImp
   try{S.needImport=await be.isEmpty()}catch(e){console.error(e);if(e&&e.code==='permission-denied'){S.noAccess=true;render(true);return}}
   const err=e=>{console.error(e);if(e&&e.code==='invalid_argument'){S.noAccess=true;render(true)}};
   db_subscribe(be.db,err);
+  runMigrations(be.db);
 })();
+// Perubahan data satu kali (dijalankan otomatis oleh akun HRD yang login, lalu ditandai di settings.migrasi supaya tidak terulang).
+const MIGRATIONS=[{id:'2026-11-11-struktur-organisasi',run:async db=>{
+  const done=[];const byName=n=>Object.values(S.emps).find(e=>(e.nama||'').trim().toUpperCase()===n);
+  for(const [nama,jab] of [['GALANG AJI','PENASEHAT'],['RAFI RAMADHAN','OPERATOR CUTTING'],['FAHMI DWI PERMANA','OPERATOR CNC']]){
+    const e=byName(nama);if(e&&e.jabatan!==jab){await db.doc('employees/'+e.id).update({jabatan:jab});done.push(nama+' → '+jab)}}
+  if(!byName('SAMIA STEPANY')){const id=nextId();
+    await db.doc('employees/'+id).set({id,nama:'SAMIA STEPANY',jabatan:'FINANCE',status:'TRAINING',gajiPokok:3000000,metode:'BULANAN',pembagi:24,kaliLTM:1,lemburMode:'umum',lemburTarif:0,lemburKali:1,rekening:'',wa:'',email:'',tglBergabung:'',kontrakMulai:'',kontrakSelesai:'',kuotaCuti:12,cutiTerpakaiAwal:0,aktif:true,tglKeluar:''});
+    done.push('Samia Stepany ditambahkan ('+id+')')}
+  await db.doc('settings/company').update({jabatanOrder:DEFAULT_ORDER.slice()});done.push('urutan jabatan diperbarui');
+  return done}}];
+async function runMigrations(db){
+  let n=0;while(!(S.ready.settings&&S.ready.emps)&&n++<400)await new Promise(r=>setTimeout(r,50));
+  if(!(S.ready.settings&&S.ready.emps)||S.noAccess)return;
+  for(const m of MIGRATIONS){
+    if(((S.settings||{}).migrasi||{})[m.id])continue;
+    try{const done=await m.run(db);await db.doc('settings/company').update({migrasi:{[m.id]:new Date().toISOString()}});if(done.length)toast('Pembaruan data diterapkan: '+done.join(', ')+'.')}
+    catch(e){console.error('migrasi '+m.id,e)}
+  }
+}
 function db_subscribe(db,err){
   db.doc('settings/company').onSnapshot(s=>{S.settings=s.exists?clone(s.data()):{nama:'Perusahaan',alamat:'',uangLembur:20000,cutoff:21};S.ready.settings=true;if(!S.periodKey)S.periodKey=keyFor(new Date());render()},err);
   const coll=(name,target)=>db.collection(name).onSnapshot(snap=>{const o={};snap.docs.forEach(d=>o[d.id]=clone(d.data()));S[target]=o;S.ready[target]=true;
