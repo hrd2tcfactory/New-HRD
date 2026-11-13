@@ -1505,7 +1505,11 @@ const MIGRATIONS=[{id:'2026-11-11-struktur-organisasi',run:async db=>{
     await db.doc('employees/'+id).set({id,nama:'SAMIA STEPANY',jabatan:'FINANCE',status:'TRAINING',gajiPokok:3000000,metode:'BULANAN',pembagi:24,kaliLTM:1,lemburMode:'umum',lemburTarif:0,lemburKali:1,rekening:'',wa:'',email:'',tglBergabung:'',kontrakMulai:'',kontrakSelesai:'',kuotaCuti:12,cutiTerpakaiAwal:0,aktif:true,tglKeluar:''});
     done.push('Samia Stepany ditambahkan ('+id+')')}
   await db.doc('settings/company').update({jabatanOrder:DEFAULT_ORDER.slice()});done.push('urutan jabatan diperbarui');
-  return done}}];
+  return done}},
+{id:'2026-11-13-rekening-enjang',run:async db=>{
+  const e=Object.values(S.emps).find(x=>/ENJANG/.test((x.nama||'').toUpperCase()));if(!e)return [];
+  const rek='6768433241 (Muhammad Enjang Saprudin)';if(e.rekening===rek)return [];
+  await db.doc('employees/'+e.id).update({rekening:rek});return ['rekening '+e.nama+' → 6768433241']}}];
 async function runMigrations(db){
   let n=0;while(!(S.ready.settings&&S.ready.emps)&&n++<400)await new Promise(r=>setTimeout(r,50));
   if(!(S.ready.settings&&S.ready.emps)||S.noAccess)return;
