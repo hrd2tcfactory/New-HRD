@@ -705,14 +705,14 @@ function bcaDialog(){
   if(!isLocked())toast('Payroll periode ini belum dikunci. Angka masih bisa berubah.');
   const {out,bad}=bcaRows();const tot=out.reduce((a,x)=>a+x.amt,0);
   const [y,m]=S.periodKey.split('-');const defRemark=('GAJI '+MS[+m-1].toUpperCase()+' '+y).slice(0,18);
-  const defPrefix='GJ'+y.slice(2)+m;
+  const defPrefix=MS[+m-1].toUpperCase()+'K';
   const email=lsGet('hrd.bcaEmail')||(S.backend&&S.backend.email)||'';
   openModal('<h3>File transfer BCA, '+esc(periodLabel(S.periodKey))+'</h3>'+
-    '<p class="note" style="margin:0">Format Multi Payroll KlikBCA Bisnis, sama dengan template yang biasa diunggah. Nominal diambil dari take home pay di halaman Payroll'+(isLocked()?' (sudah dikunci)':' <b>(belum dikunci)</b>')+'.</p>'+
+    '<p class="note" style="margin:0">Mengikuti template Multi Payroll (MAT) dari BCA: sheet Data, Legend, dan Sheet3 dengan kolom yang sama. Nominal diambil dari take home pay di halaman Payroll'+(isLocked()?' (sudah dikunci)':' <b>(belum dikunci)</b>')+'.</p>'+
     '<div class="kpis" style="grid-template-columns:repeat(2,minmax(0,1fr))"><div class="kpi"><span class="k">Penerima</span><span class="v">'+out.length+'</span></div><div class="kpi"><span class="k">Total transfer</span><span class="v">Rp '+rp(tot)+'</span></div></div>'+
     (bad.length?'<div class="panel" style="padding:10px 12px"><b>'+bad.length+' karyawan tidak masuk file</b><div class="list">'+bad.map(b=>'<div class="li"><div class="t"><div class="name">'+esc(b.e.nama)+'</div><div class="sub">'+esc(b.why)+'</div></div></div>').join('')+'</div><p class="note" style="margin:6px 0 0">Perbaiki di halaman Karyawan, lalu buka lagi jendela ini.</p></div>':'')+
     '<div class="form"><label>Keterangan di mutasi (maks. 18 huruf)<input id="bca_remark" maxlength="18" value="'+esc(lsGet('hrd.bcaRemark.'+S.periodKey)||defRemark)+'"></label>'+
-    '<label>Awalan Transaction ID<input id="bca_prefix" maxlength="12" value="'+esc(defPrefix)+'"><span class="hint">ID transaksi jadi '+esc(defPrefix)+'001 dst. Harus beda tiap bulan (tidak boleh sama dalam 3 bulan).</span></label>'+
+    '<label>Awalan Transaction ID<input id="bca_prefix" maxlength="12" value="'+esc(defPrefix)+'"><span class="hint">Sama seperti template BCA: '+esc(defPrefix)+'001, '+esc(defPrefix)+'002, dst. Harus beda tiap bulan (BCA menolak ID yang sama dalam 3 bulan).</span></label>'+
     '<label class="full">Email notifikasi transfer berhasil<input id="bca_email" type="email" value="'+esc(email)+'"></label></div>'+
     '<div class="row"><button class="btn primary" data-act="bcaGo"'+(out.length?'':' disabled')+'>Unduh file BCA</button><button class="btn" data-act="closeModal">Batal</button></div>');
 }
@@ -724,12 +724,13 @@ async function bcaDownload(){
   lsSet('hrd.bcaEmail',email);lsSet('hrd.bcaRemark.'+S.periodKey,remark);
   const {out}=bcaRows();const w=String(out.length).length<3?3:String(out.length).length;
   const head=['No','Transaction ID','Transfer Type ','Beneficiary ID','Credited Account','Receiver Name','Amount','NIP','Remark','Beneficiary email address','Receiver Swift Code','Receiver Cust Type','Receiver Cust Residence'];
-  const aoa=[head].concat(out.map((x,i)=>[i+1,(prefix+String(i+1).padStart(w,'0')).slice(0,18),'BCA','',x.acc,x.name,x.amt,x.e.id,remark,email,'','','']));
+  const aoa=[head].concat(out.map((x,i)=>[i+1,(prefix+String(i+1).padStart(w,'0')).slice(0,18),'BCA',null,x.acc,x.name,x.amt,null,remark||null,email||null,null,null,null]));
   const ws=XLSX.utils.aoa_to_sheet(aoa);
-  for(let i=1;i<=out.length;i++){const ea=XLSX.utils.encode_cell({r:i,c:4});ws[ea]={t:'s',v:String(out[i-1].acc),z:'@'};const ga=XLSX.utils.encode_cell({r:i,c:6});ws[ga].z='0.00'}
-  ws['!cols']=[{wch:6},{wch:19},{wch:13},{wch:13},{wch:20},{wch:34},{wch:16},{wch:10},{wch:20},{wch:34},{wch:18},{wch:18},{wch:22}];
-  const lg=XLSX.utils.aoa_to_sheet([['Column','Keterangan','Length (max. karakter)'],['No','Nomor baris','-'],['Transaction ID','ID Transaksi harus unik, tidak boleh ada yang sama dalam waktu 3 bulan',18],['Transfer Type','Jenis layanan transfer (BCA = sesama BCA)',3],['Credited Acc.','Nomor rekening tujuan transaksi',34],['Receiver Name','Nama penerima tujuan transaksi',70],['Amount','Nominal transaksi dengan format 2 angka desimal','13 + 2 decimal'],['NIP','Nomor Induk Karyawan',18],['Remark','Keterangan yang muncul di mutasi',18],['Beneficiary Email','Email notifikasi transaksi berhasil',300]]);
-  const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Data');XLSX.utils.book_append_sheet(wb,lg,'Legend');
+  for(let i=1;i<=out.length;i++){const ea=XLSX.utils.encode_cell({r:i,c:4});ws[ea]={t:'s',v:String(out[i-1].acc),z:'@'};const ga=XLSX.utils.encode_cell({r:i,c:6});ws[ga].z='_-"Rp"* #,##0.00_-;\\-"Rp"* #,##0.00_-;_-"Rp"* "-"??_-;_-@_-'}
+  ws['E1'].z='@';
+  ws['!cols']=[9.14,19.29,13.57,13.43,32.57,37.71,29.14,18.57,21,83.57,19,18,23].map(w=>({wch:w}));
+  const lg=XLSX.utils.aoa_to_sheet([["Column", "Keterangan", "Length (max. karakter)", null, "Transfer Type", "Keterangan"], ["No", "Nomor baris", "-", null, "BCA", "Transfer sesama BCA"], ["Transaction ID", "ID Transaksi harus unik, tidak boleh ada yang sama dalam waktu 3 bulan", 18, null, "LLG", "Transfer Bank Lain dalam negeri dengan LLG"], ["Transfer Type", "Jenis layanan transfer", 3, null, "RTG", "Transfer Bank Lain dalam negeri dengan RTGS"], ["Beneficiary ID", "Khusus fitur Designated Account, wajib diisi", 70, null, null, null], ["Credited Acc.", "Nomor rekening tujuan transaksi", 34, null, null, null], ["Receiver Name", "Nama penerima tujuan transaksi", 70, null, "Receiver Cust. Type", "Keterangan"], ["Amount", "Nomimal transaksi dengan format 2 angka decimal", "13 + 2 decimal", null, 1, "Perorangan"], ["NIP", "Nomor Induk Karyawan/ Pegawai ", 18, null, 2, "Perusahaan"], ["Remark ", "Keterangan yang diinput nasabah dan muncul di mutasi", 18, null, 3, "Pemerintah"], ["Beneficiary Email", "Diisi dengan alamat email untuk pengiriman notifikasi transaksi berhasil\nGunakan karakter koma (,) untuk input email lebih dari 1", 300, null, null, null], ["Receiver Bank Cd", "SWIFT Code bank tujuan transaksi", 11, null, "Receiver Cust. Residen", "Keterangan"], ["Receiver Cust. Type", "Jenis tipe nasabah tujuan transaksi", 1, null, 1, "Residence / Penduduk"], ["Receiver Cust. Residen", "Jenis residen nasabah tujuan transaksi", 1, null, 2, "Non Residence / Bukan Penduduk"]]);lg['!cols']=[24.29,65.57,24.71,4,23.29,51,9.14].map(w=>({wch:w}));
+  const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Data');XLSX.utils.book_append_sheet(wb,lg,'Legend');XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([[]]),'Sheet3');
   const buf=XLSX.write(wb,{type:'array',bookType:'xlsx'});
   try{await S.dl.save({filename:'Transfer BCA Gaji '+periodLabel(S.periodKey)+'.xlsx',data:new Blob([buf])});closeModal();toast('File transfer BCA diunduh: '+out.length+' penerima, Rp '+rp(out.reduce((a,x)=>a+x.amt,0))+'.')}
   catch(e){if(e&&e.code!=='declined')toast('Unduhan gagal ('+(e&&e.code||'error')+').')}
