@@ -667,7 +667,7 @@ function vPay(){
     '<td class="num"><input class="cellin" type="number" min="0" step="1000" data-pot="'+esc(e.id)+'" value="'+(r.pot||'')+'" placeholder="0" aria-label="Potongan lain '+esc(e.nama)+'"'+dis+'></td>'+
     '<td class="num"><b>'+rp(r.thp)+'</b></td><td><button class="btn ghost" data-act="toSlip" data-id="'+esc(e.id)+'">Slip</button></td></tr>'}).join('');
   const lockBtn=locked?'<button class="btn" data-act="unlockPay">'+(S.armed==='unlockPay'?'Klik lagi untuk buka kunci':'Buka kunci')+'</button>':'<button class="btn primary" data-act="lockPay" style="white-space:normal;text-align:left">'+(S.armed==='lockPay'?(nSerius?'Ada '+nSerius+' peringatan. Klik lagi untuk tetap kunci':'Klik lagi untuk mengunci'):'Kunci payroll '+periodLabel(key))+'</button>';
-  return topbar('Payroll',true,'<button class="btn" data-act="exportPay">Unduh Excel</button><button class="btn" data-act="allSlips">Unduh semua slip (PDF)</button><button class="btn" data-act="mailAllRev">Kirim ulang sebagai revisi</button><button class="btn primary" data-act="mailAll">Kirim semua slip via email</button>')+lockBanner()+
+  return topbar('Payroll',true,'<button class="btn" data-act="bcaFile">File transfer BCA</button><button class="btn" data-act="exportPay">Unduh Excel</button><button class="btn" data-act="allSlips">Unduh semua slip (PDF)</button><button class="btn" data-act="mailAllRev">Kirim ulang sebagai revisi</button><button class="btn primary" data-act="mailAll">Kirim semua slip via email</button>')+lockBanner()+
   '<div class="kpis"><div class="kpi"><span class="k">Total take home pay</span><span class="v">Rp '+rp(T.thp)+'</span><span class="s">'+emps.length+' karyawan'+(locked?' · angka final':' · masih bisa berubah')+'</span></div>'+
   '<div class="kpi"><span class="k">Total lembur</span><span class="v">Rp '+rp(T.lm+T.ltm+T.lj)+'</span><span class="s">Minggu '+rp(T.lm)+' · Tgl merah '+rp(T.ltm)+' · Per jam '+rp(T.lj)+'</span></div>'+
   '<div class="kpi"><span class="k">Potongan kasbon</span><span class="v">Rp '+rp(T.kas)+'</span><span class="s">'+(locked?'Sudah dicatat ke saldo kasbon':'Dicatat ke saldo kasbon saat payroll dikunci')+'</span></div>'+
@@ -678,6 +678,61 @@ function vPay(){
 }
 function payRows(){
   return payEmps().map(e=>{const r=calc(e);return {ID:e.id,Nama:e.nama,Jabatan:e.jabatan,Status:e.status,Skema:e.metode,'Gaji Pokok':Math.round(e.gajiPokok||0),'Gaji Harian':Math.round(r.harian),'Hadir (H)':r.c.H,'Cuti (C)':r.c.C,'Izin (I)':r.c.I,'Sakit (S)':r.c.S,'Alpha (A)':r.c.A,'LM (hari)':r.c.LM,'LTM (hari)':r.c.LTM,'Gaji Dibayar':Math.round(r.base),'Lembur Minggu':r.lm,'Lembur Tgl Merah':r.ltm,'Jam Lembur':r.jam,'Lembur/Jam':Math.round(r.lj),'Hari Uang Makan':r.hariUM||0,'Uang Makan':r.um||0,'Reimburse':r.reimb,'Setengah Hari (SH)':r.c.SH||0,'Potongan 1/2 Hari':r.potSH||0,'Potongan Absen':r.potAbsen||0,'Kasbon':Math.round(r.kas),'Potongan Lain':r.pot,'THP':r.thp,'Rekening':e.rekening}})
+}
+
+// ===== File transfer BCA (Multi Payroll / MAT KlikBCA Bisnis) =====
+// Rekening disimpan bebas, mis. "6768430072 (Fauzan)", "1810644776 AN/ARISUPIRMAN", "379 1484284 ( Dede )".
+function parseRek(txt,fallback){
+  const t=String(txt||'').trim();const m=t.match(/^[\d\s.-]+/);const acc=(m?m[0]:'').replace(/\D/g,'');
+  let nm=(t.match(/\(([^)]*)\)/)||[])[1]||'';
+  if(!nm){nm=t.slice(m?m[0].length:0).replace(/^\s*(an\/|a\/n|a\.\s*n\.?|an\.?)\s*/i,'').trim()}
+  nm=nm.replace(/\s+/g,' ').trim();if(!nm)nm=fallback||'';
+  nm=nm.toLowerCase().replace(/\b\w/g,c=>c.toUpperCase());
+  return {acc,name:nm.slice(0,70)};
+}
+function bcaRows(){
+  const out=[],bad=[];
+  payEmps().forEach(e=>{const r=calc(e);const amt=Math.round(r.thp||0);const live=S.emps[e.id]||e;
+    const rk=parseRek(live.rekening||e.rekening,e.nama);
+    if(amt<=0){bad.push({e,why:'THP Rp 0 atau minus, tidak ditransfer'});return}
+    if(!rk.acc){bad.push({e,why:'Nomor rekening belum diisi'});return}
+    if(rk.acc.length!==10){bad.push({e,why:'Nomor rekening '+rk.acc+' bukan 10 digit (rekening BCA selalu 10 digit; '+(rk.acc.length===16?'ini mungkin nomor kartu ATM':'periksa lagi')+')'});return}
+    out.push({e,acc:rk.acc,name:rk.name,amt});
+  });
+  return {out,bad};
+}
+function bcaDialog(){
+  if(!isLocked())toast('Payroll periode ini belum dikunci. Angka masih bisa berubah.');
+  const {out,bad}=bcaRows();const tot=out.reduce((a,x)=>a+x.amt,0);
+  const [y,m]=S.periodKey.split('-');const defRemark=('GAJI '+MS[+m-1].toUpperCase()+' '+y).slice(0,18);
+  const defPrefix='GJ'+y.slice(2)+m;
+  const email=lsGet('hrd.bcaEmail')||(S.backend&&S.backend.email)||'';
+  openModal('<h3>File transfer BCA, '+esc(periodLabel(S.periodKey))+'</h3>'+
+    '<p class="note" style="margin:0">Format Multi Payroll KlikBCA Bisnis, sama dengan template yang biasa diunggah. Nominal diambil dari take home pay di halaman Payroll'+(isLocked()?' (sudah dikunci)':' <b>(belum dikunci)</b>')+'.</p>'+
+    '<div class="kpis" style="grid-template-columns:repeat(2,minmax(0,1fr))"><div class="kpi"><span class="k">Penerima</span><span class="v">'+out.length+'</span></div><div class="kpi"><span class="k">Total transfer</span><span class="v">Rp '+rp(tot)+'</span></div></div>'+
+    (bad.length?'<div class="panel" style="padding:10px 12px"><b>'+bad.length+' karyawan tidak masuk file</b><div class="list">'+bad.map(b=>'<div class="li"><div class="t"><div class="name">'+esc(b.e.nama)+'</div><div class="sub">'+esc(b.why)+'</div></div></div>').join('')+'</div><p class="note" style="margin:6px 0 0">Perbaiki di halaman Karyawan, lalu buka lagi jendela ini.</p></div>':'')+
+    '<div class="form"><label>Keterangan di mutasi (maks. 18 huruf)<input id="bca_remark" maxlength="18" value="'+esc(lsGet('hrd.bcaRemark.'+S.periodKey)||defRemark)+'"></label>'+
+    '<label>Awalan Transaction ID<input id="bca_prefix" maxlength="12" value="'+esc(defPrefix)+'"><span class="hint">ID transaksi jadi '+esc(defPrefix)+'001 dst. Harus beda tiap bulan (tidak boleh sama dalam 3 bulan).</span></label>'+
+    '<label class="full">Email notifikasi transfer berhasil<input id="bca_email" type="email" value="'+esc(email)+'"></label></div>'+
+    '<div class="row"><button class="btn primary" data-act="bcaGo"'+(out.length?'':' disabled')+'>Unduh file BCA</button><button class="btn" data-act="closeModal">Batal</button></div>');
+}
+async function bcaDownload(){
+  if(!window.XLSX){toast('Pustaka Excel belum termuat. Coba lagi sebentar.');return}
+  if(!S.dl){toast('Unduhan tidak tersedia di tampilan ini.');return}
+  const remark=$('#bca_remark').value.trim().slice(0,18),prefix=$('#bca_prefix').value.trim().toUpperCase().replace(/[^A-Z0-9]/g,''),email=$('#bca_email').value.trim();
+  if(!prefix){toast('Isi awalan Transaction ID.');return}
+  lsSet('hrd.bcaEmail',email);lsSet('hrd.bcaRemark.'+S.periodKey,remark);
+  const {out}=bcaRows();const w=String(out.length).length<3?3:String(out.length).length;
+  const head=['No','Transaction ID','Transfer Type ','Beneficiary ID','Credited Account','Receiver Name','Amount','NIP','Remark','Beneficiary email address','Receiver Swift Code','Receiver Cust Type','Receiver Cust Residence'];
+  const aoa=[head].concat(out.map((x,i)=>[i+1,(prefix+String(i+1).padStart(w,'0')).slice(0,18),'BCA','',x.acc,x.name,x.amt,x.e.id,remark,email,'','','']));
+  const ws=XLSX.utils.aoa_to_sheet(aoa);
+  for(let i=1;i<=out.length;i++){const ea=XLSX.utils.encode_cell({r:i,c:4});ws[ea]={t:'s',v:String(out[i-1].acc),z:'@'};const ga=XLSX.utils.encode_cell({r:i,c:6});ws[ga].z='0.00'}
+  ws['!cols']=[{wch:6},{wch:19},{wch:13},{wch:13},{wch:20},{wch:34},{wch:16},{wch:10},{wch:20},{wch:34},{wch:18},{wch:18},{wch:22}];
+  const lg=XLSX.utils.aoa_to_sheet([['Column','Keterangan','Length (max. karakter)'],['No','Nomor baris','-'],['Transaction ID','ID Transaksi harus unik, tidak boleh ada yang sama dalam waktu 3 bulan',18],['Transfer Type','Jenis layanan transfer (BCA = sesama BCA)',3],['Credited Acc.','Nomor rekening tujuan transaksi',34],['Receiver Name','Nama penerima tujuan transaksi',70],['Amount','Nominal transaksi dengan format 2 angka desimal','13 + 2 decimal'],['NIP','Nomor Induk Karyawan',18],['Remark','Keterangan yang muncul di mutasi',18],['Beneficiary Email','Email notifikasi transaksi berhasil',300]]);
+  const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Data');XLSX.utils.book_append_sheet(wb,lg,'Legend');
+  const buf=XLSX.write(wb,{type:'array',bookType:'xlsx'});
+  try{await S.dl.save({filename:'Transfer BCA Gaji '+periodLabel(S.periodKey)+'.xlsx',data:new Blob([buf])});closeModal();toast('File transfer BCA diunduh: '+out.length+' penerima, Rp '+rp(out.reduce((a,x)=>a+x.amt,0))+'.')}
+  catch(e){if(e&&e.code!=='declined')toast('Unduhan gagal ('+(e&&e.code||'error')+').')}
 }
 async function exportPay(){
   if(!window.XLSX){toast('Pustaka Excel belum termuat. Coba lagi sebentar.');return}
@@ -1365,6 +1420,8 @@ document.addEventListener('click',async ev=>{
   if(a==='fillAll'){if(armed('fillAll')){const t=todayISO();fillDates(periodDates(S.periodKey).filter(d=>d<=t),true)}return}
   if(a==='toSlip'){S.slipEmp=id;S.tab='slip';renderNav();render(true);window.scrollTo(0,0);return}
   if(a==='exportPay')return exportPay();
+  if(a==='bcaFile')return bcaDialog();
+  if(a==='bcaGo')return bcaDownload();
   if(a==='mailAllRevGo'){closeModal();return mailSlips(payEmps().map(e=>e.id).filter(id=>(S.emps[id]||{}).email),true)}
   if(a==='mailAllRev')return mailAll(true);
   if(a==='mailAllGo'){closeModal();return mailSlips(payEmps().map(e=>e.id).filter(id=>(S.emps[id]||{}).email))}
