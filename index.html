@@ -931,6 +931,12 @@ function nameScore(a,b){const A=nameToks(a),B=nameToks(b);if(!A.length||!B.lengt
   let sc=hit/Math.max(A.length,B.length);if(ja.length>5&&(jb.includes(ja)||ja.includes(jb)))sc=Math.max(sc,.8);return sc}
 function waNorm(w){let d=String(w||'').replace(/\D/g,'');if(d.startsWith('0'))d='62'+d.slice(1);else if(d.startsWith('8'))d='62'+d;return d}
 function colFind(heads,keys){return heads.find(h=>keys.some(k=>h.toUpperCase().includes(k)))}
+// Satu baris form → dicocokkan ke karyawan aktif (rekening dulu, lalu nama).
+function identEntry(r,i,emps){const accOf=e=>parseRek(e.rekening,'').acc;const rek=r.rek;const racc=(typeof rek==='number'?String(Math.round(rek)):String(rek||'').split('(')[0].replace(/\D/g,''));
+  const o={i,ts:r.ts instanceof Date?r.ts.getTime():(+r.ts||0),nama:String(r.nama||'').trim(),jab:String(r.jab||'').trim(),nik:String(r.nik||'').replace(/\D/g,''),nikRaw:String(r.nik||'').trim(),rekRaw:String(rek||'').trim(),racc,ktp:String(r.ktp||'').trim(),wa:waNorm(r.wa),npwp:(/\d{6}/.test(String(r.npwp||''))?String(r.npwp).trim():''),alamat:String(r.alamat||'').replace(/\s+/g,' ').trim()};
+  let m=racc.length>=8?emps.find(e=>accOf(e)===racc):null;o.how=m?'rekening':'';
+  if(!m){let best=null,bs=0,second=0;emps.forEach(e=>{const sc=nameScore(o.nama,e.nama);if(sc>bs){second=bs;bs=sc;best=e}else if(sc>second)second=sc});if(best&&bs>=.5&&bs>second){m=best;o.how='nama'}}
+  o.emp=m?m.id:'';o.nameOk=m?nameScore(o.nama,m.nama)>=.5:false;if(m&&!o.nameOk){o.sugg=m.id;o.emp=''}return o}
 function impIdent(){
   if(!window.XLSX){toast('Pustaka Excel belum termuat. Coba lagi sebentar.');return}
   const inp=document.createElement('input');inp.type='file';inp.accept='.xlsx,.xls,.csv';
@@ -939,12 +945,8 @@ function impIdent(){
       if(!rows.length){toast('File kosong.');return}
       const H=Object.keys(rows[0]);const C={ts:colFind(H,['TIMESTAMP','WAKTU']),nama:colFind(H,['NAMA']),jab:colFind(H,['JABATAN']),nik:colFind(H,['NIK']),rek:colFind(H,['REKENING']),ktp:colFind(H,['SCAN','FOTO','LINK KTP']),wa:colFind(H,['WHATSAPP','WA ','NO HP']),npwp:colFind(H,['NPWP']),alamat:colFind(H,['ALAMAT'])};
       if(!C.nama||!C.nik){toast('Kolom NAMA atau NIK tidak ditemukan di file.');return}
-      const emps=empList();const accOf=e=>parseRek(e.rekening,'').acc;
-      const ent=rows.map((r,i)=>{const g=k=>C[k]?r[C[k]]:'';let rek=g('rek');const racc=(typeof rek==='number'?String(Math.round(rek)):String(rek||'').split('(')[0].replace(/\D/g,''));
-        const o={i,ts:g('ts') instanceof Date?g('ts').getTime():0,nama:String(g('nama')||'').trim(),jab:String(g('jab')||'').trim(),nik:String(g('nik')||'').replace(/\D/g,''),nikRaw:String(g('nik')||'').trim(),rekRaw:String(rek||'').trim(),racc,ktp:String(g('ktp')||'').trim(),wa:waNorm(g('wa')),npwp:(/\d{6}/.test(String(g('npwp')||''))?String(g('npwp')).trim():''),alamat:String(g('alamat')||'').replace(/\s+/g,' ').trim()};
-        let m=racc.length>=8?emps.find(e=>accOf(e)===racc):null;o.how=m?'rekening':'';
-        if(!m){let best=null,bs=0,second=0;emps.forEach(e=>{const sc=nameScore(o.nama,e.nama);if(sc>bs){second=bs;bs=sc;best=e}else if(sc>second)second=sc});if(best&&bs>=.5&&bs>second){m=best;o.how='nama'}}
-        o.emp=m?m.id:'';o.nameOk=m?nameScore(o.nama,m.nama)>=.5:false;if(m&&!o.nameOk){o.sugg=m.id;o.emp=''}return o}).filter(o=>o.nama||o.nik);
+      const emps=empList();
+      const ent=rows.map((r,i)=>{const g=k=>C[k]?r[C[k]]:'';return identEntry({ts:g('ts'),nama:g('nama'),jab:g('jab'),nik:g('nik'),rek:g('rek'),ktp:g('ktp'),wa:g('wa'),npwp:g('npwp'),alamat:g('alamat')},i,emps)}).filter(o=>o.nama||o.nik);
       S.impId={ent};identPreview();
     }catch(err){console.error(err);toast('File tidak bisa dibaca.')}};
   inp.click();
@@ -1593,7 +1595,22 @@ const MIGRATIONS=[{id:'2026-11-11-struktur-organisasi',run:async db=>{
 {id:'2026-11-13-rekening-enjang',run:async db=>{
   const e=Object.values(S.emps).find(x=>/ENJANG/.test((x.nama||'').toUpperCase()));if(!e)return [];
   const rek='6768433241 (Muhammad Enjang Saprudin)';if(e.rekening===rek)return [];
-  await db.doc('employees/'+e.id).update({rekening:rek});return ['rekening '+e.nama+' → 6768433241']}}];
+  await db.doc('employees/'+e.id).update({rekening:rek});return ['rekening '+e.nama+' → 6768433241']}},
+{id:'2026-11-14-identitas-form',run:async db=>{
+  // Data identitas dari Google Form (disimpan rahasia di server, bukan di kode). Hanya MENGISI kolom yang masih kosong.
+  const tok=await S.getToken();const H={authorization:'Bearer '+tok,'content-type':'application/json'};
+  const r=await fetch('/api/identitas',{headers:H});if(!r.ok)throw new Error('api identitas '+r.status);
+  const rows=(await r.json()).rows||[];if(!rows.length)throw new Error('data identitas kosong');
+  const emps=empList();const ent=rows.map((x,i)=>identEntry({ts:x[0],nama:x[1],jab:x[2],nik:x[3],rek:x[4],ktp:x[5],wa:x[6],npwp:x[7],alamat:x[8]},i,emps)).filter(o=>o.nama||o.nik);
+  const keep=S.impId;S.impId={ent};const M=identMerge();S.impId=keep;
+  const rep={baris:ent.length,cocok:Object.keys(M).length,diisi:[],lengkap:[],gagal:[]};let n=0,f=0;
+  for(const id in M){const prev=S.emps[id];if(!prev)continue;const add=identAdds(prev,M[id]);const keys=Object.keys(add);
+    if(!keys.length){rep.lengkap.push(id);continue}
+    add.identitasDiperbarui=todayISO();
+    try{await db.doc('employees/'+id).update(add);n++;f+=keys.length;rep.diisi.push(id+'='+keys.join('+'))}catch(e){rep.gagal.push(id+':'+((e&&e.code)||'err'))}}
+  try{await fetch('/api/identitas',{method:'POST',headers:H,body:JSON.stringify(rep)})}catch(e){}
+  if(rep.gagal.length)throw new Error('sebagian gagal');
+  return n?['data identitas ditambahkan ke '+n+' karyawan ('+f+' kolom)']:[]}}];
 async function runMigrations(db){
   let n=0;while(!(S.ready.settings&&S.ready.emps)&&n++<400)await new Promise(r=>setTimeout(r,50));
   if(!(S.ready.settings&&S.ready.emps)||S.noAccess)return;
