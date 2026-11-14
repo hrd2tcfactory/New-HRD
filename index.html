@@ -1610,7 +1610,21 @@ const MIGRATIONS=[{id:'2026-11-11-struktur-organisasi',run:async db=>{
     try{await db.doc('employees/'+id).update(add);n++;f+=keys.length;rep.diisi.push(id+'='+keys.join('+'))}catch(e){rep.gagal.push(id+':'+((e&&e.code)||'err'))}}
   try{await fetch('/api/identitas',{method:'POST',headers:H,body:JSON.stringify(rep)})}catch(e){}
   if(rep.gagal.length)throw new Error('sebagian gagal');
-  return n?['data identitas ditambahkan ke '+n+' karyawan ('+f+' kolom)']:[]}}];
+  return n?['data identitas ditambahkan ke '+n+' karyawan ('+f+' kolom)']:[]}},
+{id:'2026-11-14-identitas-email',run:async db=>{
+  // Data dari lamaran email (Indrie, Rizki, Samia). Hanya MENGISI kolom kosong; dicek ID + nama.
+  const tok=await S.getToken();const H={authorization:'Bearer '+tok,'content-type':'application/json'};
+  const r=await fetch('/api/identitas?src=email',{headers:H});if(!r.ok)throw new Error('api identitas '+r.status);
+  const data=(await r.json()).rows||{};if(!Object.keys(data).length)throw new Error('data email kosong');
+  const rep={sumber:'email',diisi:[],lengkap:[],lewat:[],gagal:[]};let n=0,f=0;
+  for(const id in data){const x=data[id];const prev=S.emps[id];
+    if(!prev||nameScore(x.nama,prev.nama)<.5){rep.lewat.push(id);continue}
+    const add=identAdds(prev,x);const keys=Object.keys(add);if(!keys.length){rep.lengkap.push(id);continue}
+    add.identitasDiperbarui=todayISO();
+    try{await db.doc('employees/'+id).update(add);n++;f+=keys.length;rep.diisi.push(id+'='+keys.join('+'))}catch(e){rep.gagal.push(id+':'+((e&&e.code)||'err'))}}
+  try{await fetch('/api/identitas',{method:'POST',headers:H,body:JSON.stringify(rep)})}catch(e){}
+  if(rep.gagal.length)throw new Error('sebagian gagal');
+  return n?['data dari lamaran email ditambahkan ke '+n+' karyawan ('+f+' kolom)']:[]}}];
 async function runMigrations(db){
   let n=0;while(!(S.ready.settings&&S.ready.emps)&&n++<400)await new Promise(r=>setTimeout(r,50));
   if(!(S.ready.settings&&S.ready.emps)||S.noAccess)return;

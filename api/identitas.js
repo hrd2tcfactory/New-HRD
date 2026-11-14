@@ -26,8 +26,9 @@ module.exports = async (req, res) => {
     return res.status(200).json({ ok: true });
   }
   if (req.method !== 'GET') return res.status(405).json({ error: 'Metode tidak diizinkan.' });
+  const src = (req.query && req.query.src) === 'email' ? 'IDENTITAS_EMAIL_JSON' : 'IDENTITAS_JSON';
   let rows = [];
-  try { rows = JSON.parse(process.env.IDENTITAS_JSON || '[]'); } catch (e) { console.log('[identitas] IDENTITAS_JSON rusak'); }
-  console.log('[identitas] data dikirim: ' + rows.length + ' baris');
+  try { rows = JSON.parse(process.env[src] || '[]'); } catch (e) { console.log('[identitas] IDENTITAS_JSON rusak'); }
+  console.log('[identitas] data dikirim (' + src + '): ' + (Array.isArray(rows) ? rows.length : Object.keys(rows).length));
   return res.status(200).json({ rows });
 };
