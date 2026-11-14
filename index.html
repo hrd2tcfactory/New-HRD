@@ -1075,6 +1075,58 @@ function srtPdf(j,f){
   const n=doc.getNumberOfPages();for(let i=1;i<=n;i++){doc.setPage(i);doc.setFont('times','normal');doc.setFontSize(8);doc.setTextColor(90);doc.text(label,L,287);doc.text(i+' | Halaman',R,287,{align:'right'});doc.setTextColor(0)}
   return doc}
 
+// --- penggambar Word (.docx) dari blok yang sama dengan PDF ---
+let docxLoad=null;
+function loadDocx(){if(window.docx)return Promise.resolve();if(docxLoad)return docxLoad;
+  docxLoad=new Promise((res,rej)=>{const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js';s.onload=res;s.onerror=()=>{docxLoad=null;rej(new Error('docx'))};document.head.appendChild(s)});return docxLoad}
+async function srtLogo(){
+  const src=(S.settings||{}).logo||SRT_LOGO;const m=/^data:image\/(png|jpe?g|gif|bmp);base64,(.*)$/i.exec(src||'');if(!m)return null;
+  const bin=atob(m[2]);const u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);
+  const dim=await new Promise(r=>{const im=new Image();im.onload=()=>r([im.naturalWidth,im.naturalHeight]);im.onerror=()=>r(null);im.src=src});if(!dim||!dim[0])return null;
+  return {data:u,type:/jpe?g/i.test(m[1])?'jpg':m[1].toLowerCase(),w:dim[0],h:dim[1]}}
+async function srtDocx(j,f){
+  const D=docx;const {font,size,blocks}=srtBlocks(j,f);const st=S.settings||{};
+  const fn=font==='helvetica'?'Arial':'Times New Roman';const sz=Math.round(size*2);const tw=mm=>Math.round(mm*56.6929);
+  const NB={style:D.BorderStyle.NONE,size:0,color:'FFFFFF'};const noB={top:NB,bottom:NB,left:NB,right:NB,insideHorizontal:NB,insideVertical:NB};
+  const B1={style:D.BorderStyle.SINGLE,size:4,color:'000000',space:2};
+  const runs=(t,o)=>{o=o||{};const out=[];String(t==null?'':t).split('**').forEach((seg,i)=>{if(seg)out.push(new D.TextRun({text:seg,bold:o.bold||i%2===1,font:fn,size:o.size||sz,color:o.color,underline:o.ul?{}:undefined}))});return out};
+  const tab=()=>new D.TextRun({children:[new D.Tab()],font:fn,size:sz});
+  const P=(children,o)=>new D.Paragraph(Object.assign({children},o||{}));
+  const LINE={line:300,lineRule:D.LineRuleType.AUTO};
+  const kids=[];
+  blocks.forEach(b=>{
+    if(b.t==='gap'){kids.push(P([],{spacing:{before:0,after:0,line:tw(b.h),lineRule:D.LineRuleType.EXACT}}));return}
+    if(b.t==='title'){kids.push(P(runs(b.text,{bold:true,ul:true,size:sz+2}),{alignment:D.AlignmentType.CENTER,spacing:{after:tw(2)}}));return}
+    if(b.t==='center'){kids.push(P(runs(b.text),{alignment:D.AlignmentType.CENTER}));return}
+    if(b.t==='p'){kids.push(P(runs(b.text),{alignment:D.AlignmentType.JUSTIFIED,indent:{left:tw(b.indent||0)},spacing:Object.assign({after:tw(1.8)},LINE)}));return}
+    if(b.t==='lines'){b.lines.forEach((s,i)=>kids.push(P(runs(s),{spacing:Object.assign({after:i===b.lines.length-1?tw(1):0},LINE)})));return}
+    if(b.t==='kv'){const x0=(b.x||0)+(b.num?6:0),kw=b.kw||46;
+      b.rows.forEach(([k,v],i)=>{const first=i===0&&!!b.num;const left=tw(x0+kw+3);
+        const ch=(first?runs(b.num).concat([tab()]):[]).concat(runs(k),[tab()],runs(':'),[tab()],runs(v));
+        kids.push(P(ch,{indent:{left,hanging:first?left:tw(kw+3)},tabStops:[{type:D.TabStopType.LEFT,position:tw(x0)},{type:D.TabStopType.LEFT,position:tw(x0+kw)}],spacing:Object.assign({after:i===b.rows.length-1?tw(1.6):tw(.6)},LINE)}))});return}
+    if(b.t==='pasal'){kids.push(P(runs('PASAL '+b.n,{bold:true}),{alignment:D.AlignmentType.CENTER,keepNext:true,spacing:{before:tw(3)}}));kids.push(P(runs(b.text,{bold:true}),{alignment:D.AlignmentType.CENTER,keepNext:true,spacing:{after:tw(1)}}));return}
+    if(b.t==='ayat'){kids.push(P(runs('Ayat '+b.n,{bold:true}).concat([tab()],runs(b.text)),{alignment:D.AlignmentType.JUSTIFIED,indent:{left:tw(15),hanging:tw(15)},spacing:Object.assign({after:tw(.8)},LINE)}));
+      (b.items||[]).forEach((it,i,a)=>kids.push(P(runs((i+1)+'.').concat([tab()],runs(it)),{alignment:D.AlignmentType.JUSTIFIED,indent:{left:tw(21),hanging:tw(5)},spacing:Object.assign({after:i===a.length-1?tw(1.6):tw(.6)},LINE)})));return}
+    if(b.t==='sig'){kids.push(P(runs(b.date),{keepNext:true,spacing:{before:tw(4),after:tw(1)}}));
+      const cell=(c,w)=>{const o={width:{size:w,type:D.WidthType.DXA},borders:noB};if(!c)return new D.TableCell(Object.assign(o,{children:[P([])]}));
+        const hd=String(c.head);const ch=[P(runs(hd.replace(/\*/g,''),{bold:hd.startsWith('**')}),{alignment:D.AlignmentType.CENTER,keepNext:true})];
+        if(c.meterai)ch.push(P(runs('Meterai 10.000',{size:14}),{alignment:D.AlignmentType.CENTER,keepNext:true,spacing:{before:tw(2),line:tw(11),lineRule:D.LineRuleType.EXACT},indent:{left:tw(18),right:tw(18)},border:{top:B1,bottom:B1,left:B1,right:B1}}));
+        ch.push(P(runs(cl(c.name),{bold:true,ul:true}),{alignment:D.AlignmentType.CENTER,keepNext:true,spacing:{before:tw(c.meterai?8:22)}}));
+        ch.push(P(runs(cl(c.title)),{alignment:D.AlignmentType.CENTER}));return new D.TableCell(Object.assign(o,{children:ch}))};
+      kids.push(new D.Table({width:{size:tw(168),type:D.WidthType.DXA},columnWidths:[tw(62),tw(44),tw(62)],borders:noB,rows:[new D.TableRow({cantSplit:true,children:[cell(b.L,tw(62)),cell(null,tw(44)),cell(b.R,tw(62))]})]}));kids.push(P([]))}
+  });
+  // kop surat (header) dan nomor halaman (footer)
+  const lg=await srtLogo();
+  const kopText=[P(runs(String(st.nama||'CV. SOPANDI TEKNO UTAMA').toUpperCase(),{bold:true,size:28}).map(r=>r),{alignment:D.AlignmentType.CENTER})].concat(KOP_ALAMAT.map(s=>P(runs(s,{size:18}),{alignment:D.AlignmentType.CENTER})));
+  const logoCell=new D.TableCell({width:{size:tw(28),type:D.WidthType.DXA},borders:noB,children:[P(lg?[new D.ImageRun({data:lg.data,type:lg.type,transformation:lg.w/lg.h*64>98?{width:98,height:Math.round(98*lg.h/lg.w)}:{width:Math.round(lg.w/lg.h*64),height:64}})]:[])]});
+  const header=new D.Header({children:[new D.Table({width:{size:tw(168),type:D.WidthType.DXA},columnWidths:[tw(28),tw(140)],borders:noB,rows:[new D.TableRow({children:[logoCell,new D.TableCell({width:{size:tw(140),type:D.WidthType.DXA},borders:noB,children:kopText})]})]}),
+    P([],{border:{bottom:{style:D.BorderStyle.SINGLE,size:8,color:'000000',space:1}},spacing:{after:0}})]});
+  const label=SURAT[j].n.replace(/ \(.*\)/,'')+' · '+cl(f.nama||'');
+  const gr='5A5A5A';const footer=new D.Footer({children:[P([new D.TextRun({text:label,font:'Times New Roman',size:16,color:gr}),new D.TextRun({children:[new D.Tab()],font:'Times New Roman',size:16}),new D.TextRun({children:[D.PageNumber.CURRENT],font:'Times New Roman',size:16,color:gr}),new D.TextRun({text:' | Halaman',font:'Times New Roman',size:16,color:gr})],{tabStops:[{type:D.TabStopType.RIGHT,position:tw(168)}]})]});
+  const doc=new D.Document({creator:st.nama||'HRD',title:SURAT[j].n+' '+cl(f.nama||''),styles:{default:{document:{run:{font:fn,size:sz}}}},
+    sections:[{properties:{page:{size:{width:11906,height:16838},margin:{top:tw(40),bottom:tw(25),left:tw(22),right:tw(20),header:tw(10),footer:tw(10)}}},headers:{default:header},footers:{default:footer},children:kids}]});
+  return D.Packer.toBlob(doc)}
+
 // --- formulir ---
 function srtOpen(empId,j,rec){
   const e=empId?S.emps[empId]:null;j=j||(e?'pkwt':'ol');
@@ -1102,7 +1154,7 @@ function srtForm(){
    '<div class="srtTabs">'+Object.keys(SURAT).map(k=>'<button class="btn'+(k===j?' on':'')+'" data-act="srtJenis" data-id="'+k+'">'+esc(SURAT[k].n)+'</button>').join('')+'</div>'+
    '<div class="form">'+empSel+F('tanggal','Tanggal surat','date')+F('nomor','Nomor surat','text',{hint:'Otomatis, bisa diubah'})+fields+F('ttdNama','Ditandatangani oleh')+F('ttdJab','Jabatan penanda tangan')+'</div>'+
    (miss.length?'<p class="note" style="margin:0;color:var(--warn,#8a5a00)">'+esc(miss.join(' dan '))+' belum ada di data karyawan. Bisa diisi di sini; nanti ikut tersimpan.</p>':'')+
-   '<div class="row"><button class="btn primary" data-act="srtGo">Unduh PDF</button><button class="btn" data-act="srtPrev">Perbarui pratinjau</button><button class="btn" data-act="srtTab">Buka di tab baru</button><button class="btn" data-act="closeModal">Tutup</button></div>'+
+   '<div class="row"><button class="btn primary" data-act="srtDocx">Unduh Word (.docx)</button><button class="btn" data-act="srtGo">Unduh PDF</button><button class="btn" data-act="srtPrev">Perbarui pratinjau</button><button class="btn" data-act="srtTab">Buka di tab baru</button><button class="btn" data-act="closeModal">Tutup</button></div>'+
    (hist.length?'<div class="note" style="margin:0"><b>Riwayat surat</b><br>'+hist.map(([id,r])=>'<a href="#" data-act="srtRe" data-id="'+esc(id)+'">'+esc(fmtD(r.tanggal)+' · '+(SURAT[r.jenis]||{}).n+' · '+r.nomor)+'</a>').join('<br>')+'</div>':'')+
    '</div><div class="srtR"><iframe id="srtFrame" title="Pratinjau surat"></iframe></div></div>');
   srtPreview();
@@ -1110,12 +1162,16 @@ function srtForm(){
 function srtRead(){const f=S.srt.f;document.querySelectorAll('[data-srt]').forEach(el=>{const k=el.dataset.srt;f[k]=el.type==='checkbox'?el.checked:el.type==='number'?(+el.value||0):el.value});
   if(S.srt.j==='pkwt')f.selesai=addMonthsISO(f.mulai,+f.lama||12);if(S.srt.j==='sp')f.sampai=addMonthsISO(f.tanggal,+f.lama||6);return f}
 function srtPreview(){if(!window.jspdf)return;const fr=$('#srtFrame');if(!fr)return;try{const d=srtPdf(S.srt.j,S.srt.f);if(S.srt.url)URL.revokeObjectURL(S.srt.url);S.srt.url=URL.createObjectURL(new Blob([d.output('arraybuffer')],{type:'application/pdf'}));fr.src=S.srt.url+'#toolbar=0&view=FitH'}catch(err){console.error(err)}}
-async function srtGo(){
-  if(!window.jspdf){toast('Pustaka PDF belum termuat. Coba lagi sebentar.');return}
+async function srtGo(fmt){
+  const word=fmt==='docx';
+  if(!word&&!window.jspdf){toast('Pustaka PDF belum termuat. Coba lagi sebentar.');return}
   if(!S.dl){toast('Unduhan tidak tersedia di tampilan ini.');return}
   const {j,empId}=S.srt;const f=srtRead();if(j==='ol'&&!cl(f.nama)){toast('Isi nama pelamar.');return}
-  const doc=srtPdf(j,f);const fname=SURAT[j].n.replace(/ \(.*\)/,'')+' - '+cl(f.nama||'')+' - '+f.tanggal+'.pdf';
-  try{await S.dl.save({filename:fname,data:new Blob([doc.output('arraybuffer')])})}catch(e){if(e&&e.code!=='declined')toast('Unduhan gagal.');return}
+  let blob;
+  if(word){try{toast('Menyiapkan file Word…');await loadDocx();blob=await srtDocx(j,f)}catch(e){console.error(e);toast('Gagal membuat file Word. Periksa koneksi internet lalu coba lagi, atau pakai Unduh PDF.');return}}
+  else blob=new Blob([srtPdf(j,f).output('arraybuffer')]);
+  const fname=SURAT[j].n.replace(/ \(.*\)/,'')+' - '+cl(f.nama||'')+' - '+f.tanggal+(word?'.docx':'.pdf');
+  try{await S.dl.save({filename:fname,data:blob})}catch(e){if(e&&e.code!=='declined')toast('Unduhan gagal.');return}
   // simpan riwayat + nomor urut + data tambahan karyawan
   const d=parse(f.tanggal)||new Date();const key=j+d.getFullYear();const m=/(\d{1,4})/.exec(String(f.nomor).replace(/^\D+/,''));const seq=Math.max(suratSeq(j,f.tanggal)-1,m?+m[1]:0);
   const rid=S.srt.recId||('L'+Date.now().toString(36));
@@ -1448,7 +1504,7 @@ function vHelp(){
    '<b>THP</b> = gaji + lembur + reimburse − potongan setengah hari − potongan absen − kasbon − potongan lain.']))+
   sec('4. Fungsi tiap menu',ul([
    '<b>Dasbor</b>: ringkasan dan daftar “Perlu perhatian” (kontrak habis, SP berakhir, cuti habis, payroll belum dikunci, cadangan lama).',
-   '<b>Karyawan</b>: data karyawan, gaji, skema, identitas. Tanda merah “SP 1 s/d …” muncul di samping nama karyawan yang sedang punya SP berlaku. Tombol “Buat surat” menyiapkan PKWT, SP, skorsing, keterangan kerja, dan penawaran kerja.',
+   '<b>Karyawan</b>: data karyawan, gaji, skema, identitas. Tanda merah “SP 1 s/d …” muncul di samping nama karyawan yang sedang punya SP berlaku. Tombol “Buat surat” menyiapkan PKWT, SP, skorsing, keterangan kerja, dan penawaran kerja. Surat diunduh sebagai <b>Word (.docx)</b> supaya bisa diedit sebelum dicetak; versi PDF juga tersedia.',
    '<b>Absensi, Lembur, Payroll, Slip Gaji</b>: lihat Rutinitas bulanan.',
    '<b>Kasbon</b>: pinjaman karyawan dan cicilannya. Saldo berkurang resmi saat payroll dikunci. Bila payroll dibuka kuncinya, potongan periode itu dibatalkan.',
    '<b>Cuti</b>: kuota, cuti terpakai (dari kode C di absensi), dan sisa. Saldo diperbarui tiap awal tahun cuti (bulan diatur di Pengaturan).',
@@ -1871,6 +1927,7 @@ document.addEventListener('click',async ev=>{
   if(a==='srtJenis'){srtRead();const keep=S.srt.empId||(empList()[0]||{}).id||'';S.srt={j:id,empId:id==='ol'?'':keep,f:srtDefaults(id,id==='ol'?null:S.emps[keep]),recId:''};return srtForm()}
   if(a==='srtPrev'){srtRead();return srtPreview()}
   if(a==='srtGo')return srtGo();
+  if(a==='srtDocx')return srtGo('docx');
   if(a==='srtTab'){srtRead();srtPreview();if(S.srt&&S.srt.url)window.open(S.srt.url,'_blank','noopener');return}
   if(a==='srtRe'){ev.preventDefault();const r=S.surat[id];if(r){S.srt={j:r.jenis,empId:r.empId||'',f:clone(r.f||{}),recId:id};srtForm()}return}
   if(a==='impIdent')return impIdent();
