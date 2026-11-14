@@ -545,10 +545,10 @@ async function saveNote(id){
 function vEmp(){
   const q=S.q.toLowerCase();
   const rows=empList(true).filter(e=>(!S.status||e.status===S.status||(S.status==='NONAKTIF'&&e.aktif===false))&&(S.status==='NONAKTIF'||e.aktif!==false)&&(!q||(e.nama+' '+e.jabatan+' '+e.id).toLowerCase().includes(q)));
-  return topbar('Karyawan',false,'<button class="btn" data-act="impEmail">Impor email dari Excel</button><button class="btn primary" data-act="addEmp">+ Tambah karyawan</button>')+
+  return topbar('Karyawan',false,'<button class="btn" data-act="impIdent">Impor data identitas (Form)</button><button class="btn" data-act="expEmp">Unduh data karyawan</button><button class="btn" data-act="impEmail">Impor email dari Excel</button><button class="btn primary" data-act="addEmp">+ Tambah karyawan</button>')+
   '<div class="row"><input id="q" class="search" type="search" placeholder="Cari nama, jabatan, ID…" value="'+esc(S.q)+'"><select id="statusF"><option value="">Semua status</option>'+STATUSES.map(s=>'<option'+(S.status===s?' selected':'')+'>'+s+'</option>').join('')+'<option value="NONAKTIF"'+(S.status==='NONAKTIF'?' selected':'')+'>Nonaktif / keluar</option></select><span class="sub">'+rows.length+' orang</span></div>'+
-  '<div class="tablewrap"><table><thead><tr><th class="num">No</th><th>ID</th><th>Nama & jabatan</th><th>Status</th><th class="num">Gaji pokok</th><th>Skema gaji</th><th>Rekening</th><th>WhatsApp</th><th>Email</th><th></th></tr></thead><tbody>'+
-  (rows.length?rows.map((e,i)=>'<tr><td class="num sub">'+(i+1)+'</td><td class="sub">'+esc(e.id)+'</td><td><div class="name">'+esc(e.nama)+'</div><div class="sub">'+esc(e.jabatan)+'</div></td><td>'+statusPill(e.status)+(e.aktif===false?' <span class="pill p-mute">Nonaktif</span>':'')+'</td><td class="num">'+rp(e.gajiPokok)+'</td><td><span class="sub">'+(e.metode==='HARIAN'?'Harian (hadir × gaji/hari)':'Bulanan penuh')+' · ÷'+(e.pembagi||24)+'</span></td><td class="sub" style="white-space:normal;min-width:180px">'+esc(e.rekening)+'</td><td>'+(e.wa?'<a class="wa" href="https://wa.me/'+esc(e.wa)+'" target="_blank" rel="noopener">+'+esc(e.wa)+'</a>':'<span class="sub">—</span>')+'</td><td class="sub">'+(e.email?esc(e.email):'—')+'</td><td><button class="btn" data-act="editEmp" data-id="'+esc(e.id)+'">Ubah</button></td></tr>').join(''):'<tr><td colspan="10" class="empty">Belum ada karyawan yang cocok.</td></tr>')+
+  '<div class="tablewrap"><table><thead><tr><th class="num">No</th><th>ID</th><th>Nama & jabatan</th><th>Status</th><th class="num">Gaji pokok</th><th>Skema gaji</th><th>Rekening</th><th>WhatsApp</th><th>Email</th><th>Identitas</th><th></th></tr></thead><tbody>'+
+  (rows.length?rows.map((e,i)=>'<tr><td class="num sub">'+(i+1)+'</td><td class="sub">'+esc(e.id)+'</td><td><div class="name">'+esc(e.nama)+'</div><div class="sub">'+esc(e.jabatan)+'</div></td><td>'+statusPill(e.status)+(e.aktif===false?' <span class="pill p-mute">Nonaktif</span>':'')+'</td><td class="num">'+rp(e.gajiPokok)+'</td><td><span class="sub">'+(e.metode==='HARIAN'?'Harian (hadir × gaji/hari)':'Bulanan penuh')+' · ÷'+(e.pembagi||24)+'</span></td><td class="sub" style="white-space:normal;min-width:180px">'+esc(e.rekening)+'</td><td>'+(e.wa?'<a class="wa" href="https://wa.me/'+esc(e.wa)+'" target="_blank" rel="noopener">+'+esc(e.wa)+'</a>':'<span class="sub">—</span>')+'</td><td class="sub">'+(e.email?esc(e.email):'—')+'</td><td>'+identPill(e)+'</td><td><button class="btn" data-act="editEmp" data-id="'+esc(e.id)+'">Ubah</button></td></tr>').join(''):'<tr><td colspan="11" class="empty">Belum ada karyawan yang cocok.</td></tr>')+
   '</tbody></table></div>';
 }
 function empForm(e){
@@ -568,6 +568,10 @@ function empForm(e){
    f('rekening','Nomor rekening (a.n.)',e.rekening,'text',{full:true})+
    f('wa','No WhatsApp',e.wa,'tel',{hint:'Format 62…, tanpa + atau spasi'})+
    f('email','Email (untuk kirim slip)',e.email||'','email')+
+   '<div class="full" style="grid-column:1/-1;border-top:1px solid var(--line);padding-top:8px;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em">Data identitas (untuk administrasi PT, BPJS, pajak)</div>'+
+   f('namaKtp','Nama sesuai KTP',e.namaKtp||'')+f('nik','NIK (16 digit)',e.nik||'','text',{attr:' inputmode="numeric" maxlength="20"'})+
+   f('npwp','NPWP',e.npwp||'')+f('ktpUrl','Link foto KTP',e.ktpUrl||'','url')+
+   f('alamat','Alamat sesuai KTP',e.alamat||'','text',{full:true})+
    f('tglBergabung','Tanggal bergabung',e.tglBergabung,'date')+
    f('kontrakMulai','Mulai kontrak',e.kontrakMulai,'date')+f('kontrakSelesai','Berakhir kontrak',e.kontrakSelesai,'date')+
    f('kuotaCuti','Kuota cuti '+cutiAwalYear()+'/'+String(cutiAwalYear()+1).slice(2),e.kuotaCuti,'number',{hint:'Tahun cuti '+cutiLabel(cutiAwalYear())+'. Tahun berikutnya pakai kuota default di Pengaturan, bisa diubah per orang di halaman Cuti'})+f('cutiTerpakaiAwal','Cuti terpakai sebelum sistem',e.cutiTerpakaiAwal,'number',{hint:'Dari sheet CUTI lama (Apr–Sep '+cutiAwalYear()+')'})+
@@ -581,7 +585,7 @@ async function saveEmp(isNew){
   if(isNew&&S.emps[id]){toast('ID '+id+' sudah dipakai.');return}
   if(!g('nama')){toast('Nama wajib diisi.');return}
   const prev=S.emps[id]||{};
-  const e=Object.assign({},prev,{id,nama:g('nama').toUpperCase(),jabatan:g('jabatan').toUpperCase(),status:g('status'),gajiPokok:+g('gajiPokok')||0,metode:g('metode'),pembagi:+g('pembagi')||24,kaliLTM:+g('kaliLTM')||1,lemburMode:$('#f_lemburMode').value,lemburTarif:+g('lemburTarif')||0,lemburKali:+g('lemburKali')||1,rekening:g('rekening'),wa:g('wa').replace(/\D/g,''),email:g('email').toLowerCase(),tglBergabung:g('tglBergabung'),kontrakMulai:g('kontrakMulai'),kontrakSelesai:g('kontrakSelesai'),kuotaCuti:+g('kuotaCuti')||0,cutiTerpakaiAwal:+g('cutiTerpakaiAwal')||0,aktif:$('#f_aktif').checked,tglKeluar:$('#f_aktif').checked?'':(g('tglKeluar')||todayISO())});
+  const e=Object.assign({},prev,{id,nama:g('nama').toUpperCase(),jabatan:g('jabatan').toUpperCase(),status:g('status'),gajiPokok:+g('gajiPokok')||0,metode:g('metode'),pembagi:+g('pembagi')||24,kaliLTM:+g('kaliLTM')||1,lemburMode:$('#f_lemburMode').value,lemburTarif:+g('lemburTarif')||0,lemburKali:+g('lemburKali')||1,rekening:g('rekening'),wa:g('wa').replace(/\D/g,''),email:g('email').toLowerCase(),namaKtp:g('namaKtp').toUpperCase(),nik:g('nik').replace(/\D/g,''),npwp:g('npwp'),ktpUrl:g('ktpUrl'),alamat:g('alamat'),tglBergabung:g('tglBergabung'),kontrakMulai:g('kontrakMulai'),kontrakSelesai:g('kontrakSelesai'),kuotaCuti:+g('kuotaCuti')||0,cutiTerpakaiAwal:+g('cutiTerpakaiAwal')||0,aktif:$('#f_aktif').checked,tglKeluar:$('#f_aktif').checked?'':(g('tglKeluar')||todayISO())});
   if(await saveDoc('employees/'+id,e)){S.emps[id]=e;closeModal();toast('Data '+e.nama+' disimpan.');render(true)}
 }
 
@@ -915,6 +919,81 @@ function mailAll(revisi){
   const ids=payEmps().map(e=>e.id);const noMail=ids.filter(id=>!((S.emps[id]||{}).email));
   const sent=S.mailSent||{};const done=ids.filter(id=>sent[S.periodKey+'|'+id]).length;
   openModal('<h3>'+(revisi?'Kirim ulang semua slip sebagai REVISI':'Kirim semua slip via email')+'</h3><p class="note" style="margin:0">Periode <b>'+periodLabel(S.periodKey)+'</b>: <b>'+(ids.length-noMail.length)+'</b> karyawan punya email dan akan dikirimi slip PDF.'+(noMail.length?' <b>'+noMail.length+'</b> belum punya email dan dilewati.':'')+(done?' <b>'+done+'</b> sudah terkirim di sesi ini dan akan dikirim ulang.':'')+(isLocked()?'':' Payroll periode ini <b>belum dikunci</b>: angka bisa masih berubah.')+'</p><div class="row"><button class="btn primary" data-act="'+(revisi?'mailAllRevGo':'mailAllGo')+'">Kirim sekarang</button><button class="btn" data-act="closeModal">Batal</button></div>');
+}
+
+// ===== Data identitas (NIK, NPWP, alamat, KTP) =====
+function identMissing(e){const m=[];if(!/^\d{16}$/.test(e.nik||''))m.push(e.nik?'NIK tidak 16 digit':'NIK');if(!e.alamat)m.push('alamat');if(!e.ktpUrl)m.push('foto KTP');return m}
+function identPill(e){const m=identMissing(e);return m.length?'<span class="pill p-warn" title="Belum ada: '+esc(m.join(', '))+'">Kurang '+m.length+'</span>':'<span class="pill p-ok">Lengkap</span>'}
+const NAMEMAP={MUHAMMAD:'M',MUHAMAD:'M',MOHAMMAD:'M',MOHAMAD:'M',MOCHAMAD:'M',MOCHAMMAD:'M',MUH:'M',MOH:'M'};
+function nameToks(n){return String(n||'').toUpperCase().replace(/\([^)]*\)/g,' ').replace(/[^A-Z ]/g,' ').split(/\s+/).filter(Boolean).map(t=>NAMEMAP[t]||t)}
+function nameScore(a,b){const A=nameToks(a),B=nameToks(b);if(!A.length||!B.length)return 0;const ja=A.join(''),jb=B.join('');if(ja===jb)return 1;
+  const sb=new Set(B);let hit=A.filter(t=>sb.has(t)||[...sb].some(x=>(x.length>3&&t.length>3&&(x.startsWith(t)||t.startsWith(x)))||(x.length===1&&t[0]===x)||(t.length===1&&x[0]===t))).length;
+  let sc=hit/Math.max(A.length,B.length);if(ja.length>5&&(jb.includes(ja)||ja.includes(jb)))sc=Math.max(sc,.8);return sc}
+function waNorm(w){let d=String(w||'').replace(/\D/g,'');if(d.startsWith('0'))d='62'+d.slice(1);else if(d.startsWith('8'))d='62'+d;return d}
+function colFind(heads,keys){return heads.find(h=>keys.some(k=>h.toUpperCase().includes(k)))}
+function impIdent(){
+  if(!window.XLSX){toast('Pustaka Excel belum termuat. Coba lagi sebentar.');return}
+  const inp=document.createElement('input');inp.type='file';inp.accept='.xlsx,.xls,.csv';
+  inp.onchange=async()=>{const f=inp.files[0];if(!f)return;
+    try{const wb=XLSX.read(await f.arrayBuffer(),{cellDates:true});const rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:'',raw:true});
+      if(!rows.length){toast('File kosong.');return}
+      const H=Object.keys(rows[0]);const C={ts:colFind(H,['TIMESTAMP','WAKTU']),nama:colFind(H,['NAMA']),jab:colFind(H,['JABATAN']),nik:colFind(H,['NIK']),rek:colFind(H,['REKENING']),ktp:colFind(H,['SCAN','FOTO','LINK KTP']),wa:colFind(H,['WHATSAPP','WA ','NO HP']),npwp:colFind(H,['NPWP']),alamat:colFind(H,['ALAMAT'])};
+      if(!C.nama||!C.nik){toast('Kolom NAMA atau NIK tidak ditemukan di file.');return}
+      const emps=empList();const accOf=e=>parseRek(e.rekening,'').acc;
+      const ent=rows.map((r,i)=>{const g=k=>C[k]?r[C[k]]:'';let rek=g('rek');const racc=(typeof rek==='number'?String(Math.round(rek)):String(rek||'').split('(')[0].replace(/\D/g,''));
+        const o={i,ts:g('ts') instanceof Date?g('ts').getTime():0,nama:String(g('nama')||'').trim(),jab:String(g('jab')||'').trim(),nik:String(g('nik')||'').replace(/\D/g,''),nikRaw:String(g('nik')||'').trim(),rekRaw:String(rek||'').trim(),racc,ktp:String(g('ktp')||'').trim(),wa:waNorm(g('wa')),npwp:(/\d{6}/.test(String(g('npwp')||''))?String(g('npwp')).trim():''),alamat:String(g('alamat')||'').replace(/\s+/g,' ').trim()};
+        let m=racc.length>=8?emps.find(e=>accOf(e)===racc):null;o.how=m?'rekening':'';
+        if(!m){let best=null,bs=0,second=0;emps.forEach(e=>{const sc=nameScore(o.nama,e.nama);if(sc>bs){second=bs;bs=sc;best=e}else if(sc>second)second=sc});if(best&&bs>=.5&&bs>second){m=best;o.how='nama'}}
+        o.emp=m?m.id:'';o.nameOk=m?nameScore(o.nama,m.nama)>=.5:false;if(m&&!o.nameOk){o.sugg=m.id;o.emp=''}return o}).filter(o=>o.nama||o.nik);
+      S.impId={ent};identPreview();
+    }catch(err){console.error(err);toast('File tidak bisa dibaca.')}};
+  inp.click();
+}
+// Kolom yang akan DITAMBAHKAN untuk satu karyawan: hanya yang kosong di sistem dan ada di form.
+function identAdds(prev,x){const a={};const empty=v=>!String(v==null?'':v).trim();
+  if(empty(prev.namaKtp)&&x.namaKtp)a.namaKtp=x.namaKtp;if(empty(prev.nik)&&x.nik)a.nik=x.nik;if(empty(prev.npwp)&&x.npwp)a.npwp=x.npwp;
+  if(empty(prev.alamat)&&x.alamat)a.alamat=x.alamat;if(empty(prev.ktpUrl)&&x.ktpUrl)a.ktpUrl=x.ktpUrl;if(empty(prev.wa)&&x.wa)a.wa=x.wa;
+  if(empty(prev.rekening)&&x.rekRaw)a.rekening=String(x.rekRaw).replace(/\.0$/,'').trim();return a}
+const IDLBL={namaKtp:'nama KTP',nik:'NIK',npwp:'NPWP',alamat:'alamat',ktpUrl:'foto KTP',wa:'WhatsApp',rekening:'rekening'};
+function identMerge(){
+  const by={};S.impId.ent.forEach(o=>{if(!o.emp||o.skip)return;(by[o.emp]=by[o.emp]||[]).push(o)});
+  const out={};for(const id in by){const l=by[id].sort((a,b)=>b.ts-a.ts);const pick=k=>(l.find(x=>x[k])||{})[k]||'';
+    out[id]={namaKtp:pick('nama').toUpperCase().replace(/\s*\(.*?\)\s*/g,' ').trim(),nik:pick('nik'),npwp:pick('npwp'),alamat:pick('alamat'),ktpUrl:pick('ktp'),wa:pick('wa'),racc:pick('racc'),rekRaw:pick('rekRaw'),n:l.length,nameOk:l.some(x=>x.nameOk)}}
+  return out}
+function identPreview(){
+  const ent=S.impId.ent;const emps=empList();const opts=id=>'<option value="">— tidak diimpor —</option>'+emps.map(e=>'<option value="'+esc(e.id)+'"'+(e.id===id?' selected':'')+'>'+esc(e.id+' '+e.nama)+'</option>').join('');
+  const M=identMerge();const seen=new Set(Object.keys(M));const missing=emps.filter(e=>!seen.has(e.id));
+  const note=o=>{const n=[];const e=S.emps[o.emp];if(!o.emp&&o.sugg)n.push('<span class="pill p-warn">Rekening cocok dengan '+esc(S.emps[o.sugg].nama)+', tapi nama berbeda (kemungkinan data pemilik rekening). Tidak diimpor; pilih manual bila memang benar.</span>');else if(!o.emp)n.push('<span class="pill p-mute">Tidak ada di sistem (dianggap resign)</span>');
+    else{if(!o.nameOk)n.push('<span class="pill p-warn">Nama berbeda: kemungkinan data pemilik rekening, bukan karyawan</span>');
+      if(o.nik&&o.nik.length!==16)n.push('<span class="pill p-warn">NIK '+o.nik.length+' digit</span>');if(!o.nik)n.push('<span class="pill p-warn">NIK kosong</span>');
+      const sa=parseRek(e.rekening,'').acc;if(o.racc&&sa&&o.racc!==sa)n.push('<span class="pill p-warn">Rekening di form '+esc(o.racc)+' beda dengan sistem '+esc(sa)+' (sistem tetap dipakai)</span>');
+      const dup=ent.filter(x=>x.emp===o.emp&&!x.skip).length;if(dup>1)n.push('<span class="pill p-mute">Diisi '+dup+'×, digabung (terbaru dipakai)</span>');
+      const ad=Object.keys(identAdds(e,M[o.emp]||{}));n.push(ad.length?'<span class="pill p-ok">Ditambahkan: '+esc(ad.map(k=>IDLBL[k]).join(', '))+'</span>':'<span class="pill p-mute">Sudah lengkap, tidak ada yang diubah</span>')}
+    return n.join(' ')};
+  openModal('<h3>Impor data identitas karyawan</h3>'+
+   '<p class="note" style="margin:0">'+ent.length+' baris dari form. <b>'+Object.keys(M).length+'</b> karyawan cocok. Hanya kolom yang <b>masih kosong</b> di sistem yang diisi (nama KTP, NIK, NPWP, alamat, foto KTP, WhatsApp, rekening). Data yang sudah ada, termasuk nomor rekening, tidak diubah. Baris yang tidak cocok dengan karyawan aktif dianggap resign dan tidak diimpor.</p>'+
+   '<div class="tablewrap" style="max-height:52vh"><table><thead><tr><th>Dari form</th><th>Karyawan di sistem</th><th>NIK</th><th>Catatan</th></tr></thead><tbody>'+
+   ent.map(o=>'<tr'+(o.emp?'':' style="opacity:.6"')+'><td><div class="name">'+esc(o.nama)+'</div><div class="sub">'+esc(o.jab)+'</div></td><td><select data-identmap="'+o.i+'" style="max-width:220px">'+opts(o.emp)+'</select></td><td class="sub">'+esc(o.nikRaw||'—')+'</td><td style="white-space:normal;min-width:200px">'+note(o)+'</td></tr>').join('')+
+   '</tbody></table></div>'+
+   (missing.length?'<p class="note" style="margin:0"><b>'+missing.length+' karyawan aktif belum mengisi form:</b> '+esc(missing.map(e=>e.nama).join(', '))+'.</p>':'')+
+   '<div class="row"><button class="btn primary" data-act="impIdentGo"'+(Object.keys(M).length?'':' disabled')+'>Simpan ke data karyawan</button><button class="btn" data-act="closeModal">Batal</button></div>');
+}
+async function impIdentGo(){
+  // Hanya MENAMBAH: kolom yang sudah terisi di sistem tidak pernah diubah (termasuk rekening).
+  const M=identMerge();let n=0,f=0;
+  for(const id in M){const prev=S.emps[id];if(!prev)continue;const add=identAdds(prev,M[id]);const keys=Object.keys(add);if(!keys.length)continue;
+    add.identitasDiperbarui=todayISO();
+    try{await S.db.doc('employees/'+id).update(add);Object.assign(S.emps[id],add);n++;f+=keys.length}catch(err){handleErr(err)}}
+  closeModal();toast(n?('Data ditambahkan ke '+n+' karyawan ('+f+' kolom). Data lama tidak diubah.'):'Tidak ada data baru: semua kolom sudah terisi.');render(true);
+}
+async function expEmp(){
+  if(!window.XLSX){toast('Pustaka Excel belum termuat. Coba lagi sebentar.');return}
+  if(!S.dl){toast('Unduhan tidak tersedia di tampilan ini.');return}
+  const rows=empList(true).map((e,i)=>({'No':i+1,'ID':e.id,'Nama':e.nama,'Nama sesuai KTP':e.namaKtp||'','NIK':e.nik||'','NPWP':e.npwp||'','Jabatan':e.jabatan||'','Status':e.status||'','Aktif':e.aktif===false?'Keluar':'Aktif','Tanggal bergabung':e.tglBergabung||'','Mulai kontrak':e.kontrakMulai||'','Berakhir kontrak':e.kontrakSelesai||'','Tanggal keluar':e.tglKeluar||'','Gaji pokok':Math.round(+e.gajiPokok||0),'Skema gaji':e.metode||'','Rekening':e.rekening||'','WhatsApp':e.wa||'','Email':e.email||'','Alamat':e.alamat||'','Link foto KTP':e.ktpUrl||'','Kekurangan data':identMissing(e).join(', ')}));
+  const ws=XLSX.utils.json_to_sheet(rows);rows.forEach((r,i)=>{['E','F'].forEach(c=>{const a=c+(i+2);if(ws[a]&&ws[a].v!==''){ws[a].t='s';ws[a].z='@'}})});
+  ws['!cols']=[5,7,28,28,19,22,20,14,8,13,13,13,13,12,10,34,15,30,60,40,30].map(w=>({wch:w}));
+  const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Data Karyawan');
+  try{await S.dl.save({filename:'Data Karyawan '+todayISO()+'.xlsx',data:new Blob([XLSX.write(wb,{type:'array',bookType:'xlsx'})])});toast('Data karyawan diunduh.')}catch(e){if(e&&e.code!=='declined')toast('Unduhan gagal.')}
 }
 function impEmail(){
   const inp=document.createElement('input');inp.type='file';inp.accept='.xlsx,.xls,.csv';
@@ -1431,6 +1510,9 @@ document.addEventListener('click',async ev=>{
   if(a==='mailSlipRev')return mailSlips([S.slipEmp],true);
   if(a==='mailAll')return mailAll();
   if(a==='impEmail')return impEmail();
+  if(a==='impIdent')return impIdent();
+  if(a==='impIdentGo')return impIdentGo();
+  if(a==='expEmp')return expEmp();
   if(a==='allSlips')return slipPdf(payEmps().map(e=>e.id));
   if(a==='slipPdf')return slipPdf([S.slipEmp]);
   if(a==='waPdf')return waPdf(S.slipEmp);
@@ -1465,6 +1547,7 @@ document.addEventListener('input',ev=>{
 });
 function bigWarn(id,v,lbl){const e=S.emps[id];const gp=e&&+e.gajiPokok||0;if(gp&&v>gp*0.5)toast('Cek lagi: '+lbl+' '+e.nama+' Rp '+rp(v)+', lebih dari setengah gaji pokok.')}
 document.addEventListener('change',ev=>{
+  if(ev.target.dataset&&ev.target.dataset.identmap!=null&&S.impId){const o=S.impId.ent[+ev.target.dataset.identmap];o.emp=ev.target.value;o.nameOk=o.emp?nameScore(o.nama,S.emps[o.emp].nama)>=.5||true:false;identPreview();return}
   const t=ev.target;
   if(t.id==='w_tgl'||t.id==='w_lama'){const s=addMonthsISO($('#w_tgl').value,+$('#w_lama').value||0);if(s&&+$('#w_lama').value)$('#w_sampai').value=s;return}
   if(t.id==='impWarnFile'){if(t.files[0])importWarns(t.files[0]);t.value='';return}
