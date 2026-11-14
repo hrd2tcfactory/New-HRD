@@ -130,6 +130,10 @@ input.cellin{width:64px;padding:3px 6px;text-align:right;font-family:var(--f-mon
 /* modal */
 .overlay{position:fixed;inset:0;background:rgba(10,15,25,.45);display:flex;align-items:flex-start;justify-content:center;padding:40px 16px;z-index:50;overflow:auto}
 .modal{background:var(--surface);border:1px solid var(--line);border-radius:12px;width:min(640px,100%);padding:20px;display:flex;flex-direction:column;gap:14px}
+.modal:has(.srtwrap){width:min(1200px,100%);max-height:94vh}
+.srtwrap{display:flex;gap:18px;min-height:0}.srtL{flex:0 0 430px;display:flex;flex-direction:column;gap:12px;overflow:auto;max-height:86vh;padding-right:4px}.srtR{flex:1;min-width:0;background:var(--line);border-radius:8px;overflow:hidden}.srtR iframe{width:100%;height:86vh;border:0;background:#fff}
+.srtTabs{display:flex;flex-wrap:wrap;gap:6px}.srtTabs .btn{font-size:12.5px;padding:6px 10px}.srtTabs .btn.on{border-color:var(--accent);color:var(--accent);font-weight:600}
+@media (max-width:900px){.srtwrap{flex-direction:column}.srtL{flex:none;max-height:none}.srtR iframe{height:70vh}}
 .modal h3{font-family:var(--f-display);margin:0;font-size:18px}
 .form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 .form label{display:flex;flex-direction:column;gap:4px;font-size:12.5px;color:var(--muted);font-weight:500}
@@ -271,7 +275,7 @@ const TABS=[
   ['dash','Dasbor','dash'],['emp','Karyawan','emp'],['att','Absensi','att'],['ot','Lembur','ot'],['pay','Payroll','pay'],
   ['slip','Slip Gaji','slip'],['loan','Kasbon','loan'],['leave','Cuti','leave'],['ctr','Kontrak & PKL','ctr'],['note','Catatan','note'],['sp','Surat Peringatan','sp'],['kpi','KPI','kpi'],['set','Pengaturan','set']];
 
-const S={db:null,dl:null,settings:null,emps:{},loans:{},warns:{},interns:{},notes:{},kpiD:{},kpiN:{},kDiv:'',kpiMonth:null,kpiEmp:null,nCat:'',nSt:'aktif',periods:{},ready:{},tab:'dash',periodKey:null,brush:'H',q:'',status:'',slipEmp:null,dirty:false,saving:0,readonly:false,armed:null};
+const S={db:null,dl:null,settings:null,emps:{},surat:{},loans:{},warns:{},interns:{},notes:{},kpiD:{},kpiN:{},kDiv:'',kpiMonth:null,kpiEmp:null,nCat:'',nSt:'aktif',periods:{},ready:{},tab:'dash',periodKey:null,brush:'H',q:'',status:'',slipEmp:null,dirty:false,saving:0,readonly:false,armed:null};
 
 // ---------- utils ----------
 const $=s=>document.querySelector(s);
@@ -545,10 +549,10 @@ async function saveNote(id){
 function vEmp(){
   const q=S.q.toLowerCase();
   const rows=empList(true).filter(e=>(!S.status||e.status===S.status||(S.status==='NONAKTIF'&&e.aktif===false))&&(S.status==='NONAKTIF'||e.aktif!==false)&&(!q||(e.nama+' '+e.jabatan+' '+e.id+' '+(e.nik||'')+' '+(e.namaKtp||'')).toLowerCase().includes(q)));
-  return topbar('Karyawan',false,'<button class="btn" data-act="impIdent">Impor data identitas (Form)</button><button class="btn" data-act="expEmp">Unduh data karyawan</button><button class="btn" data-act="impEmail">Impor email dari Excel</button><button class="btn primary" data-act="addEmp">+ Tambah karyawan</button>')+
+  return topbar('Karyawan',false,'<button class="btn" data-act="srtNew">Buat surat</button><button class="btn" data-act="impIdent">Impor data identitas (Form)</button><button class="btn" data-act="expEmp">Unduh data karyawan</button><button class="btn" data-act="impEmail">Impor email dari Excel</button><button class="btn primary" data-act="addEmp">+ Tambah karyawan</button>')+
   '<div class="row"><input id="q" class="search" type="search" placeholder="Cari nama, jabatan, ID, NIK…" value="'+esc(S.q)+'"><select id="statusF"><option value="">Semua status</option>'+STATUSES.map(s=>'<option'+(S.status===s?' selected':'')+'>'+s+'</option>').join('')+'<option value="NONAKTIF"'+(S.status==='NONAKTIF'?' selected':'')+'>Nonaktif / keluar</option></select><span class="sub">'+rows.length+' orang</span></div>'+
   '<div class="tablewrap"><table><thead><tr><th class="num">No</th><th>ID</th><th>Nama & jabatan</th><th>Status</th><th class="num">Gaji pokok</th><th>Skema gaji</th><th>Rekening</th><th>WhatsApp</th><th>Email</th><th>NIK / NPWP</th><th>Alamat</th><th>Foto KTP</th><th>Identitas</th><th></th></tr></thead><tbody>'+
-  (rows.length?rows.map((e,i)=>'<tr><td class="num sub">'+(i+1)+'</td><td class="sub">'+esc(e.id)+'</td><td><div class="name">'+esc(e.nama)+'</div><div class="sub">'+esc(e.jabatan)+'</div></td><td>'+statusPill(e.status)+(e.aktif===false?' <span class="pill p-mute">Nonaktif</span>':'')+'</td><td class="num">'+rp(e.gajiPokok)+'</td><td><span class="sub">'+(e.metode==='HARIAN'?'Harian (hadir × gaji/hari)':'Bulanan penuh')+' · ÷'+(e.pembagi||24)+'</span></td><td class="sub" style="white-space:normal;min-width:180px">'+esc(e.rekening)+'</td><td>'+(e.wa?'<a class="wa" href="https://wa.me/'+esc(e.wa)+'" target="_blank" rel="noopener">+'+esc(e.wa)+'</a>':'<span class="sub">—</span>')+'</td><td class="sub">'+(e.email?esc(e.email):'—')+'</td><td style="white-space:nowrap">'+(e.nik?'<div style="font-size:13px">'+esc(e.nik)+'</div>':'<span class="sub">—</span>')+(e.npwp?'<div class="sub">NPWP '+esc(e.npwp)+'</div>':'')+'</td><td class="sub" style="white-space:normal;min-width:220px;max-width:320px">'+(e.alamat?esc(e.alamat):'—')+'</td><td>'+(/^https?:\/\//.test(e.ktpUrl||'')?'<a href="'+esc(e.ktpUrl)+'" target="_blank" rel="noopener">Lihat</a>':'<span class="sub">—</span>')+'</td><td>'+identPill(e)+'</td><td><button class="btn" data-act="editEmp" data-id="'+esc(e.id)+'">Ubah</button></td></tr>').join(''):'<tr><td colspan="14" class="empty">Belum ada karyawan yang cocok.</td></tr>')+
+  (rows.length?rows.map((e,i)=>'<tr><td class="num sub">'+(i+1)+'</td><td class="sub">'+esc(e.id)+'</td><td><div class="name">'+esc(e.nama)+'</div><div class="sub">'+esc(e.jabatan)+'</div></td><td>'+statusPill(e.status)+(e.aktif===false?' <span class="pill p-mute">Nonaktif</span>':'')+'</td><td class="num">'+rp(e.gajiPokok)+'</td><td><span class="sub">'+(e.metode==='HARIAN'?'Harian (hadir × gaji/hari)':'Bulanan penuh')+' · ÷'+(e.pembagi||24)+'</span></td><td class="sub" style="white-space:normal;min-width:180px">'+esc(e.rekening)+'</td><td>'+(e.wa?'<a class="wa" href="https://wa.me/'+esc(e.wa)+'" target="_blank" rel="noopener">+'+esc(e.wa)+'</a>':'<span class="sub">—</span>')+'</td><td class="sub">'+(e.email?esc(e.email):'—')+'</td><td style="white-space:nowrap">'+(e.nik?'<div style="font-size:13px">'+esc(e.nik)+'</div>':'<span class="sub">—</span>')+(e.npwp?'<div class="sub">NPWP '+esc(e.npwp)+'</div>':'')+'</td><td class="sub" style="white-space:normal;min-width:220px;max-width:320px">'+(e.alamat?esc(e.alamat):'—')+'</td><td>'+(/^https?:\/\//.test(e.ktpUrl||'')?'<a href="'+esc(e.ktpUrl)+'" target="_blank" rel="noopener">Lihat</a>':'<span class="sub">—</span>')+'</td><td>'+identPill(e)+'</td><td><div class="row" style="flex-wrap:nowrap;gap:6px"><button class="btn" data-act="srtOpen" data-id="'+esc(e.id)+'">Surat</button><button class="btn" data-act="editEmp" data-id="'+esc(e.id)+'">Ubah</button></div></td></tr>').join(''):'<tr><td colspan="14" class="empty">Belum ada karyawan yang cocok.</td></tr>')+
   '</tbody></table></div>';
 }
 function empForm(e){
@@ -919,6 +923,208 @@ function mailAll(revisi){
   const ids=payEmps().map(e=>e.id);const noMail=ids.filter(id=>!((S.emps[id]||{}).email));
   const sent=S.mailSent||{};const done=ids.filter(id=>sent[S.periodKey+'|'+id]).length;
   openModal('<h3>'+(revisi?'Kirim ulang semua slip sebagai REVISI':'Kirim semua slip via email')+'</h3><p class="note" style="margin:0">Periode <b>'+periodLabel(S.periodKey)+'</b>: <b>'+(ids.length-noMail.length)+'</b> karyawan punya email dan akan dikirimi slip PDF.'+(noMail.length?' <b>'+noMail.length+'</b> belum punya email dan dilewati.':'')+(done?' <b>'+done+'</b> sudah terkirim di sesi ini dan akan dikirim ulang.':'')+(isLocked()?'':' Payroll periode ini <b>belum dikunci</b>: angka bisa masih berubah.')+'</p><div class="row"><button class="btn primary" data-act="'+(revisi?'mailAllRevGo':'mailAllGo')+'">Kirim sekarang</button><button class="btn" data-act="closeModal">Batal</button></div>');
+}
+
+// ===== Surat otomatis (PKWT, SP, skorsing, keterangan kerja, penawaran kerja) =====
+const SRT_LOGO='data:image/png;base64,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';
+const SURAT={pkwt:{n:'Kontrak kerja (PKWT)',kode:'PKWT'},sp:{n:'Surat peringatan (SP)',kode:'SP'},skors:{n:'Surat skorsing',kode:'SK'},skk:{n:'Surat keterangan kerja',kode:'SKK'},ol:{n:'Penawaran kerja',kode:'OL'}};
+const ROMAN=['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'];
+const KOP_ALAMAT=['Kp. Nanjung RT/RW 02/18 Gang Kavling, Desa Lebakmuncang','Kecamatan Ciwidey, Kab. Bandung, Jawa Barat, 40362'];
+const tCase=s=>String(s||'').toLowerCase().replace(/(^|[\s(\/.-])([a-z])/g,(m,a,b)=>a+b.toUpperCase()).replace(/\b(Cnc|Hrd|Ppic|Cam|Ob|R&d|Ktp|Cv|Pt|Gm|Spv)\b/g,w=>w.toUpperCase());
+const longD=s=>{const d=parse(s);return d?d.getDate()+' '+MONTHS[d.getMonth()]+' '+d.getFullYear():'....................'};
+const cl=v=>String(v==null?'':v).replace(/\*/g,'').trim();
+const B=v=>'**'+cl(v)+'**';
+function bulanTxt(n){n=+n||0;const t=terbilang(n).replace(/ rupiah$/,'').toLowerCase();return n+' ('+t+') bulan'}
+function rpTxt(n){return 'Rp'+rp(n)+',00 ('+terbilang(n).replace(/\b\w/g,c=>c.toUpperCase())+')'}
+function deptOf(j){j=normJab(j||'');if(/FINANCE/.test(j))return 'Finance';if(/ADMIN|HRD|CONTENT/.test(j))return 'Office';if(/DESIGN/.test(j))return 'Design / R&D';if(/MANAGER|PENASEHAT/.test(j))return 'Manajemen';if(/DRIVER|OB/.test(j))return 'Umum';return 'Produksi'}
+const TUGAS={FINANCE:['Mencatat dan merekap transaksi keuangan harian.','Menyiapkan data pembayaran gaji, kasbon, dan pembayaran pemasok.','Menyusun laporan keuangan bulanan untuk pimpinan.'],
+  'OPERATOR CNC':['Mengoperasikan mesin CNC sesuai gambar kerja dan program.','Memeriksa ukuran hasil produksi dengan alat ukur.','Merawat dan membersihkan mesin serta area kerja.'],
+  ADMIN:['Mengelola administrasi dan dokumen perusahaan.','Merekap data penjualan dan pesanan.','Membantu kebutuhan administrasi bagian lain.']};
+function suratSeq(j,tgl){const d=parse(tgl)||new Date();return (((S.settings||{}).suratNo||{})[j+d.getFullYear()]||0)+1}
+function suratNo(j,tgl){const d=parse(tgl)||new Date();const y=d.getFullYear(),n=String(suratSeq(j,tgl)).padStart(3,'0'),r=ROMAN[d.getMonth()];
+  return j==='pkwt'?'PKWT/'+n+'/CV-STU/'+r+'/'+y:SURAT[j].kode+'/'+n+'/HRD/'+r+'/'+y}
+function srtDefaults(j,e){
+  const st=S.settings||{};const t=todayISO();const dir=tCase(st.menyetujui||'Eep Sopandi'),hrd=tCase(st.pembuat||'Putri Ayu Salamah');
+  const f={tanggal:t,nomor:suratNo(j,t),ttdNama:j==='pkwt'?dir:hrd,ttdJab:j==='pkwt'?'Direktur':'HRD'};
+  if(e){Object.assign(f,{nama:tCase(e.namaKtp||e.nama),jabatan:tCase(e.jabatan),dept:deptOf(e.jabatan),nik:e.nik||'',alamat:e.alamat||'',telp:e.wa?('0'+String(e.wa).replace(/^62/,'')):'',
+    tempatLahir:e.tempatLahir||'',tglLahir:e.tglLahir||'',pendidikan:e.pendidikan||'',jk:e.jk||'',agama:e.agama||'',gaji:Math.round(+e.gajiPokok||0),status:e.status||'',masuk:e.tglBergabung||''})}
+  if(j==='pkwt'){f.mulai=(e&&e.kontrakMulai)||t;f.lama=12;f.selesai=addMonthsISO(f.mulai,12);f.lembur=+st.uangLembur||20000;f.tglGaji=25;
+    f.tugas=(TUGAS[normJab((e||{}).jabatan||'')]||['','','']).join('\n');f.simpanKontrak=true}
+  if(j==='sp'){f.tingkat='SP 1';f.pelanggaran='';f.lama=6;f.sampai=addMonthsISO(t,6);f.catat=true}
+  if(j==='skors'){f.pelanggaran='';f.mulai=t;f.selesai=t}
+  if(j==='skk')f.keperluan='';
+  if(j==='ol'){Object.assign(f,{nama:'',jabatan:'Operator CNC',dept:'Produksi',statusTxt:'Karyawan kontrak (PKWT) 1 (satu) tahun',gaji:0,lembur:+st.uangLembur||20000,jam:'Senin–Sabtu, 08.00–16.00',mulai:addMonthsISO(t,1),batas:iso(new Date(Date.now()+7*864e5))})}
+  return f}
+
+// --- penyusun isi surat: daftar blok ---
+function srtBlocks(j,f){
+  const PP='**PIHAK PERTAMA**',PK='**PIHAK KEDUA**',bl=[];const add=(t,o)=>bl.push(Object.assign({t},o||{}));
+  const sigL={head:'**CV Sopandi Tekno Utama**',name:f.ttdNama,title:f.ttdJab};
+  if(j==='pkwt'){
+    add('title',{text:'SURAT PERJANJIAN KERJA WAKTU TERTENTU'});add('center',{text:'Nomor: '+cl(f.nomor)});add('gap',{h:5});
+    add('p',{text:'Yang bertanda tangan di bawah ini:'});
+    add('kv',{num:'1.',rows:[['Nama',cl(f.ttdNama)],['Jabatan',cl(f.ttdJab)],['Alamat',KOP_ALAMAT.join(', ')]]});
+    add('p',{indent:6,text:'Dalam hal ini bertindak atas nama direksi CV. Sopandi Tekno Utama yang berkedudukan di alamat tersebut di atas, selanjutnya disebut '+PP+'.'});
+    add('kv',{num:'2.',rows:[['Nama',B(f.nama)],['Tempat dan tanggal lahir',(cl(f.tempatLahir)||'....................')+', '+longD(f.tglLahir)],['Pendidikan terakhir',cl(f.pendidikan)||'....................'],['Jenis kelamin',cl(f.jk)||'....................'],['Agama',cl(f.agama)||'....................'],['Alamat',cl(f.alamat)||'....................'],['No. KTP / SIM',cl(f.nik)||'....................'],['Telepon',cl(f.telp)||'....................']]});
+    add('p',{indent:6,text:'Dalam hal ini bertindak untuk dan atas nama diri pribadi, selanjutnya disebut '+PK+'.'});
+    add('p',{text:'Kedua belah pihak sepakat membuat perjanjian kerja waktu tertentu dengan ketentuan sebagai berikut:'});
+    const pas=(n,t,ay)=>{add('pasal',{n,text:t});if(typeof ay==='string')add('p',{text:ay});else ay.forEach((a,i)=>add('ayat',{n:i+1,text:a.text||a,items:a.items}))};
+    pas(1,'MASA KERJA',[PP+' menerima '+PK+' sebagai karyawan kontrak di CV. Sopandi Tekno Utama, dan '+PK+' menyatakan kesediaannya.',
+      'Perjanjian kerja ini berlaku selama **'+bulanTxt(f.lama)+'**, terhitung sejak tanggal **'+longD(f.mulai)+'** dan berakhir pada tanggal **'+longD(f.selesai)+'**.',
+      'Selama jangka waktu tersebut, masing-masing pihak dapat memutuskan hubungan kerja dengan pemberitahuan tertulis paling lambat 1 (satu) bulan sebelumnya, dengan alasan yang jelas dan dapat diterima kedua belah pihak.']);
+    pas(2,'TATA TERTIB PERUSAHAAN',[PK+' bersedia mematuhi dan menaati seluruh peraturan tata tertib perusahaan yang ditetapkan '+PP+'.',
+      {text:'Pelanggaran terhadap peraturan tersebut dapat mengakibatkan '+PK+' dijatuhi:',items:['Surat Peringatan 1, 2, dan 3; atau','Pemutusan Hubungan Kerja (PHK); atau','Sanksi lain sesuai peraturan perundang-undangan yang berlaku.']}]);
+    pas(3,'JAM KERJA',['Hari kerja adalah Senin sampai Sabtu, jam masuk pukul 08.00 dan jam pulang pukul 16.00.','Waktu istirahat ditetapkan selama 30 (tiga puluh) menit, pukul 12.00 sampai 12.30.']);
+    const tg=String(f.tugas||'').split('\n').map(s=>cl(s)).filter(Boolean);
+    pas(4,'PENEMPATAN, TUGAS, DAN TANGGUNG JAWAB',[PK+' bekerja sebagai **'+cl(f.jabatan)+'** pada bagian **'+cl(f.dept)+'**.',
+      {text:'Tugas dan tanggung jawab '+PK+':',items:tg.length?tg:['....................................................','....................................................','....................................................']},
+      PP+' berhak menempatkan '+PK+' pada tugas lain yang dianggap lebih sesuai dengan keahliannya, selama masih di lingkungan CV. Sopandi Tekno Utama.']);
+    pas(5,'PERPANJANGAN MASA KONTRAK KERJA',[ 'Setelah jangka waktu berakhir, perjanjian ini dapat diperpanjang atau diperbarui apabila '+PP+' masih membutuhkan '+PK+' dan '+PK+' bersedia, sesuai ketentuan yang berlaku.']);
+    pas(6,'GAJI POKOK',[PP+' memberikan gaji pokok kepada '+PK+' sebesar **'+rpTxt(f.gaji)+'** setiap bulan, setelah dipotong pajak penghasilan sesuai peraturan perpajakan yang berlaku.',
+      'Gaji dihitung untuk periode tanggal '+cutoff()+' bulan sebelumnya sampai tanggal '+(cutoff()-1)+' bulan berjalan, dan dibayarkan melalui transfer ke rekening '+PK+' pada tanggal '+cl(f.tglGaji)+' setiap bulan.']);
+    pas(7,'LEMBUR',[PK+' bersedia bekerja lembur apabila terdapat pekerjaan yang harus segera diselesaikan atau bersifat mendesak.','Upah lembur sebesar **'+rpTxt(f.lembur)+'** per jam, dibayarkan bersama gaji bulanan.']);
+    pas(8,'CUTI',[PK+' berhak atas cuti 12 (dua belas) hari per tahun setelah mempunyai masa kerja 1 (satu) tahun.','Permohonan cuti diajukan secara tertulis paling lambat 7 (tujuh) hari sebelumnya dan disetujui atasan langsung.']);
+    pas(9,'PENGOBATAN',PP+' menanggung biaya pengobatan dan perawatan apabila '+PK+' sakit, sesuai syarat dan ketentuan perusahaan.');
+    pas(10,'KERJA RANGKAP','Selama perjanjian ini berlaku, '+PK+' tidak dibenarkan bekerja rangkap di perusahaan lain dengan alasan apa pun. Pelanggaran atas ketentuan ini dapat dikenai sanksi sesuai Pasal 2 Ayat 2.');
+    pas(11,'PEMUTUSAN HUBUNGAN KERJA (PHK)',['Dengan memperhatikan peraturan ketenagakerjaan yang berlaku, '+PP+' dapat mengakhiri hubungan kerja apabila '+PK+' melanggar perjanjian ini.','Apabila terjadi PHK, '+PK+' wajib mengembalikan barang milik perusahaan yang dipercayakan kepadanya dan menyelesaikan kewajiban keuangan, seperti kasbon atau pinjaman.']);
+    pas(12,'PENGUNDURAN DIRI',[PK+' yang mengundurkan diri secara baik-baik berhak menerima gaji dan lembur sesuai jumlah hari kerja yang telah dijalani.',
+      {text:'Pengunduran diri dianggap baik-baik apabila '+PK+':',items:['Mengajukan surat pengunduran diri sesuai Pasal 1 Ayat 3;','Tetap bekerja sampai tanggal pengunduran diri berlaku;','Telah menyelesaikan kewajiban sesuai Pasal 11 Ayat 2.']},
+      PP+' dapat meminta '+PK+' meninggalkan perusahaan lebih awal dengan pembayaran penuh sesuai jumlah hari kerja.']);
+    pas(13,'BERAKHIRNYA PERJANJIAN','Perjanjian ini berakhir apabila jangka waktu pada Pasal 1 Ayat 2 selesai, atau apabila '+PK+' meninggal dunia.');
+    pas(14,'KEADAAN MEMAKSA (FORCE MAJEURE)','Perjanjian ini batal dengan sendirinya apabila terjadi keadaan memaksa, seperti bencana alam, perang, kerusuhan, atau peraturan pemerintah yang membuat perjanjian ini tidak mungkin dilaksanakan.');
+    pas(15,'PENYELESAIAN PERSELISIHAN','Perselisihan diselesaikan secara musyawarah untuk mufakat. Apabila tidak tercapai kesepakatan, kedua belah pihak sepakat menyelesaikannya melalui Pengadilan Negeri Bale Bandung.');
+    pas(16,'PENUTUP','Perjanjian ini dibuat dan ditandatangani dalam rangkap 2 (dua) bermeterai cukup dan mempunyai kekuatan hukum yang sama; masing-masing pihak memegang satu.');
+    add('sig',{date:'Ciwidey, '+longD(f.tanggal),L:{head:'PIHAK PERTAMA',name:f.ttdNama,title:f.ttdJab},R:{head:'PIHAK KEDUA',name:f.nama,title:f.jabatan,meterai:true}});
+    return {font:'helvetica',size:10.5,blocks:bl}}
+  const meta=(hal)=>add('kv',{kw:22,rows:[['Nomor',cl(f.nomor)],['Lampiran','-'],['Hal',B(hal)]]});
+  const kepada=()=>{add('gap',{h:3});add('lines',{lines:['Kepada Yth.','Sdr. '+B(f.nama),'Jabatan : '+cl(f.jabatan),'Departemen : '+cl(f.dept)]});add('gap',{h:3});add('p',{text:'Dengan hormat,'})};
+  if(j==='sp'){const lv=String(f.tingkat||'SP 1').replace(/\D/g,'')||'1';const nm=['','Pertama','Kedua','Ketiga'][+lv]||'';
+    meta('Surat Peringatan '+nm+' (SP-'+lv+')');kepada();
+    add('p',{text:'Berdasarkan hasil evaluasi dan pemantauan kedisiplinan kerja, Saudara telah melakukan pelanggaran berupa '+(cl(f.pelanggaran)||'....................')+'. Oleh karena itu, Perusahaan memberikan **Surat Peringatan '+nm+' (SP-'+lv+')** kepada Saudara.'});
+    add('p',{text:'Surat peringatan ini berlaku selama **'+bulanTxt(f.lama)+'**, terhitung mulai tanggal '+longD(f.tanggal)+' sampai dengan '+longD(f.sampai)+'. Apabila dalam masa tersebut Saudara kembali melakukan pelanggaran, Perusahaan akan memberikan sanksi yang lebih berat sesuai peraturan yang berlaku.'});
+    add('p',{text:'Saudara diharapkan menunjukkan perbaikan dalam hal kedisiplinan, kehadiran, ketepatan waktu, serta tanggung jawab dalam melaksanakan pekerjaan.'});
+    add('p',{text:'Demikian Surat Peringatan ini dibuat untuk menjadi perhatian dan dilaksanakan sebagaimana mestinya.'});
+    add('sig',{date:'Ciwidey, '+longD(f.tanggal),L:sigL,R:{head:'**Penerima Surat**',name:f.nama,title:f.jabatan}});return {font:'times',size:11.5,blocks:bl}}
+  if(j==='skors'){const back=addMonthsISO(f.selesai,0);const kembali=(()=>{const d=parse(f.selesai);if(!d)return '';d.setDate(d.getDate()+1);return iso(d)})();
+    meta('Surat Skorsing');kepada();
+    add('p',{text:'Berdasarkan hasil evaluasi dan pemantauan kedisiplinan kerja, serta adanya pelanggaran yang telah dilakukan Saudara berupa '+(cl(f.pelanggaran)||'....................')+', Perusahaan memutuskan untuk memberikan sanksi berupa skorsing.'});
+    add('p',{text:'Skorsing berlaku terhitung mulai tanggal '+longD(f.mulai)+' sampai dengan '+longD(f.selesai)+'. Selama masa skorsing, Saudara tidak diperkenankan melaksanakan pekerjaan maupun melakukan aktivitas kerja di lingkungan 2 TC Factory.'});
+    add('p',{text:'Selama masa skorsing tersebut, 2 TC Factory tidak memberikan gaji/upah kepada Saudara sesuai dengan ketentuan dan kebijakan Perusahaan yang berlaku.'});
+    add('p',{text:'Saudara wajib kembali bekerja pada tanggal '+longD(kembali)+' dan diharapkan menunjukkan perbaikan dalam hal kedisiplinan, kehadiran, ketepatan waktu, serta tanggung jawab dalam melaksanakan pekerjaan.'});
+    add('p',{text:'Demikian Surat Skorsing ini dibuat untuk menjadi perhatian dan dilaksanakan sebagaimana mestinya.'});
+    add('sig',{date:'Ciwidey, '+longD(f.tanggal),L:sigL,R:{head:'**Penerima Surat**',name:f.nama,title:f.jabatan}});return {font:'times',size:11.5,blocks:bl}}
+  if(j==='skk'){const STS={TETAP:'Karyawan Tetap',KONTRAK:'Karyawan Kontrak',TRAINING:'Masa Training','BELUM KONTRAK':'Karyawan'};
+    add('title',{text:'SURAT KETERANGAN KERJA'});add('center',{text:'Nomor: '+cl(f.nomor)});add('gap',{h:5});
+    add('p',{text:'Yang bertanda tangan di bawah ini:'});add('kv',{x:6,rows:[['Nama',cl(f.ttdNama)],['Jabatan',cl(f.ttdJab)]]});
+    add('p',{text:'menerangkan bahwa:'});
+    add('kv',{x:6,rows:[['Nama',B(f.nama)],['NIK',cl(f.nik)||'-'],['Jabatan',cl(f.jabatan)],['Status',STS[f.status]||tCase(f.status)],['Mulai bekerja',longD(f.masuk)],['Alamat',cl(f.alamat)||'-']]});
+    add('p',{text:'adalah benar karyawan CV. Sopandi Tekno Utama (2 TC Factory) dan sampai dengan tanggal surat ini dibuat masih aktif bekerja.'});
+    add('p',{text:'Surat keterangan ini dibuat untuk keperluan '+(cl(f.keperluan)||'....................')+'. Demikian surat ini dibuat untuk dipergunakan sebagaimana mestinya.'});
+    add('sig',{date:'Ciwidey, '+longD(f.tanggal),L:sigL,R:null});return {font:'times',size:11.5,blocks:bl}}
+  if(j==='ol'){meta('Penawaran Kerja');add('gap',{h:3});add('lines',{lines:['Kepada Yth.','Sdr. '+B(f.nama||'....................'),'di tempat']});add('gap',{h:3});add('p',{text:'Dengan hormat,'});
+    add('p',{text:'Berdasarkan hasil seleksi dan wawancara, dengan ini CV. Sopandi Tekno Utama (2 TC Factory) menawarkan kepada Saudara untuk bergabung dengan ketentuan sebagai berikut:'});
+    add('kv',{x:6,rows:[['Posisi',cl(f.jabatan)],['Departemen',cl(f.dept)],['Status',cl(f.statusTxt)],['Gaji pokok','Rp'+rp(f.gaji)+',00 per bulan'],['Lembur','Rp'+rp(f.lembur)+',00 per jam'],['Jam kerja',cl(f.jam)],['Mulai bekerja',longD(f.mulai)]]});
+    add('p',{text:'Pada hari pertama, mohon membawa fotokopi KTP, Kartu Keluarga, buku tabungan BCA, dan pas foto 3x4 sebanyak 2 lembar.'});
+    add('p',{text:'Mohon konfirmasi penerimaan penawaran ini kepada HRD paling lambat tanggal **'+longD(f.batas)+'**. Selanjutnya Saudara akan menandatangani Surat Perjanjian Kerja Waktu Tertentu.'});
+    add('p',{text:'Demikian surat penawaran ini kami sampaikan. Atas perhatiannya, kami ucapkan terima kasih.'});
+    add('sig',{date:'Ciwidey, '+longD(f.tanggal),L:sigL,R:{head:'**Menyetujui,**',name:f.nama||'....................',title:'Tanggal: ..................'}});return {font:'times',size:11.5,blocks:bl}}
+}
+
+// --- penggambar PDF (jsPDF) ---
+function srtPdf(j,f){
+  const doc=new jspdf.jsPDF({unit:'mm',format:'a4'});const {font,size,blocks}=srtBlocks(j,f);
+  const L=22,R=190,TOP=40,BOT=272,W=R-L,lh=size*.3528*1.42;let y=TOP;const st=S.settings||{};
+  const label=SURAT[j].n.replace(/ \(.*\)/,'')+' · '+cl(f.nama||'');
+  const head=()=>{const lg=st.logo||SRT_LOGO;try{const pr=doc.getImageProperties(lg);let h=17,w=pr.width*h/pr.height;if(w>26){w=26;h=w*pr.height/pr.width}doc.addImage(lg,(pr.fileType||'PNG'),L-2,11,w,h)}catch(e){}
+    doc.setTextColor(0);doc.setFont('times','bold');doc.setFontSize(14);doc.text(String(st.nama||'CV. SOPANDI TEKNO UTAMA').toUpperCase(),116,16,{align:'center'});
+    doc.setFont('times','normal');doc.setFontSize(9);KOP_ALAMAT.forEach((s,i)=>doc.text(s,116,21.5+i*4,{align:'center'}));doc.setLineWidth(.5);doc.line(L-2,31,R,31)};
+  const newPage=()=>{doc.addPage();head();y=TOP};head();
+  const ensure=h=>{if(y+h>BOT)newPage()};
+  const toks=t=>{const out=[];String(t).split('**').forEach((seg,i)=>seg.split(/(\s+)/).forEach(w=>{if(w&&!/^\s+$/.test(w))out.push({w,b:i%2===1});else if(w)out.push({sp:1})}));
+    // gabungkan kata yang menempel ke tanda baca dari segmen tebal ("**X**." )
+    const r=[];out.forEach(o=>{if(o.sp){r.push(o);return}const p=r[r.length-1];if(p&&!p.sp&&r.length)p.parts.push(o);else r.push({parts:[o]})});return r.filter(o=>o.parts)};
+  const wOf=p=>{doc.setFont(font,p.b?'bold':'normal');return doc.getTextWidth(p.w)};
+  function para(text,x,w,opt){opt=opt||{};doc.setFontSize(opt.size||size);const words=toks(text);const sw=(doc.setFont(font,'normal'),doc.getTextWidth(' '));
+    const lines=[];let cur=[],cw=0;words.forEach(o=>{o.width=o.parts.reduce((a,p)=>a+wOf(p),0);const add=(cur.length?sw:0)+o.width;if(cur.length&&cw+add>w){lines.push(cur);cur=[o];cw=o.width}else{cur.push(o);cw+=add}});if(cur.length)lines.push(cur);
+    lines.forEach((ln,li)=>{ensure(lh);let xx=x;const tot=ln.reduce((a,o)=>a+o.width,0);const gap=(opt.just!==false&&li<lines.length-1&&ln.length>1)?(w-tot)/(ln.length-1):sw;
+      if(opt.center)xx=x+(w-(tot+sw*(ln.length-1)))/2;
+      ln.forEach(o=>{o.parts.forEach(p=>{doc.setFont(font,p.b?'bold':'normal');doc.text(p.w,xx,y);xx+=doc.getTextWidth(p.w)});xx+=gap});y+=lh});
+    doc.setFont(font,'normal')}
+  blocks.forEach((b,bi)=>{doc.setFontSize(size);doc.setFont(font,'normal');
+    if(b.t==='gap'){y+=b.h;return}
+    if(b.t==='title'){ensure(lh*2);doc.setFont(font,'bold');doc.setFontSize(size+1);doc.text(b.text,105,y,{align:'center'});const tw=doc.getTextWidth(b.text);doc.setLineWidth(.3);doc.line(105-tw/2,y+.8,105+tw/2,y+.8);y+=lh+1;return}
+    if(b.t==='center'){doc.text(b.text,105,y,{align:'center'});y+=lh;return}
+    if(b.t==='p'){para(b.text,L+(b.indent||0),W-(b.indent||0));y+=1.8;return}
+    if(b.t==='lines'){b.lines.forEach(s=>para(s,L,W,{just:false}));y+=1;return}
+    if(b.t==='kv'){const x0=L+(b.x||0)+(b.num?6:0),kw=b.kw||46;if(b.num){ensure(lh);doc.text(b.num,L,y)}
+      b.rows.forEach(([k,v])=>{ensure(lh);doc.setFont(font,'normal');doc.text(k,x0,y);doc.text(':',x0+kw,y);para(v,x0+kw+3,R-(x0+kw+3),{just:false});y+=.6});y+=1.6;return}
+    if(b.t==='pasal'){ensure(lh*5);y+=3;doc.setFont(font,'bold');doc.text('PASAL '+b.n,105,y,{align:'center'});y+=lh;doc.text(b.text,105,y,{align:'center'});y+=lh+1;return}
+    if(b.t==='ayat'){ensure(lh*2);doc.setFont(font,'bold');doc.text('Ayat '+b.n,L,y);doc.setFont(font,'normal');para(b.text,L+15,W-15);
+      (b.items||[]).forEach((it,i)=>{ensure(lh);doc.text((i+1)+'.',L+16,y);para(it,L+21,W-21)});y+=1.6;return}
+    if(b.t==='sig'){ensure(52);y+=4;para(b.date,L,W,{just:false});y+=1;const cols=[[L,b.L],[R-62,b.R]];
+      cols.forEach(([x,c])=>{if(!c)return;let yy=y;const cx=x+31;const hd=String(c.head);doc.setFont(font,hd.startsWith('**')?'bold':'normal');doc.text(hd.replace(/\*/g,''),cx,yy,{align:'center'});
+        if(c.meterai){doc.setLineDashPattern([1,1],0);doc.setLineWidth(.2);doc.rect(x+2,yy+6,18,11);doc.setLineDashPattern([],0);doc.setFontSize(7);doc.setFont(font,'normal');doc.text('Meterai',x+11,yy+11,{align:'center'});doc.text('10.000',x+11,yy+14,{align:'center'});doc.setFontSize(size)}
+        yy+=27;doc.setFont(font,'bold');const nm=cl(c.name);doc.text(nm,cx,yy,{align:'center'});const tw=doc.getTextWidth(nm);doc.setLineWidth(.25);doc.line(cx-tw/2,yy+.8,cx+tw/2,yy+.8);
+        doc.setFont(font,'normal');doc.text(cl(c.title),cx,yy+lh,{align:'center'})});y+=27+lh*2;return}
+  });
+  const n=doc.getNumberOfPages();for(let i=1;i<=n;i++){doc.setPage(i);doc.setFont('times','normal');doc.setFontSize(8);doc.setTextColor(90);doc.text(label,L,287);doc.text(i+' | Halaman',R,287,{align:'right'});doc.setTextColor(0)}
+  return doc}
+
+// --- formulir ---
+function srtOpen(empId,j,rec){
+  const e=empId?S.emps[empId]:null;j=j||(e?'pkwt':'ol');
+  S.srt={j,empId:empId||'',f:rec?clone(rec.f):srtDefaults(j,e),recId:rec?rec.id:''};srtForm();
+}
+function srtField(k,label,type,extra){const f=S.srt.f;extra=extra||{};const v=f[k]==null?'':f[k];
+  if(type==='area')return '<label class="'+(extra.full===false?'':'full')+'">'+label+'<textarea data-srt="'+k+'" rows="'+(extra.rows||3)+'">'+esc(v)+'</textarea>'+(extra.hint?'<span class="hint">'+extra.hint+'</span>':'')+'</label>';
+  if(type==='select')return '<label'+(extra.full?' class="full"':'')+'>'+label+'<select data-srt="'+k+'">'+extra.opts.map(o=>'<option'+(o===v?' selected':'')+'>'+esc(o)+'</option>').join('')+'</select></label>';
+  if(type==='check')return '<label class="full" style="flex-direction:row;align-items:center;gap:8px;color:var(--fg)"><input type="checkbox" data-srt="'+k+'"'+(v?' checked':'')+'>'+label+'</label>';
+  return '<label'+(extra.full?' class="full"':'')+'>'+label+'<input data-srt="'+k+'" type="'+(type||'text')+'" value="'+esc(v)+'"'+(extra.attr||'')+'>'+(extra.hint?'<span class="hint">'+extra.hint+'</span>':'')+'</label>'}
+function srtForm(){
+  const {j,empId,f}=S.srt;const e=empId?S.emps[empId]:null;const F=srtField;
+  const empSel=j==='ol'?F('nama','Nama pelamar','text',{full:true}):'<label class="full">Karyawan<select id="srt_emp">'+empList().map(x=>'<option value="'+esc(x.id)+'"'+(x.id===empId?' selected':'')+'>'+esc(x.id+' — '+x.nama)+'</option>').join('')+'</select></label>';
+  let fields='';
+  if(j==='pkwt')fields=F('mulai','Mulai kontrak','date')+F('lama','Lama kontrak (bulan)','number',{attr:' min="1" max="60"',hint:'Berakhir '+longD(f.selesai)})+F('jabatan','Jabatan')+F('dept','Bagian / departemen')+F('gaji','Gaji pokok (Rp)','number')+F('lembur','Lembur per jam (Rp)','number')+F('tglGaji','Tanggal gajian','number',{attr:' min="1" max="31"'})+
+    F('tempatLahir','Tempat lahir')+F('tglLahir','Tanggal lahir','date')+F('pendidikan','Pendidikan terakhir')+F('jk','Jenis kelamin','select',{opts:['','Laki-laki','Perempuan']})+F('agama','Agama')+F('nik','No. KTP / SIM')+F('telp','Telepon')+F('alamat','Alamat','text',{full:true})+
+    F('tugas','Tugas dan tanggung jawab','area',{rows:3,hint:'Satu tugas per baris'})+F('simpanKontrak','Simpan tanggal kontrak ke data karyawan','check');
+  if(j==='sp')fields=F('tingkat','Tingkat','select',{opts:SP_LEVELS})+F('lama','Berlaku (bulan)','number',{attr:' min="1" max="36"',hint:'Sampai '+longD(f.sampai)})+F('jabatan','Jabatan')+F('dept','Departemen')+F('pelanggaran','Pelanggaran','area',{rows:2,hint:'Lanjutan kalimat "Saudara telah melakukan pelanggaran berupa …"'})+F('catat','Catat juga di menu Surat Peringatan','check');
+  if(j==='skors')fields=F('mulai','Skorsing mulai','date')+F('selesai','Skorsing sampai','date')+F('jabatan','Jabatan')+F('dept','Departemen')+F('pelanggaran','Pelanggaran','area',{rows:2,hint:'Contoh: ketidakhadiran tanpa keterangan, keterlambatan, dan penggunaan ponsel saat jam kerja'});
+  if(j==='skk')fields=F('keperluan','Keperluan','text',{full:true,hint:'Contoh: pengajuan kredit di bank'})+F('jabatan','Jabatan')+F('nik','NIK')+F('alamat','Alamat','text',{full:true});
+  if(j==='ol')fields=F('jabatan','Posisi')+F('dept','Departemen')+F('statusTxt','Status','text',{full:true})+F('gaji','Gaji pokok (Rp)','number')+F('lembur','Lembur per jam (Rp)','number')+F('jam','Jam kerja')+F('mulai','Mulai bekerja','date')+F('batas','Batas konfirmasi','date');
+  const miss=[];if(j!=='ol'&&e){if(!/^\d{16}$/.test(f.nik||''))miss.push('NIK');if(!f.alamat)miss.push('alamat')}
+  const hist=Object.entries(S.surat||{}).filter(([id,r])=>j==='ol'?r.jenis==='ol':r.empId===empId).sort((a,b)=>(b[1].dibuat||'').localeCompare(a[1].dibuat||'')).slice(0,6);
+  openModal('<div class="srtwrap"><div class="srtL"><h3>Buat surat</h3>'+
+   '<div class="srtTabs">'+Object.keys(SURAT).map(k=>'<button class="btn'+(k===j?' on':'')+'" data-act="srtJenis" data-id="'+k+'">'+esc(SURAT[k].n)+'</button>').join('')+'</div>'+
+   '<div class="form">'+empSel+F('tanggal','Tanggal surat','date')+F('nomor','Nomor surat','text',{hint:'Otomatis, bisa diubah'})+fields+F('ttdNama','Ditandatangani oleh')+F('ttdJab','Jabatan penanda tangan')+'</div>'+
+   (miss.length?'<p class="note" style="margin:0;color:var(--warn,#8a5a00)">'+esc(miss.join(' dan '))+' belum ada di data karyawan. Bisa diisi di sini; nanti ikut tersimpan.</p>':'')+
+   '<div class="row"><button class="btn primary" data-act="srtGo">Unduh PDF</button><button class="btn" data-act="srtPrev">Perbarui pratinjau</button><button class="btn" data-act="srtTab">Buka di tab baru</button><button class="btn" data-act="closeModal">Tutup</button></div>'+
+   (hist.length?'<div class="note" style="margin:0"><b>Riwayat surat</b><br>'+hist.map(([id,r])=>'<a href="#" data-act="srtRe" data-id="'+esc(id)+'">'+esc(fmtD(r.tanggal)+' · '+(SURAT[r.jenis]||{}).n+' · '+r.nomor)+'</a>').join('<br>')+'</div>':'')+
+   '</div><div class="srtR"><iframe id="srtFrame" title="Pratinjau surat"></iframe></div></div>');
+  srtPreview();
+}
+function srtRead(){const f=S.srt.f;document.querySelectorAll('[data-srt]').forEach(el=>{const k=el.dataset.srt;f[k]=el.type==='checkbox'?el.checked:el.type==='number'?(+el.value||0):el.value});
+  if(S.srt.j==='pkwt')f.selesai=addMonthsISO(f.mulai,+f.lama||12);if(S.srt.j==='sp')f.sampai=addMonthsISO(f.tanggal,+f.lama||6);return f}
+function srtPreview(){if(!window.jspdf)return;const fr=$('#srtFrame');if(!fr)return;try{const d=srtPdf(S.srt.j,S.srt.f);if(S.srt.url)URL.revokeObjectURL(S.srt.url);S.srt.url=URL.createObjectURL(new Blob([d.output('arraybuffer')],{type:'application/pdf'}));fr.src=S.srt.url+'#toolbar=0&view=FitH'}catch(err){console.error(err)}}
+async function srtGo(){
+  if(!window.jspdf){toast('Pustaka PDF belum termuat. Coba lagi sebentar.');return}
+  if(!S.dl){toast('Unduhan tidak tersedia di tampilan ini.');return}
+  const {j,empId}=S.srt;const f=srtRead();if(j==='ol'&&!cl(f.nama)){toast('Isi nama pelamar.');return}
+  const doc=srtPdf(j,f);const fname=SURAT[j].n.replace(/ \(.*\)/,'')+' - '+cl(f.nama||'')+' - '+f.tanggal+'.pdf';
+  try{await S.dl.save({filename:fname,data:new Blob([doc.output('arraybuffer')])})}catch(e){if(e&&e.code!=='declined')toast('Unduhan gagal.');return}
+  // simpan riwayat + nomor urut + data tambahan karyawan
+  const d=parse(f.tanggal)||new Date();const key=j+d.getFullYear();const m=/(\d{1,4})/.exec(String(f.nomor).replace(/^\D+/,''));const seq=Math.max(suratSeq(j,f.tanggal)-1,m?+m[1]:0);
+  const rid=S.srt.recId||('L'+Date.now().toString(36));
+  try{
+    await S.db.doc('surat/'+rid).set({jenis:j,empId:empId||'',nama:cl(f.nama),nomor:f.nomor,tanggal:f.tanggal,dibuat:new Date().toISOString(),f});
+    await S.db.doc('settings/company').update({suratNo:{[key]:Math.max(seq,(((S.settings||{}).suratNo||{})[key]||0))}});
+    if(empId&&S.emps[empId]){const e=S.emps[empId],up={};
+      ['tempatLahir','tglLahir','pendidikan','jk','agama'].forEach(k=>{if(f[k]!=null&&String(f[k]).trim()&&f[k]!==e[k])up[k]=String(f[k]).trim()});
+      if(!e.nik&&/^\d{16}$/.test(String(f.nik||'').trim()))up.nik=String(f.nik).trim();if(!e.alamat&&cl(f.alamat))up.alamat=cl(f.alamat);
+      if(j==='pkwt'&&f.simpanKontrak){up.kontrakMulai=f.mulai;up.kontrakSelesai=f.selesai}
+      if(Object.keys(up).length)await S.db.doc('employees/'+empId).update(up);
+      if(j==='sp'&&f.catat&&!S.srt.recId){const wid='W'+Date.now().toString(36);await S.db.doc('warnings/'+wid).set({empId,tingkat:f.tingkat,nomor:f.nomor,tanggal:f.tanggal,lama:+f.lama||6,sampai:f.sampai,pelanggaran:cl(f.pelanggaran)})}}
+    closeModal();toast('Surat diunduh dan tercatat di riwayat.')
+  }catch(err){handleErr(err)}
 }
 
 // ===== Data identitas (NIK, NPWP, alamat, KTP) =====
@@ -1512,6 +1718,13 @@ document.addEventListener('click',async ev=>{
   if(a==='mailSlipRev')return mailSlips([S.slipEmp],true);
   if(a==='mailAll')return mailAll();
   if(a==='impEmail')return impEmail();
+  if(a==='srtOpen')return srtOpen(id);
+  if(a==='srtNew')return srtOpen('','ol');
+  if(a==='srtJenis'){srtRead();const keep=S.srt.empId||(empList()[0]||{}).id||'';S.srt={j:id,empId:id==='ol'?'':keep,f:srtDefaults(id,id==='ol'?null:S.emps[keep]),recId:''};return srtForm()}
+  if(a==='srtPrev'){srtRead();return srtPreview()}
+  if(a==='srtGo')return srtGo();
+  if(a==='srtTab'){srtRead();srtPreview();if(S.srt&&S.srt.url)window.open(S.srt.url,'_blank','noopener');return}
+  if(a==='srtRe'){ev.preventDefault();const r=S.surat[id];if(r){S.srt={j:r.jenis,empId:r.empId||'',f:clone(r.f||{}),recId:id};srtForm()}return}
   if(a==='impIdent')return impIdent();
   if(a==='impIdentGo')return impIdentGo();
   if(a==='expEmp')return expEmp();
@@ -1544,11 +1757,14 @@ document.addEventListener('click',async ev=>{
 });
 document.addEventListener('input',ev=>{
   const t=ev.target;
+  if(t.dataset&&t.dataset.srt!=null&&S.srt){clearTimeout(S.srtT);S.srtT=setTimeout(()=>{srtRead();srtPreview()},700);return}
   if(t.dataset.kn!=null){kpiLive();return}
   if(t.id==='q'){S.q=t.value;clearTimeout(S.qt);S.qt=setTimeout(()=>{const pos=t.selectionStart;render(true);const n=$('#q');if(n){n.focus();try{n.setSelectionRange(pos,pos)}catch(e){}}},200);return}
 });
 function bigWarn(id,v,lbl){const e=S.emps[id];const gp=e&&+e.gajiPokok||0;if(gp&&v>gp*0.5)toast('Cek lagi: '+lbl+' '+e.nama+' Rp '+rp(v)+', lebih dari setengah gaji pokok.')}
 document.addEventListener('change',ev=>{
+  if(ev.target.id==='srt_emp'&&S.srt){const id=ev.target.value;S.srt={j:S.srt.j,empId:id,f:srtDefaults(S.srt.j,S.emps[id]),recId:''};srtForm();return}
+  if(ev.target.dataset&&ev.target.dataset.srt!=null&&S.srt&&(ev.target.type==='checkbox'||ev.target.tagName==='SELECT')){srtRead();srtPreview();return}
   if(ev.target.dataset&&ev.target.dataset.identmap!=null&&S.impId){const o=S.impId.ent[+ev.target.dataset.identmap];o.emp=ev.target.value;o.nameOk=o.emp?nameScore(o.nama,S.emps[o.emp].nama)>=.5||true:false;identPreview();return}
   const t=ev.target;
   if(t.id==='w_tgl'||t.id==='w_lama'){const s=addMonthsISO($('#w_tgl').value,+$('#w_lama').value||0);if(s&&+$('#w_lama').value)$('#w_sampai').value=s;return}
@@ -1640,7 +1856,7 @@ function db_subscribe(db,err){
     if(target==='emps'&&snap.docs.length)S.needImport=false;
     if(target==='periods'||target==='kpiN'){const pre=target==='periods'?'periods/':'kpiNilai/';for(const p in Q)if(p.startsWith(pre)){const k=p.slice(pre.length);if(o[k])deepMerge(o[k],clone(Q[p].patch))}}
     render()},err);
-  coll('employees','emps');coll('loans','loans');coll('warnings','warns');coll('interns','interns');coll('notes','notes');coll('periods','periods');coll('kpiDivisi','kpiD');coll('kpiNilai','kpiN');
+  coll('employees','emps');coll('loans','loans');coll('warnings','warns');coll('interns','interns');coll('notes','notes');coll('periods','periods');coll('kpiDivisi','kpiD');coll('kpiNilai','kpiN');coll('surat','surat');
 }
 async function runImport(btn){
   btn.disabled=true;btn.textContent='Mengimpor…';
