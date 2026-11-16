@@ -657,6 +657,7 @@ let painting=false;
 function paintCell(td){
   if(isLocked()){if(!paintCell.w){paintCell.w=1;setTimeout(()=>paintCell.w=0,2000);toast('Periode ini sudah dikunci. Buka kunci di halaman Payroll untuk mengubah.')}return}
   const e=td.dataset.e,d=td.dataset.d;const cur=((P().absensi||{})[e]||{})[d]||'';const v=S.brush;if(cur===v)return;
+  if(v==='C'&&!cutiOk(e,d)){if(!paintCell.c){paintCell.c=1;setTimeout(()=>paintCell.c=0,2500);cutiTolak(e,d)}return}
   if(cur)logAct('absen','Mengubah absensi · '+enm(e)+', '+fmtD(d),{dari:cur,ke:v||'(kosong)'});
   patchPeriod({absensi:{[e]:{[d]:v}}});
   td.className='cell'+(parse(d).getDay()===0?' sun':'')+(holidays().has(d)?' hol':'')+(v?' code-'+v:'');td.textContent=v;
@@ -669,9 +670,9 @@ document.addEventListener('pointerover',ev=>{if(!painting)return;const td=ev.tar
 document.addEventListener('pointerup',()=>{painting=false});
 function fillDates(dates,onlyWork){
   if(isLocked()){toast('Periode ini sudah dikunci.');return}
-  const hol=holidays();const A=P().absensi||{};const patch={};let n=0;
-  empList().forEach(e=>{dates.forEach(d=>{if(onlyWork&&(parse(d).getDay()===0||hol.has(d)))return;if(((A[e.id]||{})[d]||'')==='' ){(patch[e.id]=patch[e.id]||{})[d]=S.brush||'H';n++}})});
-  if(n){patchPeriod({absensi:patch});logAct('absen','Mengisi '+n+' sel absensi kosong sekaligus',{ket:'Kode '+(S.brush||'H')+' · periode '+periodLabel(S.periodKey)});toast(n+' sel diisi.');}else toast('Tidak ada sel kosong.');render(true);
+  const hol=holidays();const A=P().absensi||{};const patch={};let n=0,tolak=0;const isC=S.brush==='C';
+  empList().forEach(e=>{const pakai={};dates.forEach(d=>{if(onlyWork&&(parse(d).getDay()===0||hol.has(d)))return;if(((A[e.id]||{})[d]||'')==='' ){if(isC){const y=cutiYearOf(d);if(!cutiOk(e.id,d,pakai[y]||0)){tolak++;return}pakai[y]=(pakai[y]||0)+1}(patch[e.id]=patch[e.id]||{})[d]=S.brush||'H';n++}})});
+  if(n){patchPeriod({absensi:patch});logAct('absen','Mengisi '+n+' sel absensi kosong sekaligus',{ket:'Kode '+(S.brush||'H')+' · periode '+periodLabel(S.periodKey)});toast(n+' sel diisi.'+(tolak?' '+tolak+' sel dilewati karena cutinya sudah habis.':''));}else toast(tolak?'Tidak diisi: cuti '+tolak+' karyawan sudah habis.':'Tidak ada sel kosong.');render(true);
 }
 
 // ===== Lembur =====
@@ -1479,7 +1480,7 @@ const PAGE_HELP={
  pay:['Perhitungan gaji semua karyawan untuk periode yang dipilih. Angkanya dihitung otomatis dari Absensi, Lembur, dan Kasbon.',['Isi kolom Reimburse/bonus dan Potongan lain bila ada.','Perbaiki semua tanda Salah dan Cek di panel Cek payroll sebelum membayar.','Setelah gaji dibayar, klik Kunci payroll dua kali. Angka jadi final dan potongan kasbon tercatat.','Unduh Excel dan File transfer BCA dari tombol di kanan atas.']],
  slip:['Slip gaji per karyawan untuk periode yang dipilih.',['Pilih karyawan, lalu Unduh PDF, Kirim via email, atau Kirim PDF via WhatsApp.','Untuk mengirim ke semua karyawan sekaligus, pakai tombol Kirim semua slip via email di halaman Payroll.','Kirim slip setelah payroll dikunci, supaya angkanya tidak berubah lagi.']],
  loan:['Pinjaman karyawan dan cicilannya.',['Klik + Catat kasbon, isi jumlah dan cicilan per bulan.','Cicilan dipotong otomatis di Payroll setiap periode sampai lunas.','Saldo baru berkurang resmi saat payroll periode itu dikunci.']],
- leave:['Kuota, pemakaian, dan sisa cuti tahunan tiap karyawan.',['Cuti terpakai dihitung dari kode C di Absensi; tidak perlu diisi di sini.','Kuota per karyawan bisa diubah langsung di tabel.','Saldo diperbarui otomatis tiap awal tahun cuti (bulannya diatur di Pengaturan).']],
+ leave:['Kuota, pemakaian, dan sisa cuti tahunan tiap karyawan.',['Cuti terpakai dihitung dari kode C di Absensi; tidak perlu diisi di sini.','Bila sisa cuti 0, kode C ditolak di Absensi. Untuk pengecualian, naikkan kuota orang itu di sini; perubahannya tercatat di Riwayat.','Kuota per karyawan bisa diubah langsung di tabel.','Saldo diperbarui otomatis tiap awal tahun cuti (bulannya diatur di Pengaturan).']],
  ctr:['Masa kontrak karyawan dan data siswa PKL.',['Kontrak yang akan habis dalam 90 hari muncul di Dasbor.','Tanggal kontrak diubah lewat data Karyawan, atau otomatis saat membuat surat kontrak.','Siswa PKL dicatat dengan + Tambah siswa PKL.']],
  note:['Catatan bebas untuk kantor atau per karyawan, dengan tanggal pengingat.',['Klik + Tambah catatan dan isi tanggal pengingat bila perlu diingatkan.','Catatan yang mendekati tanggal pengingat muncul di Dasbor.','Tandai Selesai bila sudah beres.']],
  sp:['Daftar surat peringatan dan masa berlakunya.',['Klik + Catat SP, pilih karyawan, tingkat, tanggal terbit, dan lama berlaku.','Tanggal Berlaku sampai terisi otomatis dan bisa diubah.','SP yang tinggal 30 hari muncul di Dasbor.','Suratnya sendiri dibuat dari Karyawan → Buat surat.']],
@@ -1521,6 +1522,10 @@ async function logXlsx(){
   const rows=logRows().map(r=>{const d=new Date(r.at);return {Tanggal:iso(d),Jam:pad(d.getHours())+':'+pad(d.getMinutes()),Pengguna:r.oleh||'',Jenis:(LOGK[r.jenis]||LOGK.data)[0],Tindakan:r.judul||'',Sebelum:r.dari==null?'':r.dari,Sesudah:r.ke==null?'':r.ke,Keterangan:r.ket||''}});
   const wb=XLSX.utils.book_new();const ws=XLSX.utils.json_to_sheet(rows);ws['!cols']=[{wch:11},{wch:6},{wch:26},{wch:9},{wch:44},{wch:22},{wch:22},{wch:50}];XLSX.utils.book_append_sheet(wb,ws,'RIWAYAT');
   try{await S.dl.save({filename:'Riwayat perubahan '+todayISO()+'.xlsx',data:new Blob([XLSX.write(wb,{type:'array',bookType:'xlsx'})])});toast('Riwayat diunduh.')}catch(e){if(e&&e.code!=='declined')toast('Unduhan gagal.')}}
+
+// ===== Cuti habis: kode C ditolak =====
+function cutiOk(empId,d,extra){const e=S.emps[empId];if(!e)return true;return cutiSisa(e,cutiYearOf(d))-(extra||0)>=1}
+function cutiTolak(empId,d){const y=cutiYearOf(d);toast('Cuti '+enm(empId)+' sudah habis untuk tahun cuti '+y+'/'+String(y+1).slice(2)+'. Pakai I (izin), atau tambah kuotanya di halaman Cuti.')}
 
 // ===== Urungkan =====
 function toastUndo(msg,fn){S.undoFn=fn;const r=$('#toastRoot');r.innerHTML='<div class="toast" role="status">'+esc(msg)+' <button class="undo" data-act="undo">Urungkan</button></div>';clearTimeout(toast.t);toast.t=setTimeout(()=>{r.innerHTML='';S.undoFn=null},6500)}
@@ -1624,7 +1629,7 @@ function attSetVal(e,d,v,quiet){const cur=((P().absensi||{})[e]||{})[d]||'';if(c
 function attRefresh(){const d=attDay();const A=P().absensi||{};document.querySelectorAll('.attday .segb').forEach(b=>b.setAttribute('aria-pressed',((A[b.dataset.e]||{})[d]||'')===b.dataset.c));const pg=attProg(d);const bar=$('#attBar'),tx=$('#attTxt');if(bar)bar.style.width=(pg.tot?Math.round(pg.n/pg.tot*100):0)+'%';if(tx)tx.textContent=pg.n+' dari '+pg.tot+' sudah diisi'}
 function attSet(e,c){
   if(isLocked()){toast('Periode ini sudah dikunci. Buka kunci di halaman Payroll untuk mengubah.');return}
-  const d=attDay();const cur=((P().absensi||{})[e]||{})[d]||'';const v=cur===c?'':c;attSetVal(e,d,v);attRefresh();
+  const d=attDay();const cur=((P().absensi||{})[e]||{})[d]||'';const v=cur===c?'':c;if(v==='C'&&!cutiOk(e,d)){cutiTolak(e,d);return}attSetVal(e,d,v);attRefresh();
   toastUndo(enm(e)+': '+(v||'dikosongkan')+'.',()=>{attSetVal(e,d,cur);attRefresh();toast('Diurungkan.')})}
 function attAllH(){
   if(isLocked()){toast('Periode ini sudah dikunci.');return}
@@ -2290,7 +2295,7 @@ document.addEventListener('change',ev=>{
   if(t.id==='slipSel'){S.slipEmp=t.value;render(true);return}
   if((t.dataset.ot||t.dataset.reimb||t.dataset.pot)&&isLocked()){toast('Periode ini sudah dikunci.');render(true);return}
   if(t.dataset.ttd){if(t.files&&t.files[0])ttdLoad(t.files[0],t.dataset.ttd);return}
-  if(t.dataset.kuota){const id=t.dataset.kuota,y=S.cutiYear,v=Math.max(0,+t.value||0);const e=S.emps[id];if(!e)return;e.kuotaTahun=Object.assign({},e.kuotaTahun,{[y]:v});queuePatch('employees/'+id,{kuotaTahun:{[y]:v}});S.dirty=true;return}
+  if(t.dataset.kuota){const id=t.dataset.kuota,y=S.cutiYear,v=Math.max(0,+t.value||0);const e=S.emps[id];if(!e)return;const pk=kuotaFor(e,y);e.kuotaTahun=Object.assign({},e.kuotaTahun,{[y]:v});queuePatch('employees/'+id,{kuotaTahun:{[y]:v}});if(pk!==v)logAct('data','Mengubah kuota cuti '+y+'/'+String(y+1).slice(2)+' · '+e.nama,{dari:pk+' hari',ke:v+' hari'});S.dirty=true;return}
   if(t.dataset.ot){const v=Math.max(0,+t.value||0);{const pv=+(((P().lembur||{})[t.dataset.ot]||{})[t.dataset.d])||0;if(pv&&pv!==v)logAct('absen','Mengubah lembur · '+enm(t.dataset.ot)+', '+fmtD(t.dataset.d),{dari:pv+' jam',ke:v+' jam'})}if(v>12)toast('Cek lagi: '+v+' jam lembur dalam sehari. Benar?');patchPeriod({lembur:{[t.dataset.ot]:{[t.dataset.d]:v}}});S.dirty=true;return}
   if(t.dataset.reimb){const v=Math.max(0,+t.value||0);{const pv=+((P().reimburse||{})[t.dataset.reimb])||0;if(pv!==v)logAct('gaji','Mengubah reimburse/bonus · '+enm(t.dataset.reimb),{dari:'Rp '+rp(pv),ke:'Rp '+rp(v),ket:'Payroll '+periodLabel(S.periodKey)})}bigWarn(t.dataset.reimb,v,'Reimburse/bonus');patchPeriod({reimburse:{[t.dataset.reimb]:v}});S.dirty=true;return}
   if(t.dataset.pot){const v=Math.max(0,+t.value||0);{const pv=+((P().potonganLain||{})[t.dataset.pot])||0;if(pv!==v)logAct('gaji','Mengubah potongan lain · '+enm(t.dataset.pot),{dari:'Rp '+rp(pv),ke:'Rp '+rp(v),ket:'Payroll '+periodLabel(S.periodKey)})}bigWarn(t.dataset.pot,v,'Potongan lain');patchPeriod({potonganLain:{[t.dataset.pot]:v}});S.dirty=true;return}
