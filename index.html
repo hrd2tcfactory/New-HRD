@@ -203,13 +203,57 @@ input.cellin{width:64px;padding:3px 6px;text-align:right;font-family:var(--f-mon
 @media (prefers-reduced-motion:no-preference){.btn,.nav button{transition:background .12s}}
 
 .login{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:16px;z-index:80}
-.login form{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:24px;width:min(380px,100%);display:flex;flex-direction:column;gap:12px}
+.lgcard{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);width:min(800px,100%);background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden;box-shadow:0 18px 40px -24px rgba(10,15,25,.5)}
+.lgside{background:var(--accent);color:var(--accent-ink);padding:32px;display:flex;flex-direction:column;justify-content:space-between;gap:28px}
+.lgside h2{font-family:var(--f-display);font-weight:800;font-size:28px;margin:0;line-height:1.1}.lgside p{margin:6px 0 0;opacity:.9}.lgside .lgfoot{font-size:12.5px;opacity:.8;margin:0}
+.lglogo{background:#fff;border-radius:10px;padding:6px;align-self:flex-start;display:flex}.lglogo img{height:54px;width:auto;max-width:none;display:block}.lglogo img:not([src]){display:none}
+.login form{padding:32px;display:flex;flex-direction:column;gap:12px;justify-content:center}
+@media (max-width:700px){.lgcard{grid-template-columns:1fr}.lgside{padding:20px;gap:14px}.lgside h2{font-size:22px}.lgside .lgfoot{display:none}.login form{padding:20px}}
 .login h1{font-family:var(--f-display);font-size:22px;margin:0}
 .login label{display:flex;flex-direction:column;gap:4px;font-size:12.5px;color:var(--muted);font-weight:500}
 .login .err{color:var(--bad);font-size:13px;min-height:1em}
 .userbox{display:flex;flex-direction:column;gap:6px;margin-top:8px}
 .userbox b{font-weight:500;color:var(--fg);word-break:break-all}
 .g-harian{--g:var(--g-harian);--gs:var(--g-harian-soft)}.g-gaji{--g:var(--g-gaji);--gs:var(--g-gaji-soft)}.g-karyawan{--g:var(--g-karyawan);--gs:var(--g-karyawan-soft)}.g-lainnya{--g:var(--g-lainnya);--gs:var(--g-lainnya-soft)}
+.split{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:14px;align-items:start}
+.emppanel{display:flex;flex-direction:column;gap:10px;position:sticky;top:12px;max-height:calc(100vh - 24px);overflow:auto}
+.emptbl tbody tr{cursor:pointer}.emptbl tbody tr:hover{background:var(--surface-2)}.emptbl tbody tr.sel{background:var(--accent-soft)}
+.rowbtn{all:unset;cursor:pointer;font-weight:600}.rowbtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.kv{display:grid;grid-template-columns:auto minmax(0,1fr);gap:6px 12px;font-size:13px;margin:0}.kv dt{color:var(--muted)}.kv dd{margin:0;text-align:right;overflow-wrap:anywhere}
+.sect{font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);border-top:1px solid var(--line);padding-top:10px}
+.more{position:relative}.more summary{list-style:none;cursor:pointer}.more summary::-webkit-details-marker{display:none}
+.morelist{position:absolute;right:0;top:calc(100% + 4px);z-index:20;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:6px;min-width:240px;display:flex;flex-direction:column;box-shadow:0 14px 30px -14px rgba(10,15,25,.45)}
+.morelist button{all:unset;cursor:pointer;padding:8px 10px;border-radius:6px}.morelist button:hover,.morelist button:focus-visible{background:var(--surface-2)}
+.ftabs{display:flex;flex-wrap:wrap;gap:2px;border-bottom:1px solid var(--line)}
+.ftabs button{all:unset;cursor:pointer;padding:9px 12px;font-weight:600;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px}
+.ftabs button[aria-selected="true"]{color:var(--accent);border-bottom-color:var(--accent)}
+.fdot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--bad);margin-left:6px;vertical-align:middle}.fdot.w{background:var(--warn)}
+.ferr{font-size:12px;color:var(--bad);font-weight:500}.ferr.w{color:var(--warn)}.ferr:empty{display:none}
+input.bad{border-color:var(--bad)}
+.fcalc{background:var(--surface-2);border-radius:8px;padding:10px 12px;font-size:13px;display:flex;flex-wrap:wrap;gap:6px 18px}.fcalc b{font-family:var(--f-mono)}
+.segtab{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--surface)}
+.segtab button{all:unset;cursor:pointer;padding:7px 12px;font-weight:600;font-size:13px;color:var(--muted)}
+.segtab button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.attday{padding:0}.attr{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--line)}.attr:last-child{border-bottom:none}.attr .t{flex:1 1 170px;min-width:0}
+.seg{display:flex;flex-wrap:wrap;gap:4px}
+.segb{all:unset;box-sizing:border-box;cursor:pointer;min-width:38px;text-align:center;padding:6px 8px;border-radius:7px;border:1px solid var(--line);font-size:12.5px;font-weight:600;color:var(--muted)}
+.segb[aria-pressed="true"]{background:var(--cb);color:var(--ct);border-color:var(--ct)}.segb:disabled{opacity:.55;cursor:default}
+.segb:focus-visible,.segtab button:focus-visible,.ftabs button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.toast .undo{all:unset;cursor:pointer;font-weight:700;text-decoration:underline;margin-left:10px}
+.logp{padding:0}.logday{padding:8px 14px;font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);background:var(--surface-2);border-bottom:1px solid var(--line)}
+.logr{display:grid;grid-template-columns:130px minmax(0,1fr) auto;gap:6px 14px;padding:11px 14px;border-bottom:1px solid var(--line);align-items:start}.logr:last-child{border-bottom:none}
+.logw{display:flex;flex-wrap:wrap;align-items:baseline}.logw time{font-family:var(--f-mono);font-size:12px;margin-right:8px}
+.chg{font-family:var(--f-mono);font-size:12.5px;margin-top:2px;overflow-wrap:anywhere}.chg s{color:var(--bad)}.chg b{color:var(--ok);font-weight:500}
+.split2{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:16px;align-items:start}
+.remlist{border:1px solid var(--line);border-radius:10px}.remrow{display:flex;gap:12px;align-items:flex-start;padding:10px 12px;border-bottom:1px solid var(--line)}.remrow:last-child{border-bottom:none}.remrow .t{flex:1;min-width:0}.remrow select{padding:4px 8px;font-size:12.5px}
+.tg{appearance:none;-webkit-appearance:none;flex:none;width:38px;height:22px;border-radius:999px;background:var(--line);border:none;padding:0;position:relative;cursor:pointer;margin:2px 0 0}
+.tg::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:var(--surface)}.tg:checked{background:var(--ok)}.tg:checked::after{left:19px}
+.tg:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.mailbox{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--surface)}
+.mailhd{padding:10px 14px;border-bottom:1px solid var(--line);font-size:12.5px;color:var(--muted);display:grid;grid-template-columns:auto minmax(0,1fr);gap:3px 10px}.mailhd b{color:var(--fg);font-weight:500;overflow-wrap:anywhere}
+.mailbd{padding:14px;display:flex;flex-direction:column;gap:10px;font-size:13.5px}.mailbd ul{margin:4px 0 0;padding:0 0 0 18px}
+@media (max-width:1100px){.split{grid-template-columns:1fr}.emppanel{position:static;max-height:none}}
+@media (max-width:900px){.split2{grid-template-columns:1fr}.logr{grid-template-columns:1fr}.emptbl th:nth-child(4),.emptbl td:nth-child(4),.emptbl th:nth-child(5),.emptbl td:nth-child(5){display:none}}
 .navgrp{font-size:10.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--g,var(--muted));padding:12px 10px 4px;display:flex;align-items:center;gap:7px}
 .navgrp::before{content:"";width:8px;height:8px;border-radius:2px;background:var(--g,var(--muted))}
 .nav button[class^="g-"] .ico{color:var(--g)}
@@ -234,15 +278,16 @@ button.cklbox:hover{border-color:var(--accent)}button.cklbox:focus-visible{outli
 </head>
 <body>
 <div class="login" id="loginRoot" hidden>
+  <div class="lgcard"><div class="lgside"><span class="lglogo"><img id="lgLogo" alt="Logo perusahaan"></span><div><h2>Sistem HRD</h2><p>CV. Sopandi Tekno Utama</p></div><p class="lgfoot">Absensi, lembur, payroll, dan surat karyawan. Hanya untuk petugas HRD yang terdaftar.</p></div>
   <form id="loginForm" novalidate>
-    <h1>HRD Sopandi</h1>
+    <h1>Masuk</h1>
     <p class="note" style="margin:0">Masuk dengan akun HRD yang sudah didaftarkan.</p>
     <label for="lgEmail">Email<input id="lgEmail" type="email" autocomplete="username" required></label>
     <label for="lgPass">Kata sandi<input id="lgPass" type="password" autocomplete="current-password" required></label>
     <div class="err" id="lgErr" role="alert"></div>
     <button class="btn primary" type="submit" id="lgBtn">Masuk</button>
     <button class="btn ghost" type="button" id="lgReset">Lupa kata sandi</button>
-  </form>
+  </form></div>
 </div>
 <script>
 window.HRD_SHOW_LOGIN=function(api){
@@ -277,6 +322,7 @@ const STATUSES=['TETAP','KONTRAK','BELUM KONTRAK','TRAINING'];
 const MONTHS=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
 const MS=['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
 const DOW=['Min','Sen','Sel','Rab','Kam','Jum','Sab'];
+const HARI=['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
 const ICONS={
   dash:'<path d="M3 13h8V3H3zM13 21h8V11h-8zM3 21h8v-6H3zM13 3v6h8V3z"/>',
   emp:'<circle cx="9" cy="8" r="4"/><path d="M1 21c0-4 4-6 8-6s8 2 8 6M17 11a3 3 0 1 0 0-6M23 21c0-3-2-5-5-5.5"/>',
@@ -285,6 +331,7 @@ const ICONS={
   pay:'<rect x="2" y="6" width="20" height="13" rx="2"/><circle cx="12" cy="12.5" r="2.5"/><path d="M6 10v5M18 10v5"/>',
   slip:'<path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6M9 13h8M9 17h8"/>',
   rep:'<path d="M4 20V10M10 20V4M16 20v-8M22 20H2"/>',
+  log:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/><path d="M3 4v4h4"/>',
   help:'<circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.7.4-1 1-1 1.7M12 17v.5"/>',
   sp:'<path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18v.5"/>',
   loan:'<path d="M12 2v20M17 6H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>',
@@ -299,9 +346,10 @@ const TABS=[
   ['att','Absensi','att','Harian'],['ot','Lembur','ot','Harian'],
   ['pay','Payroll','pay','Gaji'],['slip','Slip Gaji','slip','Gaji'],['loan','Kasbon','loan','Gaji'],['rep','Laporan','rep','Gaji'],
   ['emp','Karyawan','emp','Karyawan'],['leave','Cuti','leave','Karyawan'],['ctr','Kontrak & PKL','ctr','Karyawan'],['sp','Surat Peringatan','sp','Karyawan'],['kpi','KPI','kpi','Karyawan'],['note','Catatan','note','Karyawan'],
-  ['set','Pengaturan','set','Lainnya'],['help','Panduan','help','Lainnya']];
+  ['set','Pengaturan','set','Lainnya'],['log','Riwayat','log','Lainnya'],['help','Panduan','help','Lainnya']];
 
 const S={db:null,dl:null,settings:null,emps:{},surat:{},loans:{},warns:{},interns:{},notes:{},kpiD:{},kpiN:{},kDiv:'',kpiMonth:null,kpiEmp:null,nCat:'',nSt:'aktif',periods:{},ready:{},tab:'dash',periodKey:null,brush:'H',q:'',status:'',slipEmp:null,dirty:false,saving:0,readonly:false,armed:null};
+S.logs={};S.attMode=lsGet('hrd.att')||'hari';S.lq='';S.lk='';S.lw='';S.empSel=null;
 
 // ---------- utils ----------
 const $=s=>document.querySelector(s);
@@ -484,11 +532,12 @@ function render(force){
   if(!S.db){main.innerHTML=S.dbMissing?'<div class="panel empty"><b>Database tidak bisa dibuka di tampilan ini.</b><br>Buka halaman ini lewat claude.ai dalam keadaan masuk (login) agar data HRD bisa dibaca dan disimpan.</div>':'<div class="empty">Memuat data HRD…</div>';return}
   if(!S.ready.emps||!S.ready.settings){main.innerHTML='<div class="empty">Memuat data HRD…</div>';return}
   const sx=window.scrollX,sy=window.scrollY;const gw=main.querySelector('.tablewrap');const gl=gw?gw.scrollLeft:0;const gt=gw?gw.scrollTop:0;
-  const f={dash:vDash,emp:vEmp,att:vAtt,ot:vOt,pay:vPay,slip:vSlip,loan:vLoan,sp:vWarn,rep:vRep,help:vHelp,leave:vLeave,ctr:vCtr,note:vNote,kpi:vKpi,set:vSet}[S.tab]||vDash;
+  const f={dash:vDash,emp:vEmp,att:vAtt,ot:vOt,pay:vPay,slip:vSlip,loan:vLoan,sp:vWarn,rep:vRep,help:vHelp,log:vLog,leave:vLeave,ctr:vCtr,note:vNote,kpi:vKpi,set:vSet}[S.tab]||vDash;
   main.innerHTML=f();
   const gw2=main.querySelector('.tablewrap');if(gw2&&!force){gw2.scrollLeft=gl;gw2.scrollTop=gt}
   if(!force)window.scrollTo(sx,sy);
   if(S.settings)$('#coName').textContent=S.settings.nama||'';
+  if(!remAuto.run&&!remAuto.t)remAuto.t=setInterval(()=>{if(remAuto.run){clearInterval(remAuto.t);return}remAuto()},4000);
 }
 document.addEventListener('focusout',()=>{setTimeout(()=>{if(S.dirty){const ae=document.activeElement;if(!ae||!$('#main').contains(ae)||!/INPUT|SELECT|TEXTAREA/.test(ae.tagName))render()}},50)});
 
@@ -573,55 +622,21 @@ async function saveNote(id){
 }
 
 // ===== Karyawan =====
-function vEmp(){
-  const q=S.q.toLowerCase();
-  const rows=empList(true).filter(e=>(!S.status||e.status===S.status||(S.status==='NONAKTIF'&&e.aktif===false))&&(S.status==='NONAKTIF'||e.aktif!==false)&&(!q||(e.nama+' '+e.jabatan+' '+e.id+' '+(e.nik||'')+' '+(e.namaKtp||'')).toLowerCase().includes(q)));
-  return topbar('Karyawan',false,'<button class="btn" data-act="srtNew">Buat surat</button><button class="btn" data-act="impIdent">Impor data identitas (Form)</button><button class="btn" data-act="expEmp">Unduh data karyawan</button><button class="btn" data-act="impEmail">Impor email dari Excel</button><button class="btn primary" data-act="addEmp">+ Tambah karyawan</button>')+
-  '<div class="row"><input id="q" class="search" type="search" placeholder="Cari nama, jabatan, ID, NIK…" value="'+esc(S.q)+'"><select id="statusF"><option value="">Semua status</option>'+STATUSES.map(s=>'<option'+(S.status===s?' selected':'')+'>'+s+'</option>').join('')+'<option value="NONAKTIF"'+(S.status==='NONAKTIF'?' selected':'')+'>Nonaktif / keluar</option></select><span class="sub">'+rows.length+' orang</span></div>'+
-  '<div class="tablewrap"><table><thead><tr><th class="num">No</th><th>ID</th><th>Nama & jabatan</th><th>Status</th><th class="num">Gaji pokok</th><th>Skema gaji</th><th>Rekening</th><th>WhatsApp</th><th>Email</th><th>NIK / NPWP</th><th>Alamat</th><th>Foto KTP</th><th>Identitas</th><th></th></tr></thead><tbody>'+
-  (rows.length?rows.map((e,i)=>'<tr><td class="num sub">'+(i+1)+'</td><td class="sub">'+esc(e.id)+'</td><td><div class="name">'+esc(e.nama)+spPill(e.id)+'</div><div class="sub">'+esc(e.jabatan)+'</div></td><td>'+statusPill(e.status)+(e.aktif===false?' <span class="pill p-mute">Nonaktif</span>':'')+'</td><td class="num">'+rp(e.gajiPokok)+'</td><td><span class="sub">'+(e.metode==='HARIAN'?'Harian (hadir × gaji/hari)':'Bulanan penuh')+' · ÷'+(e.pembagi||24)+'</span></td><td class="sub" style="white-space:normal;min-width:180px">'+esc(e.rekening)+'</td><td>'+(e.wa?'<a class="wa" href="https://wa.me/'+esc(e.wa)+'" target="_blank" rel="noopener">+'+esc(e.wa)+'</a>':'<span class="sub">—</span>')+'</td><td class="sub">'+(e.email?esc(e.email):'—')+'</td><td style="white-space:nowrap">'+(e.nik?'<div style="font-size:13px">'+esc(e.nik)+'</div>':'<span class="sub">—</span>')+(e.npwp?'<div class="sub">NPWP '+esc(e.npwp)+'</div>':'')+'</td><td class="sub" style="white-space:normal;min-width:220px;max-width:320px">'+(e.alamat?esc(e.alamat):'—')+'</td><td>'+(/^https?:\/\//.test(e.ktpUrl||'')?'<a href="'+esc(e.ktpUrl)+'" target="_blank" rel="noopener">Lihat</a>':'<span class="sub">—</span>')+'</td><td>'+identPill(e)+'</td><td><div class="row" style="flex-wrap:nowrap;gap:6px"><button class="btn" data-act="srtOpen" data-id="'+esc(e.id)+'">Surat</button><button class="btn" data-act="editEmp" data-id="'+esc(e.id)+'">Ubah</button></div></td></tr>').join(''):'<tr><td colspan="14" class="empty">Belum ada karyawan yang cocok.</td></tr>')+
-  '</tbody></table></div>';
-}
-function empForm(e){
-  const isNew=!e;e=e||{id:nextId(),nama:'',jabatan:'',status:'KONTRAK',gajiPokok:0,rekening:'',wa:'',tglBergabung:todayISO(),kontrakMulai:'',kontrakSelesai:'',metode:'HARIAN',pembagi:26,kaliLTM:2,kuotaCuti:12,cutiTerpakaiAwal:0,aktif:true};
-  const f=(id,label,val,type,extra)=>'<label'+(extra&&extra.full?' class="full"':'')+'>'+label+'<input id="f_'+id+'" type="'+(type||'text')+'" value="'+esc(val==null?'':val)+'"'+(extra&&extra.attr||'')+'>'+(extra&&extra.hint?'<span class="hint">'+extra.hint+'</span>':'')+'</label>';
-  openModal('<h3>'+(isNew?'Tambah karyawan':'Ubah data '+esc(e.nama))+'</h3><div class="form">'+
-   f('id','ID karyawan',e.id,'text',{attr:isNew?'':' readonly'})+f('nama','Nama lengkap',e.nama)+
-   f('jabatan','Jabatan',e.jabatan)+
-   '<label>Status<select id="f_status">'+STATUSES.map(s=>'<option'+(e.status===s?' selected':'')+'>'+s+'</option>').join('')+'</select></label>'+
-   f('gajiPokok','Gaji pokok (Rp)',e.gajiPokok,'number',{attr:' min="0" step="1000"'})+
-   '<label>Skema gaji<select id="f_metode"><option value="BULANAN"'+(e.metode!=='HARIAN'?' selected':'')+'>Bulanan penuh</option><option value="HARIAN"'+(e.metode==='HARIAN'?' selected':'')+'>Harian (hadir + cuti × gaji/hari)</option></select></label>'+
-   f('pembagi','Pembagi gaji harian',e.pembagi||24,'number',{hint:'Excel lama: 24 untuk bulanan, 26 untuk harian'})+
-   f('kaliLTM','Pengali lembur tgl merah',e.kaliLTM||1,'number',{hint:'1× atau 2× gaji harian'})+
-   '<label>Tarif lembur per jam<select id="f_lemburMode"><option value="umum"'+(!e.lemburMode||e.lemburMode==='umum'?' selected':'')+'>Tarif umum (Pengaturan)</option><option value="harian8"'+(e.lemburMode==='harian8'?' selected':'')+'>Gaji per hari ÷ 8</option><option value="khusus"'+(e.lemburMode==='khusus'?' selected':'')+'>Nominal khusus</option></select></label>'+
-   f('lemburTarif','Nominal khusus per jam (Rp)',e.lemburTarif||'','number',{hint:'Diisi hanya jika memilih nominal khusus'})+
-   f('lemburKali','Pengali (untuk gaji/hari ÷ 8)',e.lemburKali||1,'number',{hint:'Contoh 2 → (gaji/hari ÷ 8) × 2 per jam'})+
-   f('rekening','Nomor rekening (a.n.)',e.rekening,'text',{full:true})+
-   f('wa','No WhatsApp',e.wa,'tel',{hint:'Format 62…, tanpa + atau spasi'})+
-   f('email','Email (untuk kirim slip)',e.email||'','email')+
-   '<div class="full" style="grid-column:1/-1;border-top:1px solid var(--line);padding-top:8px;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em">Data identitas (untuk administrasi PT, BPJS, pajak)</div>'+
-   f('namaKtp','Nama sesuai KTP',e.namaKtp||'')+f('nik','NIK (16 digit)',e.nik||'','text',{attr:' inputmode="numeric" maxlength="20"'})+
-   f('npwp','NPWP',e.npwp||'')+f('ktpUrl','Link foto KTP',e.ktpUrl||'','url')+
-   f('alamat','Alamat sesuai KTP',e.alamat||'','text',{full:true})+
-   f('tglBergabung','Tanggal bergabung',e.tglBergabung,'date')+
-   f('kontrakMulai','Mulai kontrak',e.kontrakMulai,'date')+f('kontrakSelesai','Berakhir kontrak',e.kontrakSelesai,'date')+
-   f('kuotaCuti','Kuota cuti '+cutiAwalYear()+'/'+String(cutiAwalYear()+1).slice(2),e.kuotaCuti,'number',{hint:'Tahun cuti '+cutiLabel(cutiAwalYear())+'. Tahun berikutnya pakai kuota default di Pengaturan, bisa diubah per orang di halaman Cuti'})+f('cutiTerpakaiAwal','Cuti terpakai sebelum sistem',e.cutiTerpakaiAwal,'number',{hint:'Dari sheet CUTI lama (Apr–Sep '+cutiAwalYear()+')'})+
-   '<label style="flex-direction:row;align-items:center;gap:8px;color:var(--fg)"><input id="f_aktif" type="checkbox"'+(e.aktif!==false?' checked':'')+'> Masih aktif bekerja</label>'+
-   f('tglKeluar','Tanggal keluar / resign',e.tglKeluar||'','date',{hint:'Diisi bila tidak aktif. Gaji hari kerja terakhir tetap masuk payroll periode itu.'})+
-  '</div><div class="row"><button class="btn primary" data-act="saveEmp" data-new="'+(isNew?1:0)+'">Simpan</button><button class="btn" data-act="closeModal">Batal</button></div>');
-}
 async function saveEmp(isNew){
   const g=id=>$('#f_'+id).value.trim();
-  const id=g('id').toUpperCase();if(!/^[A-Z0-9_-]{1,20}$/.test(id)){toast('ID hanya boleh huruf/angka, mis. K056.');return}
+  const id=g('id').toUpperCase();if(!/^[A-Z0-9_-]{1,20}$/.test(id)){empTab('kerja');toast('ID hanya boleh huruf/angka, mis. K056.');return}
+  {const okW=S.empWarnOk;const ck=empCheck();if(ck.err.length){empTab(ck.err[0].sec);toast(ck.err[0].m+'.');return}
+   if(ck.warn.length&&!okW){S.empWarnOk=true;empTab(ck.warn[0].sec);$('#empSaveBtn').textContent='Simpan walau ada '+ck.warn.length+' peringatan';return}}
   if(isNew&&S.emps[id]){toast('ID '+id+' sudah dipakai.');return}
   if(!g('nama')){toast('Nama wajib diisi.');return}
   const prev=S.emps[id]||{};
-  const e=Object.assign({},prev,{id,nama:g('nama').toUpperCase(),jabatan:g('jabatan').toUpperCase(),status:g('status'),gajiPokok:+g('gajiPokok')||0,metode:g('metode'),pembagi:+g('pembagi')||24,kaliLTM:+g('kaliLTM')||1,lemburMode:$('#f_lemburMode').value,lemburTarif:+g('lemburTarif')||0,lemburKali:+g('lemburKali')||1,rekening:g('rekening'),wa:g('wa').replace(/\D/g,''),email:g('email').toLowerCase(),namaKtp:g('namaKtp').toUpperCase(),nik:g('nik').replace(/\D/g,''),npwp:g('npwp'),ktpUrl:g('ktpUrl'),alamat:g('alamat'),tglBergabung:g('tglBergabung'),kontrakMulai:g('kontrakMulai'),kontrakSelesai:g('kontrakSelesai'),kuotaCuti:+g('kuotaCuti')||0,cutiTerpakaiAwal:+g('cutiTerpakaiAwal')||0,aktif:$('#f_aktif').checked,tglKeluar:$('#f_aktif').checked?'':(g('tglKeluar')||todayISO())});
-  if(await saveDoc('employees/'+id,e)){S.emps[id]=e;closeModal();toast('Data '+e.nama+' disimpan.');render(true)}
+  const e=Object.assign({},prev,{id,nama:g('nama').toUpperCase(),jabatan:g('jabatan').toUpperCase(),status:g('status'),gajiPokok:+digits(g('gajiPokok'))||0,metode:g('metode'),pembagi:+g('pembagi')||24,kaliLTM:+g('kaliLTM')||1,lemburMode:$('#f_lemburMode').value,lemburTarif:+digits(g('lemburTarif'))||0,lemburKali:+g('lemburKali')||1,rekening:g('rekening'),wa:g('wa').replace(/\D/g,''),email:g('email').toLowerCase(),namaKtp:g('namaKtp').toUpperCase(),nik:g('nik').replace(/\D/g,''),npwp:g('npwp'),ktpUrl:g('ktpUrl'),alamat:g('alamat'),tglBergabung:g('tglBergabung'),kontrakMulai:g('kontrakMulai'),kontrakSelesai:g('kontrakSelesai'),kuotaCuti:+g('kuotaCuti')||0,cutiTerpakaiAwal:+g('cutiTerpakaiAwal')||0,aktif:$('#f_aktif').checked,tglKeluar:$('#f_aktif').checked?'':(g('tglKeluar')||todayISO())});
+  if(await saveDoc('employees/'+id,e)){logEmp(prev,e,isNew);S.emps[id]=e;S.empSel=id;closeModal();toast('Data '+e.nama+' disimpan.');render(true)}
 }
 
 // ===== Absensi =====
 function vAtt(){
+  if(S.attMode==='hari')return vAttDay();
   const dates=periodDates(S.periodKey);const hol=holidays();const t=todayISO();const A=P().absensi||{};
   const emps=periodEmps().filter(e=>!S.q||(e.nama+' '+e.id).toLowerCase().includes(S.q.toLowerCase()));
   const head='<tr><th class="stick">Karyawan</th>'+dates.map(d=>{const dt=parse(d);const cls=(dt.getDay()===0?'sun':'')+(hol.has(d)?' hol':'')+(d===t?' today':'')+(d>t?' fut':'');return '<th class="'+cls+'" data-date="'+d+'" title="Klik untuk isi seluruh kolom dengan kode terpilih">'+dt.getDate()+'<span class="dw">'+DOW[dt.getDay()]+'</span></th>'}).join('')+['H','SH','I','S','C','A','LM','LTM'].map(c=>'<th class="tot">'+c+'</th>').join('')+'</tr>';
@@ -630,7 +645,7 @@ function vAtt(){
   const {end}=periodRange(S.periodKey);const endISO=iso(end);const sisaHari=daysBetween(t,endISO);const chk=attChecks();
   const tutupBar=isLocked()?'':(sisaHari<0?'<div class="lockbar" role="status"><div><b>Absen periode ini sudah ditutup tanggal '+fmtD(endISO)+'</b><span>Periksa daftar di bawah, lalu kunci payroll di halaman Payroll. Koreksi masih bisa dilakukan sebelum dikunci.</span></div></div>':'<p class="note" style="margin:0">Absen periode ini ditutup <b>'+fmtD(endISO)+'</b> ('+(sisaHari===0?'hari ini':sisaHari+' hari lagi')+'). Kolom setelah hari ini diberi arsir: isinya belum terjadi.</p>');
   const chkPanel=chkList(chk,'Cek absensi');
-  return topbar('Absensi',true)+lockBanner()+tutupBar+chkPanel+
+  return topbar('Absensi',true,attToggle())+lockBanner()+tutupBar+chkPanel+
   (isLocked()?'':'<div class="panel" style="display:flex;flex-direction:column;gap:10px"><div class="brushes">'+brushes+'</div>'+
   '<div class="row"><input id="q" class="search" type="search" placeholder="Cari karyawan…" value="'+esc(S.q)+'"><span class="spacer"></span>'+
   '<button class="btn" data-act="fillToday">'+(S.armed==='fillToday'?'Klik lagi untuk isi':'Isi H untuk hari ini')+'</button>'+
@@ -642,6 +657,7 @@ let painting=false;
 function paintCell(td){
   if(isLocked()){if(!paintCell.w){paintCell.w=1;setTimeout(()=>paintCell.w=0,2000);toast('Periode ini sudah dikunci. Buka kunci di halaman Payroll untuk mengubah.')}return}
   const e=td.dataset.e,d=td.dataset.d;const cur=((P().absensi||{})[e]||{})[d]||'';const v=S.brush;if(cur===v)return;
+  if(cur)logAct('absen','Mengubah absensi · '+enm(e)+', '+fmtD(d),{dari:cur,ke:v||'(kosong)'});
   patchPeriod({absensi:{[e]:{[d]:v}}});
   td.className='cell'+(parse(d).getDay()===0?' sun':'')+(holidays().has(d)?' hol':'')+(v?' code-'+v:'');td.textContent=v;
   const tr=td.parentElement;const c=counts(e,S.periodKey);const tots=tr.querySelectorAll('td.tot');['H','SH','I','S','C','A','LM','LTM'].forEach((k,i)=>{if(tots[i])tots[i].textContent=c[k]||''});
@@ -655,7 +671,7 @@ function fillDates(dates,onlyWork){
   if(isLocked()){toast('Periode ini sudah dikunci.');return}
   const hol=holidays();const A=P().absensi||{};const patch={};let n=0;
   empList().forEach(e=>{dates.forEach(d=>{if(onlyWork&&(parse(d).getDay()===0||hol.has(d)))return;if(((A[e.id]||{})[d]||'')==='' ){(patch[e.id]=patch[e.id]||{})[d]=S.brush||'H';n++}})});
-  if(n){patchPeriod({absensi:patch});toast(n+' sel diisi.');}else toast('Tidak ada sel kosong.');render(true);
+  if(n){patchPeriod({absensi:patch});logAct('absen','Mengisi '+n+' sel absensi kosong sekaligus',{ket:'Kode '+(S.brush||'H')+' · periode '+periodLabel(S.periodKey)});toast(n+' sel diisi.');}else toast('Tidak ada sel kosong.');render(true);
 }
 
 // ===== Lembur =====
@@ -811,12 +827,14 @@ function lockPay(){
   periodEmps(key).forEach(e=>{const r=liveCalc(e,key);
     rows[e.id]={e:{id:e.id,nama:e.nama,jabatan:e.jabatan,status:e.status,gajiPokok:+e.gajiPokok||0,metode:e.metode,pembagi:+e.pembagi||24,kaliLTM:+e.kaliLTM||1,rekening:e.rekening||'',wa:e.wa||''},r:JSON.parse(JSON.stringify(r))}});
   patchPeriod({kunci:{at:new Date().toISOString(),rows}});
+  logAct('gaji','Mengunci payroll '+periodLabel(key),{ket:Object.keys(rows).length+' karyawan · total THP Rp '+rp(Object.values(rows).reduce((a,x)=>a+(+x.r.thp||0),0))});
   toast('Payroll '+periodLabel(key)+' dikunci. Potongan kasbon sudah dicatat.');render(true);
 }
 function unlockPay(){
   const key=S.periodKey;if(!isLocked(key))return;
   unpostLoans(key);
   patchPeriod({kunci:null});
+  logAct('gaji','Membuka kunci payroll '+periodLabel(key));
   toast('Kunci dibuka. Potongan kasbon periode ini dibatalkan. Kunci lagi setelah koreksi selesai.');render(true);
 }
 
@@ -941,6 +959,7 @@ async function mailSlips(ids,revisi){
     await new Promise(z=>setTimeout(z,600));
   }
   const ok=res.filter(x=>x.ok),bad=res.filter(x=>!x.ok);
+  if(ok.length)logAct('akses','Mengirim slip gaji via email',{ket:ok.length+' terkirim, '+bad.length+' gagal · '+periodLabel(key)});
   if(ok.length&&S.periodKey===key){const sk={};const at=new Date().toISOString();ok.forEach(x=>sk[x.id]=at);patchPeriod({slipKirim:sk})}
   if(ids.length===1){toast(ok.length?'Slip terkirim ke '+((S.emps[ids[0]]||{}).email)+'.':'Gagal: '+bad[0].err);return}
   openModal('<h3>Hasil kirim email · '+periodLabel(key)+'</h3><p class="note" style="margin:0"><b>'+ok.length+'</b> terkirim, <b>'+bad.length+'</b> gagal.</p>'+
@@ -955,6 +974,7 @@ function mailAll(revisi){
 
 // ===== Surat otomatis (PKWT, SP, skorsing, keterangan kerja, penawaran kerja) =====
 const SRT_LOGO='data:image/png;base64,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';
+try{const im=document.getElementById('lgLogo');if(im)im.src=SRT_LOGO}catch(e){}
 const SURAT={pkwt:{n:'Kontrak kerja (PKWT)',kode:'PKWT'},sp:{n:'Surat peringatan (SP)',kode:'SP'},skors:{n:'Surat skorsing',kode:'SK'},skk:{n:'Surat keterangan kerja',kode:'SKK'},ol:{n:'Penawaran kerja',kode:'OL'}};
 const ROMAN=['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'];
 const KOP_ALAMAT=['Kp. Nanjung RT/RW 02/18 Gang Kavling, Desa Lebakmuncang','Kecamatan Ciwidey, Kab. Bandung, Jawa Barat, 40362'];
@@ -1207,7 +1227,7 @@ async function srtGo(fmt){
       if(j==='pkwt'&&f.simpanKontrak){up.kontrakMulai=f.mulai;up.kontrakSelesai=f.selesai}
       if(Object.keys(up).length)await S.db.doc('employees/'+empId).update(up);
       if(j==='sp'&&f.catat&&!S.srt.recId){const wid='W'+Date.now().toString(36);await S.db.doc('warnings/'+wid).set({empId,tingkat:f.tingkat,nomor:f.nomor,tanggal:f.tanggal,lama:+f.lama||6,sampai:f.sampai,pelanggaran:cl(f.pelanggaran)})}}
-    closeModal();toast('Surat diunduh dan tercatat di riwayat.')
+    logAct('surat','Membuat '+SURAT[j].n+' · '+cl(f.nama||''),{ket:f.nomor});closeModal();toast('Surat diunduh dan tercatat di riwayat.')
   }catch(err){handleErr(err)}
 }
 
@@ -1350,7 +1370,7 @@ async function saveLoan(id){
   const l=Object.assign({potongan:{}},id?S.loans[id]:{},{empId:$('#l_emp').value,tanggal:$('#l_tgl').value,jumlah:+$('#l_jml').value||0,cicilan:+$('#l_cic').value||0,keterangan:$('#l_ket').value.trim()});
   if(!l.jumlah){toast('Isi jumlah kasbon.');return}
   const nid=id||('L'+Date.now().toString(36));
-  if(await saveDoc('loans/'+nid,l)){S.loans[nid]=l;closeModal();toast('Kasbon disimpan.');render(true)}
+  if(await saveDoc('loans/'+nid,l)){logAct('gaji',(id?'Mengubah':'Mencatat')+' kasbon · '+enm(l.empId),{ket:'Rp '+rp(l.jumlah)+', cicilan Rp '+rp(l.cicilan)});S.loans[nid]=l;closeModal();toast('Kasbon disimpan.');render(true)}
 }
 
 // ===== Cuti =====
@@ -1407,7 +1427,7 @@ async function saveWarn(id){
   if(!w.tanggal||!w.sampai){toast('Isi tanggal terbit dan berlaku sampai.');return}
   if(w.sampai<w.tanggal){toast('Tanggal berlaku sampai tidak boleh sebelum tanggal terbit.');return}
   const nid=id||('W'+Date.now().toString(36));
-  if(await saveDoc('warnings/'+nid,w)){S.warns[nid]=w;closeModal();toast('Surat peringatan disimpan.');render(true)}
+  if(await saveDoc('warnings/'+nid,w)){logAct('data',(id?'Mengubah':'Mencatat')+' '+w.tingkat+' · '+enm(w.empId),{ket:'Berlaku '+fmtD(w.tanggal)+' s/d '+fmtD(w.sampai)});S.warns[nid]=w;closeModal();toast('Surat peringatan disimpan.');render(true)}
 }
 
 async function importWarns(file){
@@ -1453,8 +1473,8 @@ function cklTick(id){const key=S.periodKey;const cur=((S.periods[key]||{}).cekli
 // ===== Petunjuk singkat per halaman =====
 const PAGE_HELP={
  dash:['Ringkasan kondisi hari ini dan daftar pekerjaan bulan ini.',['Ikuti Checklist dari atas ke bawah; tombol Buka membawa Anda ke halaman yang tepat.','Daftar "Perlu perhatian" berisi hal yang mendekati tenggat: kontrak habis, SP berakhir, cuti habis, cadangan lama.','Tombol ‹ › di kanan atas mengganti periode gaji yang ditampilkan.']],
- emp:['Data induk semua karyawan: jabatan, status, gaji, rekening, dan identitas.',['Klik Ubah untuk mengganti data seorang karyawan; + Tambah karyawan untuk karyawan baru.','Karyawan yang keluar jangan dihapus: hilangkan centang Aktif dan isi tanggal keluar, supaya riwayat gajinya tetap ada.','Tombol Buat surat menyiapkan kontrak, SP, skorsing, keterangan kerja, dan penawaran kerja.','Tanda merah "SP" di samping nama berarti karyawan itu sedang punya SP berlaku.']],
- att:['Kehadiran harian setiap karyawan dalam satu periode gaji.',['Pilih kode di atas tabel (H, SH, I, S, C, A, L, LM, LTM), lalu klik sel tanggal.','Klik judul tanggal untuk mengisi satu kolom sekaligus.','Baca panel Cek absensi: di situ muncul hari kosong dan kode yang janggal.','Setelah payroll dikunci, absensi periode itu tidak bisa diubah.']],
+ emp:['Data induk semua karyawan: jabatan, status, gaji, rekening, dan identitas.',['Klik satu baris untuk melihat rincian di panel kanan, lalu Ubah data untuk menggantinya. Tombol jarang dipakai ada di menu Lainnya.','Formulir dibagi per bagian; titik merah berarti harus diperbaiki, titik kuning berarti peringatan.','Karyawan yang keluar jangan dihapus: hilangkan centang Aktif dan isi tanggal keluar, supaya riwayat gajinya tetap ada.','Tombol Buat surat menyiapkan kontrak, SP, skorsing, keterangan kerja, dan penawaran kerja.','Tanda merah "SP" di samping nama berarti karyawan itu sedang punya SP berlaku.']],
+ att:['Kehadiran harian setiap karyawan dalam satu periode gaji.',['Per hari: klik kode di samping nama untuk hari yang dipilih; setiap perubahan bisa diurungkan.','Tabel sebulan: pilih kode di atas tabel, lalu klik atau seret di sel tanggal. Klik judul tanggal untuk mengisi satu kolom.','Baca panel Cek absensi: di situ muncul hari kosong dan kode yang janggal.','Setelah payroll dikunci, absensi periode itu tidak bisa diubah.']],
  ot:['Jam lembur harian di luar jam kerja biasa.',['Ketik jumlah jam di tanggal lemburnya, atau pakai Impor laporan lembur.','Lembur hari Minggu dan tanggal merah tidak diisi di sini, tetapi di Absensi dengan kode LM atau LTM.','Tarif lembur per jam diatur di Pengaturan, atau khusus per karyawan di data Karyawan.']],
  pay:['Perhitungan gaji semua karyawan untuk periode yang dipilih. Angkanya dihitung otomatis dari Absensi, Lembur, dan Kasbon.',['Isi kolom Reimburse/bonus dan Potongan lain bila ada.','Perbaiki semua tanda Salah dan Cek di panel Cek payroll sebelum membayar.','Setelah gaji dibayar, klik Kunci payroll dua kali. Angka jadi final dan potongan kasbon tercatat.','Unduh Excel dan File transfer BCA dari tombol di kanan atas.']],
  slip:['Slip gaji per karyawan untuk periode yang dipilih.',['Pilih karyawan, lalu Unduh PDF, Kirim via email, atau Kirim PDF via WhatsApp.','Untuk mengirim ke semua karyawan sekaligus, pakai tombol Kirim semua slip via email di halaman Payroll.','Kirim slip setelah payroll dikunci, supaya angkanya tidak berubah lagi.']],
@@ -1465,11 +1485,193 @@ const PAGE_HELP={
  sp:['Daftar surat peringatan dan masa berlakunya.',['Klik + Catat SP, pilih karyawan, tingkat, tanggal terbit, dan lama berlaku.','Tanggal Berlaku sampai terisi otomatis dan bisa diubah.','SP yang tinggal 30 hari muncul di Dasbor.','Suratnya sendiri dibuat dari Karyawan → Buat surat.']],
  kpi:['Penilaian kinerja bulanan per karyawan, berdasarkan indikator tiap divisi.',['Pilih bulan, lalu klik karyawan untuk mengisi nilainya.','Lengkapi otomatis mengisi nilai kehadiran dari Absensi.','Bisa impor dan ekspor Excel dari tombol di kanan atas.']],
  rep:['Ringkasan satu periode untuk pimpinan: gaji, kehadiran, per jabatan, dan catatan SDM.',['Pilih periode dengan tombol ‹ ›.','Unduh Excel, atau Cetak / simpan PDF.','Kirim laporan setelah payroll dikunci; sebelum itu angkanya masih draft.']],
- set:['Aturan yang dipakai seluruh aplikasi, dan cadangan data.',['Ubah hanya bila aturannya memang berubah: tarif lembur, tanggal tutup absen, libur nasional, potongan.','Klik Simpan pengaturan setelah mengubah.','Unduh cadangan setiap bulan setelah payroll dikunci.']],
+ set:['Aturan yang dipakai seluruh aplikasi, dan cadangan data.',['Ubah hanya bila aturannya memang berubah: tarif lembur, tanggal tutup absen, libur nasional, potongan.','Klik Simpan pengaturan setelah mengubah.','Unduh cadangan setiap bulan setelah payroll dikunci.','Pengingat email: isi penerima dan pilih jenis pengingat. Email dikirim saat aplikasi dibuka pada hari kirim.']],
+ log:['Catatan otomatis setiap perubahan penting: siapa, kapan, dan nilai sebelum → sesudah.',['Saring menurut jenis atau pengguna, atau cari nama karyawan.','Koreksi absensi dan lembur dicatat; pengisian pertama kali tidak, supaya daftar tidak penuh.','Catatan tidak bisa diubah atau dihapus dari aplikasi.','Unduh Excel untuk arsip.']],
  help:['Panduan lengkap aplikasi ini.',['Klik judul bagian untuk membukanya.','Mulai dari bagian 1, Rutinitas bulanan.']]};
 function pageHelp(){const h=PAGE_HELP[S.tab];if(!h)return;const nm=(TABS.find(t=>t[0]===S.tab)||[])[1]||'';
   openModal('<h3>'+esc(nm)+'</h3><p style="margin:0">'+esc(h[0])+'</p><ul style="margin:0 0 0 18px;padding:0;line-height:1.55">'+h[1].map(x=>'<li style="margin:5px 0">'+esc(x)+'</li>').join('')+'</ul>'+
   '<div class="row">'+(S.tab==='help'?'':'<button class="btn" data-act="goTab" data-id="help">Buka panduan lengkap</button>')+'<button class="btn primary" data-act="closeModal">Mengerti</button></div>')}
+
+// ===== Riwayat perubahan =====
+const LOGK={gaji:['Gaji','p-warn'],absen:['Absensi','p-ok'],data:['Data','p-mute'],hapus:['Hapus','p-bad'],akses:['Akses','p-mute'],surat:['Surat','p-mute']};
+const enm=id=>(S.emps[id]||{}).nama||id;
+function logAct(jenis,judul,o){
+  if(!S.db||S.readonly)return;o=o||{};const at=new Date().toISOString();const id=at.replace(/\D/g,'').slice(0,17)+Math.random().toString(36).slice(2,6);
+  const d={at,oleh:(S.backend&&S.backend.email)||'',jenis,judul:String(judul).slice(0,200)};['dari','ke','ket'].forEach(k=>{if(o[k]!=null&&o[k]!=='')d[k]=String(o[k]).slice(0,300)});
+  S.logs[id]=d;try{const p=S.db.doc('riwayat/'+id).set(d);if(p&&p.catch)p.catch(e=>console.error(e))}catch(e){console.error(e)}}
+const EMP_LBL={nama:'nama',jabatan:'jabatan',tglBergabung:'tanggal bergabung',kontrakMulai:'mulai kontrak',lemburMode:'tarif lembur',lemburTarif:'nominal lembur',lemburKali:'pengali lembur',kaliLTM:'pengali lembur tgl merah',wa:'WhatsApp',email:'email',namaKtp:'nama KTP',nik:'NIK',npwp:'NPWP',ktpUrl:'foto KTP',alamat:'alamat',kuotaCuti:'kuota cuti',cutiTerpakaiAwal:'cuti terpakai awal',tglKeluar:'tanggal keluar'};
+const EMP_KEY={gajiPokok:['gaji pokok',v=>'Rp '+rp(v)],status:['status',v=>v||'—'],metode:['skema gaji',v=>v==='HARIAN'?'Harian':'Bulanan'],pembagi:['pembagi gaji harian',v=>v],rekening:['rekening',v=>v||'(kosong)'],kontrakSelesai:['akhir kontrak',v=>v?fmtD(v):'(kosong)'],aktif:['status kerja',v=>v===false?'Nonaktif':'Aktif']};
+function logEmp(prev,e,isNew){
+  if(isNew){logAct('data','Menambah karyawan · '+e.nama,{ket:e.id+' · '+e.jabatan+' · gaji pokok Rp '+rp(e.gajiPokok)});return}
+  for(const k in EMP_KEY){const a=prev[k],b=e[k];if(k==='aktif'?(a!==false)!==(b!==false):String(a==null?'':a)!==String(b==null?'':b))logAct(k==='gajiPokok'||k==='metode'||k==='pembagi'?'gaji':'data','Mengubah '+EMP_KEY[k][0]+' · '+e.nama,{dari:EMP_KEY[k][1](a),ke:EMP_KEY[k][1](b)})}
+  const DEF={lemburMode:'umum',lemburTarif:0,lemburKali:1,kaliLTM:1,kuotaCuti:0,cutiTerpakaiAwal:0};const nv=(k,v)=>String(v==null||v===''?(DEF[k]!=null?DEF[k]:''):v);
+  const lain=Object.keys(EMP_LBL).filter(k=>nv(k,prev[k])!==nv(k,e[k])).map(k=>EMP_LBL[k]);
+  if(lain.length)logAct('data','Mengubah data · '+e.nama,{ket:'Isian yang berubah: '+lain.join(', ')})}
+function logRows(){const q=(S.lq||'').toLowerCase();return Object.entries(S.logs).map(([id,r])=>Object.assign({_id:id},r)).filter(r=>(!S.lk||r.jenis===S.lk)&&(!S.lw||r.oleh===S.lw)&&(!q||((r.judul||'')+' '+(r.ket||'')+' '+(r.dari||'')+' '+(r.ke||'')).toLowerCase().includes(q))).sort((a,b)=>b._id.localeCompare(a._id))}
+function vLog(){
+  const rows=logRows();const users=[...new Set(Object.values(S.logs).map(r=>r.oleh).filter(Boolean))].sort();const t=todayISO();let day='';const MAXR=300;
+  const jam=r=>{const d=new Date(r.at);return pad(d.getHours())+'.'+pad(d.getMinutes())};const dayOf=r=>iso(new Date(r.at));
+  return topbar('Riwayat perubahan',false,'<button class="btn" data-act="logXlsx">Unduh Excel</button>')+
+  '<p class="note" style="margin:0">Catatan otomatis sejak fitur ini dipasang: siapa mengubah apa, dan kapan. Tidak ada tombol ubah atau hapus di aplikasi.</p>'+
+  '<div class="row"><input id="lq" class="search" type="search" placeholder="Cari nama karyawan atau kata kunci" aria-label="Cari riwayat" value="'+esc(S.lq||'')+'"><select id="lk" aria-label="Saring jenis"><option value="">Semua jenis</option>'+Object.keys(LOGK).map(k=>'<option value="'+k+'"'+(S.lk===k?' selected':'')+'>'+LOGK[k][0]+'</option>').join('')+'</select><select id="lw" aria-label="Saring pengguna"><option value="">Semua pengguna</option>'+users.map(u=>'<option'+(S.lw===u?' selected':'')+'>'+esc(u)+'</option>').join('')+'</select><span class="sub">'+rows.length+' catatan</span></div>'+
+  '<div class="panel logp">'+(rows.length?rows.slice(0,MAXR).map(r=>{const dy=dayOf(r);const h=dy!==day?'<div class="logday">'+(dy===t?'Hari ini · ':'')+esc(HARI[parse(dy).getDay()]+', '+fmtD(dy))+'</div>':'';day=dy;const k=LOGK[r.jenis]||LOGK.data;
+    return h+'<div class="logr"><div class="logw"><time>'+jam(r)+'</time><span class="sub">'+esc(String(r.oleh||'').split('@')[0])+'</span></div><div class="t"><div class="name">'+esc(r.judul)+'</div>'+(r.dari!=null||r.ke!=null?'<div class="chg"><s>'+esc(r.dari==null?'':r.dari)+'</s> → <b>'+esc(r.ke==null?'':r.ke)+'</b></div>':'')+(r.ket?'<div class="sub">'+esc(r.ket)+'</div>':'')+'</div><span class="pill '+k[1]+'">'+k[0]+'</span></div>'}).join('')+(rows.length>MAXR?'<div class="logr"><span class="sub">Menampilkan '+MAXR+' catatan terbaru. Unduh Excel untuk melihat semuanya.</span></div>':''):'<div class="empty">'+(Object.keys(S.logs).length?'Tidak ada catatan yang cocok.':'Belum ada catatan. Perubahan mulai dicatat sejak sekarang.')+'</div>')+'</div>'}
+async function logXlsx(){
+  if(!window.XLSX){toast('Pustaka Excel belum termuat. Coba lagi sebentar.');return}if(!S.dl){toast('Unduhan tidak tersedia di tampilan ini.');return}
+  const rows=logRows().map(r=>{const d=new Date(r.at);return {Tanggal:iso(d),Jam:pad(d.getHours())+':'+pad(d.getMinutes()),Pengguna:r.oleh||'',Jenis:(LOGK[r.jenis]||LOGK.data)[0],Tindakan:r.judul||'',Sebelum:r.dari==null?'':r.dari,Sesudah:r.ke==null?'':r.ke,Keterangan:r.ket||''}});
+  const wb=XLSX.utils.book_new();const ws=XLSX.utils.json_to_sheet(rows);ws['!cols']=[{wch:11},{wch:6},{wch:26},{wch:9},{wch:44},{wch:22},{wch:22},{wch:50}];XLSX.utils.book_append_sheet(wb,ws,'RIWAYAT');
+  try{await S.dl.save({filename:'Riwayat perubahan '+todayISO()+'.xlsx',data:new Blob([XLSX.write(wb,{type:'array',bookType:'xlsx'})])});toast('Riwayat diunduh.')}catch(e){if(e&&e.code!=='declined')toast('Unduhan gagal.')}}
+
+// ===== Urungkan =====
+function toastUndo(msg,fn){S.undoFn=fn;const r=$('#toastRoot');r.innerHTML='<div class="toast" role="status">'+esc(msg)+' <button class="undo" data-act="undo">Urungkan</button></div>';clearTimeout(toast.t);toast.t=setTimeout(()=>{r.innerHTML='';S.undoFn=null},6500)}
+
+// ===== Karyawan: tabel ringkas + panel rincian =====
+function empMissing(e){const m=identMissing(e).slice();if(!String(e.rekening||'').trim())m.unshift('rekening');return m}
+function kontrakCell(e){if(!e.kontrakSelesai)return '<span class="sub">—</span>';const d=daysBetween(todayISO(),e.kontrakSelesai);return d<0?'<span class="pill p-bad">'+esc(fmtD(e.kontrakSelesai))+'</span>':d<=30?'<span class="pill p-warn">'+esc(fmtD(e.kontrakSelesai))+'</span>':esc(fmtD(e.kontrakSelesai))}
+function moreMenu(items){return '<details class="more"><summary class="btn">Lainnya ▾</summary><div class="morelist">'+items.map(([a,l])=>'<button data-act="'+a+'">'+l+'</button>').join('')+'</div></details>'}
+function empPanel(e){
+  if(!e)return '<aside class="panel emppanel"><div class="empty">Klik satu karyawan untuk melihat rinciannya.</div></aside>';
+  const m=empMissing(e);const kv=rows=>'<dl class="kv">'+rows.map(([k,v])=>'<dt>'+k+'</dt><dd>'+v+'</dd>').join('')+'</dl>';const or=v=>v?esc(v):'<span class="sub">—</span>';
+  return '<aside class="panel emppanel" id="empPanel" aria-live="polite"><div><h2 style="margin:0">'+esc(e.nama)+'</h2><div class="sub">'+esc(e.id)+' · '+esc(e.jabatan)+'</div></div>'+
+  '<div class="row" style="gap:6px">'+statusPill(e.status)+(e.aktif===false?'<span class="pill p-mute">Nonaktif'+(e.tglKeluar?' sejak '+esc(fmtD(e.tglKeluar)):'')+'</span>':'')+spPill(e.id)+'</div>'+
+  (m.length?'<div class="pill p-warn" style="align-self:flex-start;white-space:normal">Belum ada: '+esc(m.join(', '))+'</div>':'')+
+  '<div class="sect">Pekerjaan</div>'+kv([['Bergabung',e.tglBergabung?esc(fmtD(e.tglBergabung)):'<span class="sub">—</span>'],['Kontrak',e.kontrakSelesai?esc((e.kontrakMulai?fmtD(e.kontrakMulai)+' – ':'s/d ')+fmtD(e.kontrakSelesai)):'<span class="sub">—</span>'],['Sisa cuti',e.aktif===false?'<span class="sub">—</span>':cutiSisa(e)+' hari']])+
+  '<div class="sect">Gaji</div>'+kv([['Gaji pokok','Rp '+rp(e.gajiPokok)],['Skema',(e.metode==='HARIAN'?'Harian':'Bulanan penuh')+' · ÷'+(e.pembagi||24)],['Gaji per hari','Rp '+rp((+e.gajiPokok||0)/((+e.pembagi)||24))],['Lembur per jam',esc(otRateLabel(e))],['Rekening',or(e.rekening)]])+
+  '<div class="sect">Kontak & identitas</div>'+kv([['WhatsApp',e.wa?'<a class="wa" href="https://wa.me/'+esc(e.wa)+'" target="_blank" rel="noopener">+'+esc(e.wa)+'</a>':'<span class="sub">—</span>'],['Email',or(e.email)],['NIK',or(e.nik)],['NPWP',or(e.npwp)],['Alamat',or(e.alamat)],['Foto KTP',/^https?:\/\//.test(e.ktpUrl||'')?'<a href="'+esc(e.ktpUrl)+'" target="_blank" rel="noopener">Lihat</a>':'<span class="sub">—</span>']])+
+  '<div class="row"><button class="btn primary" data-act="editEmp" data-id="'+esc(e.id)+'">Ubah data</button><button class="btn" data-act="srtOpen" data-id="'+esc(e.id)+'">Buat surat</button></div></aside>'}
+function vEmp(){
+  const q=S.q.toLowerCase();
+  const rows=empList(true).filter(e=>(!S.status||e.status===S.status||(S.status==='NONAKTIF'&&e.aktif===false))&&(S.status==='NONAKTIF'||e.aktif!==false)&&(!q||(e.nama+' '+e.jabatan+' '+e.id+' '+(e.nik||'')+' '+(e.namaKtp||'')).toLowerCase().includes(q)));
+  const sel=rows.find(e=>e.id===S.empSel)||rows[0];const nSp=rows.filter(e=>activeWarns(e.id).length).length;
+  return topbar('Karyawan',false,'<button class="btn primary" data-act="addEmp">+ Tambah karyawan</button>'+moreMenu([['srtNew','Buat surat'],['expEmp','Unduh data karyawan'],['impEmail','Impor email dari Excel'],['impIdent','Impor data identitas (Form)']]))+
+  '<div class="row"><input id="q" class="search" type="search" placeholder="Cari nama, jabatan, ID, NIK…" value="'+esc(S.q)+'"><select id="statusF"><option value="">Semua status</option>'+STATUSES.map(s=>'<option'+(S.status===s?' selected':'')+'>'+s+'</option>').join('')+'<option value="NONAKTIF"'+(S.status==='NONAKTIF'?' selected':'')+'>Nonaktif / keluar</option></select><span class="sub">'+rows.length+' orang'+(nSp?' · '+nSp+' sedang ber-SP':'')+'</span></div>'+
+  '<div class="split"><div class="tablewrap" style="max-height:76vh"><table class="emptbl"><thead><tr><th>Nama & jabatan</th><th>Status</th><th class="num">Gaji pokok</th><th>Kontrak sampai</th><th>Kelengkapan</th></tr></thead><tbody>'+
+  (rows.length?rows.map(e=>{const m=empMissing(e);return '<tr data-act="empSel" data-id="'+esc(e.id)+'"'+(sel&&e.id===sel.id?' class="sel"':'')+'><td><button class="rowbtn name">'+esc(e.nama)+'</button>'+spPill(e.id)+'<div class="sub">'+esc(e.id)+' · '+esc(e.jabatan)+'</div></td><td>'+statusPill(e.status)+(e.aktif===false?' <span class="pill p-mute">Nonaktif</span>':'')+'</td><td class="num">'+rp(e.gajiPokok)+'</td><td>'+kontrakCell(e)+'</td><td>'+(m.length?'<span class="pill p-warn" title="Belum ada: '+esc(m.join(', '))+'">Kurang '+m.length+'</span>':'<span class="pill p-ok">Lengkap</span>')+'</td></tr>'}).join(''):'<tr><td colspan="5" class="empty">Belum ada karyawan yang cocok.</td></tr>')+
+  '</tbody></table></div>'+empPanel(sel)+'</div>';
+}
+
+// ===== Formulir karyawan: per bagian, angka berpemisah ribuan, validasi =====
+const EMP_SEC=[['kerja','Data kerja'],['gaji','Gaji'],['ident','Kontak & identitas'],['cuti','Cuti']];
+const digits=s=>String(s==null?'':s).replace(/\D/g,'');
+function empForm(e){
+  const isNew=!e;e=e||{id:nextId(),nama:'',jabatan:'',status:'KONTRAK',gajiPokok:0,rekening:'',wa:'',tglBergabung:todayISO(),kontrakMulai:'',kontrakSelesai:'',metode:'HARIAN',pembagi:26,kaliLTM:2,kuotaCuti:12,cutiTerpakaiAwal:0,aktif:true};
+  S.empTab='kerja';S.empWarnOk=false;S.empNew=isNew;
+  const f=(id,label,val,type,extra)=>'<label'+(extra&&extra.full?' class="full"':'')+'>'+label+'<input id="f_'+id+'" type="'+(type||'text')+'" value="'+esc(val==null?'':val)+'"'+(extra&&extra.attr||'')+'>'+(extra&&extra.hint?'<span class="hint">'+extra.hint+'</span>':'')+'<span class="ferr" id="fe_'+id+'"></span></label>';
+  const money=(id,label,val,hint)=>f(id,label,val?rp(val):'','text',{attr:' inputmode="numeric" data-rp="1" autocomplete="off"',hint});
+  const sec=(k,html)=>'<div class="form" data-sec="'+k+'"'+(k==='kerja'?'':' hidden')+'>'+html+'</div>';
+  openModal('<h3>'+(isNew?'Tambah karyawan':'Ubah data '+esc(e.nama))+'</h3><div class="ftabs" role="tablist">'+EMP_SEC.map(([k,l])=>'<button role="tab" data-act="empTab" data-id="'+k+'" aria-selected="'+(k==='kerja')+'">'+l+'<i class="fdot" hidden></i></button>').join('')+'</div>'+
+   sec('kerja',f('id','ID karyawan',e.id,'text',{attr:isNew?'':' readonly'})+f('nama','Nama lengkap',e.nama)+f('jabatan','Jabatan',e.jabatan)+
+    '<label>Status<select id="f_status">'+STATUSES.map(s=>'<option'+(e.status===s?' selected':'')+'>'+s+'</option>').join('')+'</select></label>'+
+    f('tglBergabung','Tanggal bergabung',e.tglBergabung,'date')+'<span></span>'+f('kontrakMulai','Mulai kontrak',e.kontrakMulai,'date')+f('kontrakSelesai','Berakhir kontrak',e.kontrakSelesai,'date')+
+    '<label style="flex-direction:row;align-items:center;gap:8px;color:var(--fg)"><input id="f_aktif" type="checkbox"'+(e.aktif!==false?' checked':'')+'> Masih aktif bekerja</label>'+
+    f('tglKeluar','Tanggal keluar / resign',e.tglKeluar||'','date',{hint:'Diisi bila tidak aktif. Gaji hari kerja terakhir tetap masuk payroll periode itu.'}))+
+   sec('gaji',money('gajiPokok','Gaji pokok (Rp)',e.gajiPokok)+
+    '<label>Skema gaji<select id="f_metode"><option value="BULANAN"'+(e.metode!=='HARIAN'?' selected':'')+'>Bulanan penuh</option><option value="HARIAN"'+(e.metode==='HARIAN'?' selected':'')+'>Harian (hadir + cuti × gaji/hari)</option></select></label>'+
+    f('pembagi','Pembagi gaji harian',e.pembagi||24,'number',{hint:'Excel lama: 24 untuk bulanan, 26 untuk harian'})+
+    f('kaliLTM','Pengali lembur tgl merah',e.kaliLTM||1,'number',{hint:'1× atau 2× gaji harian'})+
+    '<label>Tarif lembur per jam<select id="f_lemburMode"><option value="umum"'+(!e.lemburMode||e.lemburMode==='umum'?' selected':'')+'>Tarif umum (Pengaturan)</option><option value="harian8"'+(e.lemburMode==='harian8'?' selected':'')+'>Gaji per hari ÷ 8</option><option value="khusus"'+(e.lemburMode==='khusus'?' selected':'')+'>Nominal khusus</option></select></label>'+
+    money('lemburTarif','Nominal khusus per jam (Rp)',e.lemburTarif,'Diisi hanya jika memilih nominal khusus')+
+    f('lemburKali','Pengali (untuk gaji/hari ÷ 8)',e.lemburKali||1,'number',{hint:'Contoh 2 → (gaji/hari ÷ 8) × 2 per jam'})+
+    f('rekening','Nomor rekening (a.n.)',e.rekening,'text')+'<div class="fcalc full" id="fcalc"></div>')+
+   sec('ident',f('wa','No WhatsApp',e.wa,'tel',{hint:'Format 62…, tanpa + atau spasi'})+f('email','Email (untuk kirim slip)',e.email||'','email')+
+    f('namaKtp','Nama sesuai KTP',e.namaKtp||'')+f('nik','NIK (16 digit)',e.nik||'','text',{attr:' inputmode="numeric" maxlength="20"'})+
+    f('npwp','NPWP',e.npwp||'')+f('ktpUrl','Link foto KTP',e.ktpUrl||'','url')+f('alamat','Alamat sesuai KTP',e.alamat||'','text',{full:true}))+
+   sec('cuti',f('kuotaCuti','Kuota cuti '+cutiAwalYear()+'/'+String(cutiAwalYear()+1).slice(2),e.kuotaCuti,'number',{hint:'Tahun cuti '+cutiLabel(cutiAwalYear())+'. Tahun berikutnya pakai kuota default di Pengaturan, bisa diubah per orang di halaman Cuti'})+f('cutiTerpakaiAwal','Cuti terpakai sebelum sistem',e.cutiTerpakaiAwal,'number',{hint:'Dari sheet CUTI lama (Apr–Sep '+cutiAwalYear()+')'}))+
+  '<div class="row"><button class="btn primary" id="empSaveBtn" data-act="saveEmp" data-new="'+(isNew?1:0)+'">Simpan</button><button class="btn" data-act="closeModal">Batal</button><span class="sub" id="fsum"></span></div>');
+  empCheck();
+}
+function empTab(k){S.empTab=k;document.querySelectorAll('#modalRoot [data-sec]').forEach(d=>d.hidden=d.dataset.sec!==k);document.querySelectorAll('#modalRoot .ftabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.id===k))}
+function empCheck(){
+  if(!$('#f_gajiPokok'))return {err:[],warn:[]};const v=id=>$('#f_'+id).value.trim();const err=[],warn=[];const msg={};
+  const put=(lvl,sec,id,m)=>{(lvl==='err'?err:warn).push({sec,id,m});if(!msg[id])msg[id]={lvl,m}};
+  const gp=+digits(v('gajiPokok'))||0,pb=+v('pembagi')||24,ks=v('kontrakSelesai'),km=v('kontrakMulai'),tb=v('tglBergabung'),nik=digits(v('nik')),id=v('id').toUpperCase();
+  if(!v('nama'))put('err','kerja','nama','Nama wajib diisi');
+  else if(S.empNew&&Object.values(S.emps).some(x=>x.nama===v('nama').toUpperCase()&&x.id!==id))put('warn','kerja','nama','Sudah ada karyawan dengan nama ini. Pastikan bukan data ganda');
+  if(ks&&km&&ks<km)put('err','kerja','kontrakSelesai','Kontrak berakhir sebelum tanggal mulainya');
+  else if(ks&&tb&&ks<tb)put('err','kerja','kontrakSelesai','Kontrak berakhir sebelum tanggal bergabung');
+  if(!$('#f_aktif').checked&&v('tglKeluar')&&tb&&v('tglKeluar')<tb)put('err','kerja','tglKeluar','Tanggal keluar sebelum tanggal bergabung');
+  if(!gp)put('warn','gaji','gajiPokok','Gaji pokok masih 0');
+  else if(gp<500000)put('warn','gaji','gajiPokok','Di bawah Rp 500.000. Kurang angka nol?');
+  else if(gp>50000000)put('warn','gaji','gajiPokok','Di atas Rp 50.000.000. Kelebihan angka nol?');
+  if(pb<20||pb>31)put('warn','gaji','pembagi','Biasanya 24 atau 26');
+  if($('#f_lemburMode').value==='khusus'&&!(+digits(v('lemburTarif'))))put('warn','gaji','lemburTarif','Nominal khusus dipilih tetapi belum diisi');
+  if(!v('rekening'))put('warn','gaji','rekening','Rekening kosong. Gaji tidak bisa ditransfer');
+  if(nik&&nik.length!==16)put('warn','ident','nik','NIK harus 16 angka, sekarang '+nik.length);
+  if(v('email')&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v('email')))put('warn','ident','email','Format email belum benar');
+  document.querySelectorAll('#modalRoot .ferr').forEach(s=>{const k=s.id.slice(3);const m=msg[k];s.textContent=m?m.m:'';s.className='ferr'+(m&&m.lvl==='warn'?' w':'');const inp=$('#f_'+k);if(inp)inp.classList.toggle('bad',!!m&&m.lvl==='err')});
+  document.querySelectorAll('#modalRoot .ftabs button').forEach(b=>{const k=b.dataset.id;const d=b.querySelector('.fdot');const e1=err.some(x=>x.sec===k),w1=warn.some(x=>x.sec===k);d.hidden=!(e1||w1);d.className='fdot'+(e1?'':' w')});
+  const hr=gp/pb;$('#fcalc').innerHTML='<span>Gaji per hari: <b>Rp '+rp(hr)+'</b></span><span>Lembur Minggu per hari: <b>Rp '+rp(Math.round(hr)*2)+'</b></span>';
+  $('#fsum').textContent=err.length?err.length+' isian harus diperbaiki':warn.length?warn.length+' peringatan':'';
+  if(S.empWarnOk){S.empWarnOk=false;const b=$('#empSaveBtn');if(b)b.textContent='Simpan'}
+  return {err,warn}}
+
+// ===== Absensi: mode isi per hari =====
+function attToggle(){return '<div class="segtab" role="group" aria-label="Tampilan absensi"><button data-act="attMode" data-id="hari" aria-pressed="'+(S.attMode==='hari')+'">Per hari</button><button data-act="attMode" data-id="tabel" aria-pressed="'+(S.attMode!=='hari')+'">Tabel sebulan</button></div>'}
+function attDay(){const ds=periodDates(S.periodKey);const t=todayISO();if(S.attDay&&ds.includes(S.attDay))return S.attDay;return S.attDay=ds.includes(t)?t:(t>ds[ds.length-1]?ds[ds.length-1]:ds[0])}
+function attProg(d){const A=P().absensi||{};const emps=periodEmps();const n=emps.filter(e=>(A[e.id]||{})[d]).length;return {n,tot:emps.length}}
+function vAttDay(){
+  const d=attDay();const ds=periodDates(S.periodKey);const i=ds.indexOf(d);const t=todayISO();const A=P().absensi||{};const hol=holidays();const dt=parse(d);const locked=isLocked();
+  const emps=periodEmps().filter(e=>!S.q||(e.nama+' '+e.id).toLowerCase().includes(S.q.toLowerCase()));const pg=attProg(d);const off=dt.getDay()===0||hol.has(d);
+  return topbar('Absensi',true,attToggle())+lockBanner()+
+  '<div class="row"><div class="period"><button class="btn ghost icon" data-act="attDayPrev" aria-label="Hari sebelumnya"'+(i<=0?' disabled':'')+'>‹</button><div class="lbl"><b>'+esc(HARI[dt.getDay()]+', '+fmtD(d))+'</b><small>'+(d===t?'hari ini':d>t?'belum terjadi':daysBetween(d,t)+' hari lalu')+'</small></div><button class="btn ghost icon" data-act="attDayNext" aria-label="Hari berikutnya"'+(i>=ds.length-1?' disabled':'')+'>›</button></div>'+
+   (d!==t&&ds.includes(t)?'<button class="btn" data-act="attDayToday">Ke hari ini</button>':'')+(off?'<span class="pill p-warn">'+(hol.has(d)?'Tanggal merah':'Hari Minggu')+'</span>':'')+(d>t?'<span class="pill p-mute">Belum terjadi</span>':'')+'</div>'+
+  '<div class="row"><input id="q" class="search" type="search" placeholder="Cari karyawan…" value="'+esc(S.q)+'"><div class="cklbar" style="flex:1 1 140px;max-width:240px;margin:0"><i id="attBar" style="width:'+(pg.tot?Math.round(pg.n/pg.tot*100):0)+'%"></i></div><span class="sub" id="attTxt">'+pg.n+' dari '+pg.tot+' sudah diisi</span><span class="spacer"></span>'+
+   (locked?'':'<button class="btn" data-act="attAllH">'+(off?'Tandai sisanya libur (L)':'Tandai sisanya hadir')+'</button>')+'</div>'+
+  '<div class="panel attday">'+(emps.length?emps.map(e=>{const v=(A[e.id]||{})[d]||'';return '<div class="attr"><div class="t"><div class="name">'+esc(e.nama)+keluarPill(e)+spPill(e.id)+'</div><div class="sub">'+esc(e.id)+' · '+esc(e.jabatan)+'</div></div><div class="seg" role="group" aria-label="Kode absen '+esc(e.nama)+'">'+CODES.map(c=>'<button class="segb" style="--cb:var(--c-'+c.c+');--ct:var(--t-'+c.c+')" data-act="attSet" data-e="'+esc(e.id)+'" data-c="'+c.c+'" title="'+esc(c.n)+'" aria-pressed="'+(v===c.c)+'"'+(locked?' disabled':'')+'>'+c.c+'</button>').join('')+'</div></div>'}).join(''):'<div class="empty">Belum ada karyawan.</div>')+'</div>'+
+  '<p class="note">Klik kode untuk mengisi; klik lagi kode yang sama untuk mengosongkan. H hadir, SH setengah hari, I izin, S sakit, C cuti, A alpha, L libur, LM lembur Minggu, LTM lembur tanggal merah.</p>';
+}
+function attSetVal(e,d,v,quiet){const cur=((P().absensi||{})[e]||{})[d]||'';if(cur===v)return cur;patchPeriod({absensi:{[e]:{[d]:v}}});if(cur&&!quiet)logAct('absen','Mengubah absensi · '+enm(e)+', '+fmtD(d),{dari:cur,ke:v||'(kosong)'});return cur}
+function attRefresh(){const d=attDay();const A=P().absensi||{};document.querySelectorAll('.attday .segb').forEach(b=>b.setAttribute('aria-pressed',((A[b.dataset.e]||{})[d]||'')===b.dataset.c));const pg=attProg(d);const bar=$('#attBar'),tx=$('#attTxt');if(bar)bar.style.width=(pg.tot?Math.round(pg.n/pg.tot*100):0)+'%';if(tx)tx.textContent=pg.n+' dari '+pg.tot+' sudah diisi'}
+function attSet(e,c){
+  if(isLocked()){toast('Periode ini sudah dikunci. Buka kunci di halaman Payroll untuk mengubah.');return}
+  const d=attDay();const cur=((P().absensi||{})[e]||{})[d]||'';const v=cur===c?'':c;attSetVal(e,d,v);attRefresh();
+  toastUndo(enm(e)+': '+(v||'dikosongkan')+'.',()=>{attSetVal(e,d,cur);attRefresh();toast('Diurungkan.')})}
+function attAllH(){
+  if(isLocked()){toast('Periode ini sudah dikunci.');return}
+  const d=attDay();const A=P().absensi||{};const off=parse(d).getDay()===0||holidays().has(d);const v=off?'L':'H';const ids=periodEmps().filter(e=>!(A[e.id]||{})[d]&&!(e.tglBergabung&&d<e.tglBergabung)&&!(e.tglKeluar&&d>e.tglKeluar)).map(e=>e.id);
+  if(!ids.length){toast('Semua sudah terisi.');return}
+  const patch={};ids.forEach(id=>patch[id]={[d]:v});patchPeriod({absensi:patch});attRefresh();
+  toastUndo(ids.length+' karyawan ditandai '+v+'.',()=>{const p={};ids.forEach(id=>p[id]={[d]:''});patchPeriod({absensi:p});attRefresh();toast('Diurungkan.')})}
+
+// ===== Pengingat email =====
+const REM_LIST=[['kontrak','Kontrak akan berakhir','Karyawan kontrak yang masa kontraknya hampir habis atau sudah lewat',30],['sp','Surat peringatan akan berakhir','SP yang masa berlakunya hampir selesai',14],['payroll','Payroll belum dikunci','Periode sudah ditutup tetapi payroll belum dikunci',0],['absen','Absensi belum lengkap','Hari kerja yang belum diisi di periode berjalan',0],['pkl','PKL akan selesai','Siswa PKL yang masa magangnya hampir habis',14],['cadangan','Cadangan data sudah lama','Cadangan terakhir lebih dari 30 hari lalu',0]];
+const REM_JADWAL=[['senin','Setiap Senin'],['harian','Setiap hari kerja'],['1-15','Tanggal 1 dan 15']];
+function remCfg(src){const c=src||(S.settings||{}).pengingat||{};const on={},hari={};REM_LIST.forEach(([k,,,h])=>{on[k]=c.on&&c.on[k]!=null?!!c.on[k]:k!=='pkl';if(h)hari[k]=(c.hari&&+c.hari[k])||h});return {to:(c.to||[]).slice(),jadwal:c.jadwal||'senin',on,hari,last:c.last||''}}
+function remSections(c){
+  const t=todayISO();const out=[];const add=(k,items)=>{if(c.on[k]&&items.length)out.push({judul:REM_LIST.find(r=>r[0]===k)[1],items})};const lagi=d=>d<0?'sudah lewat '+(-d)+' hari':d===0?'hari ini':d+' hari lagi';
+  add('kontrak',empList().filter(e=>e.kontrakSelesai&&daysBetween(t,e.kontrakSelesai)<=c.hari.kontrak).sort((a,b)=>a.kontrakSelesai.localeCompare(b.kontrakSelesai)).map(e=>e.nama+' · kontrak berakhir '+fmtD(e.kontrakSelesai)+' ('+lagi(daysBetween(t,e.kontrakSelesai))+')'));
+  add('sp',Object.values(S.warns).filter(w=>{const st=warnStatus(w,t);return ['on','soon'].includes(st.k)&&st.d<=c.hari.sp}).map(w=>enm(w.empId)+' · '+w.tingkat+' berakhir '+fmtD(w.sampai)+' ('+lagi(daysBetween(t,w.sampai))+')'));
+  {const pk=shiftKey(keyFor(new Date()),-1);const pp=S.periods[pk];if(pp&&Object.keys(pp.absensi||{}).length&&!isLocked(pk))add('payroll',['Payroll '+periodLabel(pk)+' belum dikunci (periode ditutup '+fmtD(iso(periodRange(pk).end))+')'])}
+  {const ck=keyFor(new Date());const n=attChecks(ck).filter(x=>/belum diisi/.test(x.s)).length;if(n)add('absen',[n+' karyawan punya hari kerja kosong di periode '+periodLabel(ck)])}
+  add('pkl',Object.values(S.interns).filter(p=>p.selesai&&daysBetween(t,p.selesai)>=0&&daysBetween(t,p.selesai)<=c.hari.pkl).map(p=>p.nama+' · selesai '+fmtD(p.selesai)+' ('+lagi(daysBetween(t,p.selesai))+')'));
+  {const lb=(S.settings||{}).lastBackup;const d=lb?daysBetween(lb.slice(0,10),t):null;if(d==null||d>30)add('cadangan',[d==null?'Data belum pernah dicadangkan':'Cadangan terakhir '+fmtD(lb.slice(0,10))+' ('+d+' hari lalu)'])}
+  return out}
+function remSlot(c,t){const d=parse(t);let s=new Date(d);if(c.jadwal==='harian'){if(s.getDay()===0)s.setDate(s.getDate()-1)}else if(c.jadwal==='1-15')s=new Date(d.getFullYear(),d.getMonth(),d.getDate()>=15?15:1);else s.setDate(s.getDate()-((s.getDay()+6)%7));return iso(s)}
+function remRead(){const c=remCfg();if(!$('#rem_to'))return c;c.to=$('#rem_to').value.split(/[\s,;]+/).map(x=>x.trim().toLowerCase()).filter(Boolean);c.jadwal=$('#rem_jadwal').value;REM_LIST.forEach(([k,,,h])=>{c.on[k]=$('#rem_on_'+k).checked;if(h)c.hari[k]=+$('#rem_h_'+k).value||h});return c}
+function remPreview(c){const sec=remSections(c);const n=sec.reduce((a,s)=>a+s.items.length,0);const bad=c.to.filter(x=>!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(x));
+  return '<div class="mailhd"><span>Kepada</span><b>'+(c.to.length?esc(c.to.join(', ')):'(belum ada penerima)')+'</b><span>Judul</span><b>'+(n?'Pengingat HRD: '+n+' hal perlu perhatian':'(tidak ada email dikirim)')+'</b></div>'+
+  '<div class="mailbd">'+(bad.length?'<div class="pill p-bad" style="align-self:flex-start;white-space:normal">Alamat belum benar: '+esc(bad.join(', '))+'</div>':'')+(n?'<p style="margin:0">Berikut hal yang perlu ditindaklanjuti per '+esc(HARI[parse(todayISO()).getDay()]+', '+fmtD(todayISO()))+'.</p>'+sec.map(s=>'<div><b>'+esc(s.judul)+'</b><ul>'+s.items.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul></div>').join(''):'<p class="sub" style="margin:0">Saat ini tidak ada yang perlu diingatkan, jadi email tidak dikirim.</p>')+'</div>'}
+function remPanel(){const c=remCfg();
+  return '<div class="panel"><h2>Pengingat email<small>'+(c.last?'terakhir dikirim '+esc(fmtD(c.last)):'belum pernah dikirim')+'</small></h2><p class="note">Satu email ringkasan berisi hal yang mendekati tenggat. Email dikirim saat aplikasi ini dibuka pada atau setelah hari kirim; bila tidak ada yang membuka aplikasi, email menunggu sampai dibuka. Pengiriman memakai akun Gmail yang sama dengan kirim slip.</p>'+
+  '<div class="split2"><div style="display:flex;flex-direction:column;gap:12px;min-width:0"><div class="form">'+
+   '<label class="full">Dikirim ke<input id="rem_to" type="text" inputmode="email" autocomplete="off" placeholder="hrd@contoh.co.id, pimpinan@contoh.co.id" value="'+esc(c.to.join(', '))+'"><span class="hint">Pisahkan dengan koma. Paling banyak 10 alamat.</span></label>'+
+   '<label>Hari kirim<select id="rem_jadwal">'+REM_JADWAL.map(([k,l])=>'<option value="'+k+'"'+(c.jadwal===k?' selected':'')+'>'+l+'</option>').join('')+'</select></label></div>'+
+   '<div class="remlist">'+REM_LIST.map(([k,t,d,h])=>'<div class="remrow"><input class="tg" type="checkbox" id="rem_on_'+k+'"'+(c.on[k]?' checked':'')+' aria-label="'+esc(t)+'"><div class="t"><div class="name">'+esc(t)+'</div><div class="sub">'+esc(d)+'</div></div>'+(h?'<select id="rem_h_'+k+'" aria-label="Berapa hari sebelumnya">'+[7,14,30,60].map(n=>'<option value="'+n+'"'+(c.hari[k]===n?' selected':'')+'>'+n+' hari sebelum</option>').join('')+'</select>':'')+'</div>').join('')+'</div>'+
+   '<div class="row"><button class="btn primary" data-act="remSave">Simpan pengingat</button><button class="btn" data-act="remSend">Kirim sekarang</button></div></div>'+
+  '<div class="mailbox" id="remPrev">'+remPreview(c)+'</div></div></div>'}
+async function remSave(){const c=remRead();const bad=c.to.filter(x=>!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(x));if(bad.length){toast('Alamat email belum benar: '+bad[0]);return false}if(c.to.length>10){toast('Paling banyak 10 alamat.');return false}
+  const p={to:c.to,jadwal:c.jadwal,on:c.on,hari:c.hari,last:c.last};setSaving(1);try{await S.db.doc('settings/company').update({pengingat:p});S.settings.pengingat=p;logAct('data','Mengubah pengaturan pengingat email',{ket:c.to.length+' penerima · '+(REM_JADWAL.find(j=>j[0]===c.jadwal)||[])[1]});toast('Pengingat disimpan.');return true}catch(e){handleErr(e);return false}finally{setSaving(-1)}}
+async function remPost(c,sec){
+  if(!S.getToken)return {ok:false,err:'Kirim email tidak tersedia di tampilan ini.'};
+  try{const token=await S.getToken();const r=await fetch('/api/kirim-pengingat',{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+token},body:JSON.stringify({to:c.to,perusahaan:(S.settings||{}).nama,tanggal:HARI[parse(todayISO()).getDay()]+', '+fmtD(todayISO()),sections:sec,url:location.origin})});
+    const j=await r.json().catch(()=>({}));return r.ok?{ok:true}:{ok:false,err:j.error||('HTTP '+r.status)}}catch(e){return {ok:false,err:'koneksi gagal'}}}
+async function remMark(c,t){const p={to:c.to,jadwal:c.jadwal,on:c.on,hari:c.hari,last:t};try{await S.db.doc('settings/company').update({pengingat:{last:t}});S.settings.pengingat=Object.assign({},(S.settings||{}).pengingat,p)}catch(e){console.error(e)}}
+async function remSend(){if(!(await remSave()))return;const c=remCfg();if(!c.to.length){toast('Isi alamat penerima dulu.');return}const sec=remSections(c);if(!sec.length){toast('Tidak ada yang perlu diingatkan saat ini.');return}
+  toast('Mengirim pengingat…');const r=await remPost(c,sec);if(r.ok){await remMark(c,todayISO());logAct('akses','Mengirim email pengingat',{ket:'Ke '+c.to.join(', ')});toast('Pengingat terkirim ke '+c.to.length+' alamat.');render(true)}else toast('Gagal mengirim: '+r.err)}
+async function remAuto(){
+  if(remAuto.run||S.readonly||!S.getToken)return;if(!['settings','emps','warns','periods','interns'].every(k=>S.ready[k]))return;remAuto.run=true;
+  const c=remCfg();if(!c.to.length)return;const t=todayISO();const slot=remSlot(c,t);if(c.last>=slot)return;const sec=remSections(c);if(!sec.length)return;
+  const r=await remPost(c,sec);if(r.ok){await remMark(c,t);logAct('akses','Mengirim email pengingat (otomatis)',{ket:'Ke '+c.to.join(', ')});toast('Email pengingat terkirim ke '+c.to.length+' alamat.')}else console.error('pengingat gagal:',r.err)}
 
 // ===== Tanda SP =====
 function spPill(empId){const a=activeWarns(empId);if(!a.length)return '';a.sort((x,y)=>String(y.tingkat).localeCompare(x.tingkat)||String(y.sampai).localeCompare(String(x.sampai)));const w=a[0];
@@ -1532,7 +1734,7 @@ async function repXlsx(){
 function repDone(){const key=S.periodKey;const per=S.periods[key];if(per&&!(per.ceklis||{}).laporan&&!S.readonly)patchPeriod({ceklis:{laporan:true}})}
 
 // ===== Cadangan data =====
-const BK_COLS=[['employees','emps'],['loans','loans'],['warnings','warns'],['interns','interns'],['notes','notes'],['periods','periods'],['kpiDivisi','kpiD'],['kpiNilai','kpiN'],['surat','surat']];
+const BK_COLS=[['employees','emps'],['loans','loans'],['warnings','warns'],['interns','interns'],['notes','notes'],['periods','periods'],['kpiDivisi','kpiD'],['kpiNilai','kpiN'],['surat','surat'],['riwayat','logs']];
 function backupObj(){const o={settings:{company:clone(S.settings||{})}};BK_COLS.forEach(([c,k])=>{o[c]=clone(S[k]||{})});return o}
 async function backupDownload(){
   if(!S.dl){toast('Unduhan tidak tersedia di tampilan ini.');return}
@@ -1550,7 +1752,7 @@ async function backupRestore(file){
   let j;try{j=JSON.parse(await file.text())}catch(e){toast('File bukan JSON yang valid.');return}
   if(!j||!j.employees||typeof j.employees!=='object'){toast('Isi file bukan cadangan HRD.');return}
   if(!S.backend||!S.backend.importData){toast('Pemulihan tidak tersedia di tampilan ini.');return}
-  try{const n=await S.backend.importData(j,()=>{});toast(n+' data dipulihkan. Memuat ulang…');setTimeout(()=>location.reload(),1200)}catch(e){console.error(e);toast('Pemulihan gagal. Periksa koneksi lalu ulangi.')}}
+  try{const n=await S.backend.importData(j,()=>{});logAct('data','Memulihkan data dari cadangan',{ket:n+' data ditulis ulang'});toast(n+' data dipulihkan. Memuat ulang…');setTimeout(()=>location.reload(),1200)}catch(e){console.error(e);toast('Pemulihan gagal. Periksa koneksi lalu ulangi.')}}
 
 // ===== Panduan =====
 function vHelp(){
@@ -1590,7 +1792,8 @@ function vHelp(){
    '<b>Surat Peringatan</b>: catat SP, tingkat, lama berlaku, dan tanggal berakhirnya. SP yang tinggal 30 hari muncul di Dasbor.',
    '<b>KPI</b>: penilaian bulanan per divisi, bisa impor / ekspor Excel.',
    '<b>Laporan</b>: ringkasan bulanan untuk pimpinan.',
-   '<b>Pengaturan</b>: data perusahaan, aturan gaji, urutan jabatan, pengingat, dan cadangan data.']))+
+   '<b>Pengaturan</b>: data perusahaan, aturan gaji, urutan jabatan, pengingat email, dan cadangan data.',
+   '<b>Riwayat</b>: catatan otomatis siapa mengubah apa dan kapan (gaji, absensi, data karyawan, penghapusan, kunci payroll).']))+
   sec('5. Cadangan dan pemulihan',ol([
    'Buka <b>Pengaturan → Cadangan data → Unduh cadangan (JSON)</b>. Dasbor akan mengingatkan bila cadangan terakhir lebih dari 30 hari.',
    'Simpan file di tempat aman (mis. flashdisk atau Google Drive perusahaan). File ini berisi gaji dan data pribadi.',
@@ -1941,7 +2144,7 @@ function ttdLoad(file,k){
   const fr=new FileReader();fr.onload=()=>{const im=new Image();im.onload=()=>{const sc=Math.min(1,(k==='logo'?300:400)/im.width,(k==='logo'?300:160)/im.height);const cv=document.createElement('canvas');cv.width=Math.max(1,Math.round(im.width*sc));cv.height=Math.max(1,Math.round(im.height*sc));cv.getContext('2d').drawImage(im,0,0,cv.width,cv.height);S.settings=Object.assign({},S.settings,{[k]:cv.toDataURL('image/png')});const el=$('#ttdimg_'+k);if(el){el.src=S.settings[k];el.style.display=''}toast((k==='logo'?'Logo':'Tanda tangan')+' dipilih. Klik Simpan untuk menyimpan.')};im.onerror=()=>toast('File gambar tidak bisa dibaca.');im.src=fr.result};fr.readAsDataURL(file)}
 function vSet(){
   const s=S.settings||{};const f=(k,l,t,h)=>'<label>'+l+'<input id="s_'+k+'" type="'+(t||'text')+'" value="'+esc(s[k]==null?'':s[k])+'">'+(h?'<span class="hint">'+h+'</span>':'')+'</label>';
-  return topbar('Pengaturan',false)+backupPanel()+
+  return topbar('Pengaturan',false)+backupPanel()+remPanel()+
   '<div class="panel"><h2>Profil perusahaan & aturan gaji</h2><div class="form">'+f('nama','Nama perusahaan')+f('alamat','Alamat')+f('pembuat','Pembuat laporan')+f('mengetahui','Mengetahui')+f('menyetujui','Menyetujui')+
   ttdField('logo','Logo perusahaan','Unggah logo (PNG latar transparan paling rapi). Tampil di kiri atas slip gaji. Klik Simpan setelah memilih.')+ttdField('ttdPembuat','Tanda tangan Dibuat oleh')+ttdField('ttdMengetahui','Tanda tangan Mengetahui')+
   f('uangLembur','Tarif lembur per jam (Rp)','number')+
@@ -1961,7 +2164,7 @@ async function saveSet(){
   const libur=g('libur').split(/[,\s]+/).filter(x=>/^\d{4}-\d{2}-\d{2}$/.test(x));
   const reminders=g('rem').split('\n').map(l=>l.trim()).filter(Boolean).map(l=>{const m=l.match(/^(\d{4}-\d{2}-\d{2})\s+(.+)$/);return m?{tanggal:m[1],judul:m[2]}:null}).filter(Boolean);
   const s=Object.assign({},S.settings,{nama:g('nama'),alamat:g('alamat'),pembuat:g('pembuat'),mengetahui:g('mengetahui'),menyetujui:g('menyetujui'),uangLembur:+g('uangLembur')||0,uangMakan:g('uangMakan')===''?20000:Math.max(0,+g('uangMakan')||0),makanMinJam:g('makanMinJam')===''?4:Math.max(0,+g('makanMinJam')||0),cutiMulaiBulan:+$('#s_cutiMulaiBulan').value||4,shPotong:+g('shPotong')||0,shPotongRendah:+g('shPotongRendah')||0,shBatas:+g('shBatas')||0,kuotaCutiDefault:+g('kuotaCutiDefault')||12,cutiAwalTahun:cutiAwalYear(),potongBulanan:['A','I','S'].filter(c=>$('#s_pb_'+c).checked),cutoff:Math.min(28,Math.max(2,(+$('#s_tutup').value||20)+1)),libur,reminders,jabatanOrder:g('jab').split('\n').map(x=>x.trim().toUpperCase()).filter(Boolean)});
-  if(await saveDoc('settings/company',s)){S.settings=s;toast('Pengaturan disimpan.');render(true)}
+  if(await saveDoc('settings/company',s)){{const ch=Object.keys(s).filter(k=>!/^(logo|ttd)/.test(k)&&JSON.stringify(s[k])!==JSON.stringify((S.settings||{})[k]));if(ch.length)logAct('gaji','Mengubah pengaturan',{ket:'Isian yang berubah: '+ch.join(', ')})}S.settings=s;toast('Pengaturan disimpan.');render(true)}
 }
 
 // ---------- modal ----------
@@ -2018,6 +2221,17 @@ document.addEventListener('click',async ev=>{
   if(a==='unlockPay'){if(armed('unlockPay'))unlockPay();return}
   if(a==='cyPrev'||a==='cyNext'){S.cutiYear+=(a==='cyPrev'?-1:1);render(true);return}
   if(a==='impWarn'){$('#impWarnFile').click();return}
+  if(a==='undo'){const f=S.undoFn;S.undoFn=null;if(f)f();return}
+  if(a==='empSel'){S.empSel=id;render();if(innerWidth<1100){const pn=$('#empPanel');if(pn)pn.scrollIntoView({behavior:'smooth',block:'start'})}return}
+  if(a==='empTab')return empTab(id);
+  if(a==='attMode'){S.attMode=id;lsSet('hrd.att',id);S.q='';render(true);return}
+  if(a==='attDayPrev'||a==='attDayNext'){const ds=periodDates(S.periodKey);const i=ds.indexOf(attDay())+(a==='attDayPrev'?-1:1);if(ds[i]){S.attDay=ds[i];render(true)}return}
+  if(a==='attDayToday'){S.attDay=todayISO();render(true);return}
+  if(a==='attSet')return attSet(b.dataset.e,b.dataset.c);
+  if(a==='attAllH')return attAllH();
+  if(a==='logXlsx')return logXlsx();
+  if(a==='remSave'){if(await remSave())render(true);return}
+  if(a==='remSend')return remSend();
   if(a==='pageHelp')return pageHelp();
   if(a==='goTab'){closeModal();S.tab=id;S.armed=null;lsSet('hrd.tab',S.tab);renderNav();render(true);window.scrollTo(0,0);return}
   if(a==='cklTick')return cklTick(id);
@@ -2028,12 +2242,12 @@ document.addEventListener('click',async ev=>{
   if(a==='addWarn')return warnForm(null);
   if(a==='editWarn')return warnForm(id);
   if(a==='saveWarn')return saveWarn(id||null);
-  if(a==='delWarn'){if(S.armed==='delW'+id){S.armed=null;if(await delDoc('warnings/'+id)){delete S.warns[id];closeModal();toast('Surat peringatan dihapus.');render(true)}}else{S.armed='delW'+id;b.textContent='Klik lagi untuk hapus'}return}
+  if(a==='delWarn'){if(S.armed==='delW'+id){S.armed=null;if(await delDoc('warnings/'+id)){{const W0=S.warns[id]||{};logAct('hapus','Menghapus '+(W0.tingkat||'SP')+' · '+enm(W0.empId),{ket:'Berlaku s/d '+fmtD(W0.sampai)})}delete S.warns[id];closeModal();toast('Surat peringatan dihapus.');render(true)}}else{S.armed='delW'+id;b.textContent='Klik lagi untuk hapus'}return}
   if(a==='addLoan')return loanForm(null);
   if(a==='editLoan')return loanForm(id);
   if(a==='saveLoan')return saveLoan(id||null);
   if(a==='restoreLoans'){if(armed('restoreLoans')){const n=restoreLoans(S.periodKey);toast(n+' potongan kasbon dipindahkan ke '+periodLabel(S.periodKey)+(isLocked()?'. Payroll terkunci: Buka kunci lalu kunci lagi agar slip ikut berubah.':'.'));render(true)}return}
-  if(a==='delLoan'){if(S.armed==='del'+id){S.armed=null;if(await delDoc('loans/'+id)){delete S.loans[id];closeModal();toast('Kasbon dihapus.');render(true)}}else{S.armed='del'+id;b.textContent='Klik lagi untuk hapus'}return}
+  if(a==='delLoan'){if(S.armed==='del'+id){S.armed=null;if(await delDoc('loans/'+id)){{const L0=S.loans[id]||{};logAct('hapus','Menghapus kasbon · '+enm(L0.empId),{ket:'Rp '+rp(L0.jumlah)+', cicilan Rp '+rp(L0.cicilan)})}delete S.loans[id];closeModal();toast('Kasbon dihapus.');render(true)}}else{S.armed='del'+id;b.textContent='Klik lagi untuk hapus'}return}
   if(a==='addPkl')return pklForm(null);
   if(a==='editPkl')return pklForm(id);
   if(a==='savePkl'){const p={};['nama','sekolah','hpSiswa','hpOrtu','mulai','selesai'].forEach(k=>p[k]=$('#p_'+k).value.trim());if(!p.nama){toast('Nama wajib diisi.');return}const nid=id||('P'+Date.now().toString(36));if(await saveDoc('interns/'+nid,p)){S.interns[nid]=p;closeModal();render(true)}return}
@@ -2048,6 +2262,10 @@ document.addEventListener('input',ev=>{
   const t=ev.target;
   if(t.dataset&&t.dataset.srt!=null&&S.srt){clearTimeout(S.srtT);S.srtT=setTimeout(()=>{srtRead();srtPreview()},700);return}
   if(t.dataset.kn!=null){kpiLive();return}
+  if(t.id==='lq'){S.lq=t.value;clearTimeout(S.qt);S.qt=setTimeout(()=>{const pos=t.selectionStart;render(true);const n=$('#lq');if(n){n.focus();try{n.setSelectionRange(pos,pos)}catch(e){}}},200);return}
+  if(t.dataset&&t.dataset.rp){const dg=digits(t.value);t.value=dg?rp(+dg):''}
+  if(t.id&&t.id.indexOf('f_')===0&&$('#empSaveBtn')){empCheck();return}
+  if(t.id&&t.id.indexOf('rem_')===0){const pv=$('#remPrev');if(pv)pv.innerHTML=remPreview(remRead());return}
   if(t.id==='q'){S.q=t.value;clearTimeout(S.qt);S.qt=setTimeout(()=>{const pos=t.selectionStart;render(true);const n=$('#q');if(n){n.focus();try{n.setSelectionRange(pos,pos)}catch(e){}}},200);return}
 });
 function bigWarn(id,v,lbl){const e=S.emps[id];const gp=e&&+e.gajiPokok||0;if(gp&&v>gp*0.5)toast('Cek lagi: '+lbl+' '+e.nama+' Rp '+rp(v)+', lebih dari setengah gaji pokok.')}
@@ -2059,6 +2277,10 @@ document.addEventListener('change',ev=>{
   if(t.id==='w_tgl'||t.id==='w_lama'){const s=addMonthsISO($('#w_tgl').value,+$('#w_lama').value||0);if(s&&+$('#w_lama').value)$('#w_sampai').value=s;return}
   if(t.id==='bkFile'){if(t.files[0])backupRestore(t.files[0]);t.value='';return}
   if(t.id==='impWarnFile'){if(t.files[0])importWarns(t.files[0]);t.value='';return}
+  if(t.id==='lk'){S.lk=t.value;render(true);return}
+  if(t.id==='lw'){S.lw=t.value;render(true);return}
+  if(t.id&&t.id.indexOf('f_')===0&&$('#empSaveBtn')){empCheck();return}
+  if(t.id&&t.id.indexOf('rem_')===0){const pv=$('#remPrev');if(pv)pv.innerHTML=remPreview(remRead());return}
   if(t.id==='statusF'){S.status=t.value;render(true);return}
   if(t.id==='kpiDiv'){S.kDiv=t.value;render(true);return}
   if(t.dataset.kpidiv){const id=t.dataset.kpidiv,e=S.emps[id];if(!e)return;e.kpiDivisi=t.value;queuePatch('employees/'+id,{kpiDivisi:t.value});kpiForm(id);return}
@@ -2069,11 +2291,12 @@ document.addEventListener('change',ev=>{
   if((t.dataset.ot||t.dataset.reimb||t.dataset.pot)&&isLocked()){toast('Periode ini sudah dikunci.');render(true);return}
   if(t.dataset.ttd){if(t.files&&t.files[0])ttdLoad(t.files[0],t.dataset.ttd);return}
   if(t.dataset.kuota){const id=t.dataset.kuota,y=S.cutiYear,v=Math.max(0,+t.value||0);const e=S.emps[id];if(!e)return;e.kuotaTahun=Object.assign({},e.kuotaTahun,{[y]:v});queuePatch('employees/'+id,{kuotaTahun:{[y]:v}});S.dirty=true;return}
-  if(t.dataset.ot){const v=Math.max(0,+t.value||0);if(v>12)toast('Cek lagi: '+v+' jam lembur dalam sehari. Benar?');patchPeriod({lembur:{[t.dataset.ot]:{[t.dataset.d]:v}}});S.dirty=true;return}
-  if(t.dataset.reimb){const v=Math.max(0,+t.value||0);bigWarn(t.dataset.reimb,v,'Reimburse/bonus');patchPeriod({reimburse:{[t.dataset.reimb]:v}});S.dirty=true;return}
-  if(t.dataset.pot){const v=Math.max(0,+t.value||0);bigWarn(t.dataset.pot,v,'Potongan lain');patchPeriod({potonganLain:{[t.dataset.pot]:v}});S.dirty=true;return}
+  if(t.dataset.ot){const v=Math.max(0,+t.value||0);{const pv=+(((P().lembur||{})[t.dataset.ot]||{})[t.dataset.d])||0;if(pv&&pv!==v)logAct('absen','Mengubah lembur · '+enm(t.dataset.ot)+', '+fmtD(t.dataset.d),{dari:pv+' jam',ke:v+' jam'})}if(v>12)toast('Cek lagi: '+v+' jam lembur dalam sehari. Benar?');patchPeriod({lembur:{[t.dataset.ot]:{[t.dataset.d]:v}}});S.dirty=true;return}
+  if(t.dataset.reimb){const v=Math.max(0,+t.value||0);{const pv=+((P().reimburse||{})[t.dataset.reimb])||0;if(pv!==v)logAct('gaji','Mengubah reimburse/bonus · '+enm(t.dataset.reimb),{dari:'Rp '+rp(pv),ke:'Rp '+rp(v),ket:'Payroll '+periodLabel(S.periodKey)})}bigWarn(t.dataset.reimb,v,'Reimburse/bonus');patchPeriod({reimburse:{[t.dataset.reimb]:v}});S.dirty=true;return}
+  if(t.dataset.pot){const v=Math.max(0,+t.value||0);{const pv=+((P().potonganLain||{})[t.dataset.pot])||0;if(pv!==v)logAct('gaji','Mengubah potongan lain · '+enm(t.dataset.pot),{dari:'Rp '+rp(pv),ke:'Rp '+rp(v),ket:'Payroll '+periodLabel(S.periodKey)})}bigWarn(t.dataset.pot,v,'Potongan lain');patchPeriod({potonganLain:{[t.dataset.pot]:v}});S.dirty=true;return}
 });
 
+document.addEventListener('click',ev=>{document.querySelectorAll('details.more[open]').forEach(d=>{if(!d.contains(ev.target)||ev.target.closest('.morelist button'))d.open=false})});
 // ---------- boot ----------
 S.tab=lsGet('hrd.tab')||'dash';renderNav();render();window.__runImport=b=>runImport(b);
 (async function boot(){
@@ -2086,6 +2309,7 @@ S.tab=lsGet('hrd.tab')||'dash';renderNav();render();window.__runImport=b=>runImp
   try{S.needImport=await be.isEmpty()}catch(e){console.error(e);if(e&&e.code==='permission-denied'){S.noAccess=true;render(true);return}}
   const err=e=>{console.error(e);if(e&&e.code==='invalid_argument'){S.noAccess=true;render(true)}};
   db_subscribe(be.db,err);
+  try{if(!sessionStorage.getItem('hrd.in')){sessionStorage.setItem('hrd.in','1');logAct('akses','Masuk ke aplikasi')}}catch(e){}
   runMigrations(be.db);
 })();
 // Perubahan data satu kali (dijalankan otomatis oleh akun HRD yang login, lalu ditandai di settings.migrasi supaya tidak terulang).
@@ -2146,7 +2370,7 @@ function db_subscribe(db,err){
     if(target==='emps'&&snap.docs.length)S.needImport=false;
     if(target==='periods'||target==='kpiN'){const pre=target==='periods'?'periods/':'kpiNilai/';for(const p in Q)if(p.startsWith(pre)){const k=p.slice(pre.length);if(o[k])deepMerge(o[k],clone(Q[p].patch))}}
     render()},err);
-  coll('employees','emps');coll('loans','loans');coll('warnings','warns');coll('interns','interns');coll('notes','notes');coll('periods','periods');coll('kpiDivisi','kpiD');coll('kpiNilai','kpiN');coll('surat','surat');
+  coll('employees','emps');coll('loans','loans');coll('warnings','warns');coll('interns','interns');coll('notes','notes');coll('periods','periods');coll('kpiDivisi','kpiD');coll('kpiNilai','kpiN');coll('surat','surat');coll('riwayat','logs');
 }
 async function runImport(btn){
   btn.disabled=true;btn.textContent='Mengimpor…';
