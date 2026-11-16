@@ -207,6 +207,18 @@ input.cellin{width:64px;padding:3px 6px;text-align:right;font-family:var(--f-mon
 .login .err{color:var(--bad);font-size:13px;min-height:1em}
 .userbox{display:flex;flex-direction:column;gap:6px;margin-top:8px}
 .userbox b{font-weight:500;color:var(--fg);word-break:break-all}
+.navgrp{font-size:10.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);padding:12px 10px 4px}
+.helpbtn{all:unset;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;margin-left:10px;border-radius:50%;border:1.5px solid var(--line);color:var(--muted);font-family:var(--f-body);font-size:13px;font-weight:700;vertical-align:middle}
+.helpbtn:hover{border-color:var(--accent);color:var(--accent)}.helpbtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.cklbar{height:6px;border-radius:999px;background:var(--surface-2);overflow:hidden;margin:2px 0 6px}.cklbar i{display:block;height:100%;background:var(--ok);border-radius:999px}
+.cklbox{all:unset;box-sizing:border-box;flex:none;width:26px;height:26px;border-radius:7px;border:1.5px solid var(--line);display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--muted);cursor:pointer}
+.cklbox.auto{border-radius:50%;cursor:default;font-size:12px}
+button.cklbox:hover{border-color:var(--accent)}button.cklbox:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.ckl .li.done .cklbox{background:var(--ok);border-color:var(--ok);color:#fff}
+.ckl .li.done .name{color:var(--muted)}
+.ckl .li.next .cklbox{border-color:var(--accent);color:var(--accent)}
+@media (max-width:900px){.navgrp{display:none}}
+@media print{.helpbtn{display:none}}
 @media screen{.printonly{display:none}}
 @media print{.rail,.topbar .row,.period,.saving,#toastRoot,#modalRoot,.lockbar{display:none!important}.app{display:block}.printonly{display:block;margin-bottom:12px}.panel,.kpi{break-inside:avoid}.tablewrap{overflow:visible!important;max-height:none!important}body{background:#fff}}
 </style>
@@ -276,8 +288,11 @@ const ICONS={
   set:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>'
 };
 const TABS=[
-  ['dash','Dasbor','dash'],['emp','Karyawan','emp'],['att','Absensi','att'],['ot','Lembur','ot'],['pay','Payroll','pay'],
-  ['slip','Slip Gaji','slip'],['loan','Kasbon','loan'],['leave','Cuti','leave'],['ctr','Kontrak & PKL','ctr'],['note','Catatan','note'],['sp','Surat Peringatan','sp'],['kpi','KPI','kpi'],['rep','Laporan','rep'],['set','Pengaturan','set'],['help','Panduan','help']];
+  ['dash','Dasbor','dash',''],
+  ['att','Absensi','att','Harian'],['ot','Lembur','ot','Harian'],
+  ['pay','Payroll','pay','Gaji'],['slip','Slip Gaji','slip','Gaji'],['loan','Kasbon','loan','Gaji'],['rep','Laporan','rep','Gaji'],
+  ['emp','Karyawan','emp','Karyawan'],['leave','Cuti','leave','Karyawan'],['ctr','Kontrak & PKL','ctr','Karyawan'],['sp','Surat Peringatan','sp','Karyawan'],['kpi','KPI','kpi','Karyawan'],['note','Catatan','note','Karyawan'],
+  ['set','Pengaturan','set','Lainnya'],['help','Panduan','help','Lainnya']];
 
 const S={db:null,dl:null,settings:null,emps:{},surat:{},loans:{},warns:{},interns:{},notes:{},kpiD:{},kpiN:{},kDiv:'',kpiMonth:null,kpiEmp:null,nCat:'',nSt:'aktif',periods:{},ready:{},tab:'dash',periodKey:null,brush:'H',q:'',status:'',slipEmp:null,dirty:false,saving:0,readonly:false,armed:null};
 
@@ -442,11 +457,11 @@ async function delDoc(path){if(!S.db)return false;setSaving(1);try{await S.db.do
 function armed(id){if(S.armed===id){S.armed=null;return true}S.armed=id;setTimeout(()=>{if(S.armed===id){S.armed=null;render()}},4000);render();return false}
 
 // ---------- nav ----------
-function renderNav(){$('#nav').innerHTML=TABS.map(([k,l,i])=>'<button data-tab="'+k+'" aria-current="'+(S.tab===k)+'">'+icon(i)+'<span>'+l+'</span></button>').join('')}
+function renderNav(){let g='';$('#nav').innerHTML=TABS.map(([k,l,i,grp])=>{const h=grp&&grp!==g?'<div class="navgrp">'+grp+'</div>':'';g=grp;return h+'<button data-tab="'+k+'" aria-current="'+(S.tab===k)+'">'+icon(i)+'<span>'+l+'</span></button>'}).join('')}
 $('#nav').addEventListener('click',e=>{const b=e.target.closest('button[data-tab]');if(!b)return;S.tab=b.dataset.tab;S.armed=null;lsSet('hrd.tab',S.tab);renderNav();render(true);window.scrollTo(0,0)});
 
 function topbar(title,withPeriod,extra){
-  return '<div class="topbar"><h1>'+esc(title)+'</h1><div class="row">'+(extra||'')+
+  return '<div class="topbar"><h1>'+esc(title)+(PAGE_HELP[S.tab]?'<button class="helpbtn" data-act="pageHelp" aria-label="Petunjuk halaman ini" title="Petunjuk halaman ini">?</button>':'')+'</h1><div class="row">'+(extra||'')+
   (withPeriod?'<div class="period"><button class="btn ghost icon" data-act="prev" aria-label="Periode sebelumnya">‹</button><div class="lbl"><b>'+periodLabel(S.periodKey)+'</b><small>'+periodSub(S.periodKey)+'</small></div><button class="btn ghost icon" data-act="next" aria-label="Periode berikutnya">›</button></div>':'')+
   '<span class="saving" id="savingEl">'+(S.saving>0?'Menyimpan…':'Tersimpan')+'</span></div></div>'}
 
@@ -502,7 +517,7 @@ function vDash(){
    '<div class="kpi"><span class="k">Hadir hari ini</span><span class="v">'+tc.H+'<small style="font-size:14px;color:var(--muted)"> / '+emps.length+'</small></span><span class="s">'+(tc.kosong===emps.length?'Absensi hari ini belum diisi':'Izin '+tc.I+' · Sakit '+tc.S+' · Cuti '+tc.C+' · Alpha '+tc.A+(tc.kosong?' · '+tc.kosong+' belum diisi':''))+'</span></div>'+
    '<div class="kpi"><span class="k">Total gaji '+periodLabel(key)+'</span><span class="v">Rp '+rp(total)+'</span><span class="s">Take home pay seluruh karyawan</span></div>'+
    '<div class="kpi"><span class="k">Kasbon berjalan</span><span class="v">Rp '+rp(out)+'</span><span class="s">'+nLoan+' karyawan masih punya sisa</span></div>'+
-  '</div>'+
+  '</div>'+checklistPanel(key)+
   '<div class="grid2">'+
    '<div class="panel"><h2>Kehadiran harian<small>jumlah karyawan hadir per tanggal, '+periodSub(key)+'</small></h2><div class="bars">'+bars+'</div><div class="axis"><span>'+fmtD(dates[0])+'</span><span>'+fmtD(dates[dates.length-1])+'</span></div><p class="note" style="margin:10px 0 0">Batang abu-abu = hari Minggu/libur. Garis tebal = hari ini.</p></div>'+
    '<div class="panel"><h2>Perlu perhatian<small>'+alerts.length+' item</small></h2><div class="list">'+(alerts.length?alerts.slice(0,14).map(a=>'<div class="li"><div class="t"><div class="name">'+esc(a.t)+'</div><div class="sub">'+esc(a.s)+'</div></div>'+a.html+'</div>').join(''):'<div class="empty">Tidak ada yang mendesak.</div>')+'</div></div>'+
@@ -919,6 +934,7 @@ async function mailSlips(ids,revisi){
     await new Promise(z=>setTimeout(z,600));
   }
   const ok=res.filter(x=>x.ok),bad=res.filter(x=>!x.ok);
+  if(ok.length&&S.periodKey===key){const sk={};const at=new Date().toISOString();ok.forEach(x=>sk[x.id]=at);patchPeriod({slipKirim:sk})}
   if(ids.length===1){toast(ok.length?'Slip terkirim ke '+((S.emps[ids[0]]||{}).email)+'.':'Gagal: '+bad[0].err);return}
   openModal('<h3>Hasil kirim email · '+periodLabel(key)+'</h3><p class="note" style="margin:0"><b>'+ok.length+'</b> terkirim, <b>'+bad.length+'</b> gagal.</p>'+
    (bad.length?'<div class="tablewrap"><table><thead><tr><th>Karyawan</th><th>Alasan</th></tr></thead><tbody>'+bad.map(x=>'<tr><td>'+esc(x.id+' '+x.nama)+'</td><td class="sub">'+esc(x.err)+'</td></tr>').join('')+'</tbody></table></div>':'')+
@@ -1396,6 +1412,58 @@ async function importWarns(file){
     const d={empId:w.empId,tingkat:w.tingkat||'SP 1',nomor:w.nomor||'',tanggal:w.tanggal,lama:+w.lama||0,sampai:w.sampai,pelanggaran:w.pelanggaran||''};
     const nid='W'+Date.now().toString(36)+n;if(await saveDoc('warnings/'+nid,d)){S.warns[nid]=d;n++}}
   toast(n+' surat peringatan diimpor'+(skip?', '+skip+' dilewati (karyawan tidak ditemukan atau sudah ada).':'.'));render(true)}
+// ===== Checklist bulanan =====
+function checklist(key){
+  const per=S.periods[key]||{};const man=per.ceklis||{};const locked=isLocked(key);const t=todayISO();const {end}=periodRange(key);const endISO=iso(end);
+  const emps=payEmps(key);const hasData=locked||Object.values(per.absensi||{}).some(r=>Object.values(r).some(v=>v));
+  const kos=locked?0:attChecks(key).filter(c=>/belum diisi/.test(c.s)).length;
+  const jam=emps.reduce((n,e)=>n+otHours(e.id,key),0);
+  const pc=locked?[]:payChecks(key).filter(c=>c.lvl!=='info'&&c.id);
+  const sk=per.slipKirim||{};const nSlip=emps.filter(e=>sk[e.id]).length;
+  const kd=S.kpiN[key]||{};const nKpi=emps.filter(e=>{const v=(kd.nilai||{})[e.id];return v&&Object.keys(v).length}).length;
+  const lb=(S.settings||{}).lastBackup;const lockAt=locked?String(lockOf(key).at).slice(0,10):null;
+  const it=[];const add=(id,tab,judul,done,sub,manual)=>it.push({id,tab,judul,done:!!done,sub,manual:!!manual,dicentang:!!man[id]});
+  add('absen','att','Lengkapi absensi',hasData&&!kos&&(locked||t>=endISO),!hasData?'Belum ada absensi di periode ini':kos?kos+' karyawan masih punya hari kerja kosong':t<endISO&&!locked?'Lengkap sampai hari ini. Periode ditutup '+fmtD(endISO):'Semua hari kerja sudah terisi');
+  add('lembur','ot','Isi lembur',locked||jam>0||man.lembur,jam?jam+' jam lembur tercatat':man.lembur?'Ditandai: tidak ada lembur periode ini':'Belum ada jam lembur. Centang bila memang tidak ada lembur',!locked&&!jam);
+  add('cek','pay','Periksa payroll',locked||(hasData&&!pc.length&&t>=endISO&&!kos),locked?'Sudah dikunci':!hasData?'Menunggu absensi':pc.length?pc.length+' peringatan di panel Cek payroll':'Tidak ada peringatan. Isi reimburse dan potongan lain bila ada');
+  add('kunci','pay','Kunci payroll setelah gaji dibayar',locked,locked?'Dikunci '+fmtD(lockAt):'Belum dikunci. Angka masih bisa berubah');
+  add('slip','slip','Bagikan slip gaji',(emps.length&&nSlip>=emps.length)||man.slip,nSlip?nSlip+' dari '+emps.length+' slip terkirim lewat email'+(man.slip&&nSlip<emps.length?'; sisanya ditandai selesai':''):man.slip?'Ditandai selesai (dibagikan di luar email)':'Belum ada slip terkirim lewat email. Centang bila dibagikan lewat WhatsApp atau cetak',!(emps.length&&nSlip>=emps.length));
+  add('laporan','rep','Unduh laporan bulanan',man.laporan,man.laporan?'Sudah diunduh atau dicetak':'Unduh Excel atau cetak PDF untuk pimpinan',true);
+  add('kpi','kpi','Isi KPI',(emps.length&&nKpi>=emps.length)||man.kpi,nKpi+' dari '+emps.length+' karyawan sudah dinilai'+(nKpi<emps.length?(man.kpi?'; ditandai selesai':'. Centang bila bulan ini tidak dinilai'):''),!(emps.length&&nKpi>=emps.length));
+  add('cadangan','set','Unduh cadangan data',locked&&lb&&lb.slice(0,10)>=lockAt,lb?'Cadangan terakhir '+fmtD(lb.slice(0,10))+(locked&&lb.slice(0,10)<lockAt?', sebelum payroll dikunci':''):'Belum pernah dicadangkan');
+  return it}
+function checklistPanel(key){
+  const it=checklist(key);const n=it.filter(x=>x.done).length;const next=it.find(x=>!x.done);
+  return '<div class="panel ckl"><h2>Checklist '+esc(periodLabel(key))+'<small>'+n+' dari '+it.length+' selesai'+(next?' · berikutnya: '+esc(next.judul.toLowerCase()):'')+'</small></h2>'+
+  '<div class="cklbar"><i style="width:'+Math.round(n/it.length*100)+'%"></i></div><div class="list">'+
+  it.map((x,i)=>'<div class="li'+(x.done?' done':x===next?' next':'')+'">'+
+    (x.manual||(x.done&&x.dicentang)?'<button class="cklbox" data-act="cklTick" data-id="'+x.id+'" aria-pressed="'+x.done+'" aria-label="'+(x.done?'Batalkan centang ':'Tandai selesai: ')+esc(x.judul)+'">'+(x.done?'✓':'')+'</button>':'<span class="cklbox auto" aria-hidden="true">'+(x.done?'✓':i+1)+'</span>')+
+    '<div class="t"><div class="name">'+esc(x.judul)+'</div><div class="sub">'+esc(x.sub)+'</div></div>'+
+    '<button class="btn'+(x===next?' primary':'')+'" data-act="goTab" data-id="'+x.tab+'">Buka</button></div>').join('')+
+  '</div><p class="note" style="margin:10px 0 0">Tanda ✓ muncul otomatis dari data. Langkah berkotak bisa dicentang sendiri. Ganti periode dengan tombol ‹ › di kanan atas.</p></div>'}
+function cklTick(id){const key=S.periodKey;const cur=((S.periods[key]||{}).ceklis||{})[id];patchPeriod({ceklis:{[id]:!cur}});render(true)}
+
+// ===== Petunjuk singkat per halaman =====
+const PAGE_HELP={
+ dash:['Ringkasan kondisi hari ini dan daftar pekerjaan bulan ini.',['Ikuti Checklist dari atas ke bawah; tombol Buka membawa Anda ke halaman yang tepat.','Daftar "Perlu perhatian" berisi hal yang mendekati tenggat: kontrak habis, SP berakhir, cuti habis, cadangan lama.','Tombol ‹ › di kanan atas mengganti periode gaji yang ditampilkan.']],
+ emp:['Data induk semua karyawan: jabatan, status, gaji, rekening, dan identitas.',['Klik Ubah untuk mengganti data seorang karyawan; + Tambah karyawan untuk karyawan baru.','Karyawan yang keluar jangan dihapus: hilangkan centang Aktif dan isi tanggal keluar, supaya riwayat gajinya tetap ada.','Tombol Buat surat menyiapkan kontrak, SP, skorsing, keterangan kerja, dan penawaran kerja.','Tanda merah "SP" di samping nama berarti karyawan itu sedang punya SP berlaku.']],
+ att:['Kehadiran harian setiap karyawan dalam satu periode gaji.',['Pilih kode di atas tabel (H, SH, I, S, C, A, L, LM, LTM), lalu klik sel tanggal.','Klik judul tanggal untuk mengisi satu kolom sekaligus.','Baca panel Cek absensi: di situ muncul hari kosong dan kode yang janggal.','Setelah payroll dikunci, absensi periode itu tidak bisa diubah.']],
+ ot:['Jam lembur harian di luar jam kerja biasa.',['Ketik jumlah jam di tanggal lemburnya, atau pakai Impor laporan lembur.','Lembur hari Minggu dan tanggal merah tidak diisi di sini, tetapi di Absensi dengan kode LM atau LTM.','Tarif lembur per jam diatur di Pengaturan, atau khusus per karyawan di data Karyawan.']],
+ pay:['Perhitungan gaji semua karyawan untuk periode yang dipilih. Angkanya dihitung otomatis dari Absensi, Lembur, dan Kasbon.',['Isi kolom Reimburse/bonus dan Potongan lain bila ada.','Perbaiki semua tanda Salah dan Cek di panel Cek payroll sebelum membayar.','Setelah gaji dibayar, klik Kunci payroll dua kali. Angka jadi final dan potongan kasbon tercatat.','Unduh Excel dan File transfer BCA dari tombol di kanan atas.']],
+ slip:['Slip gaji per karyawan untuk periode yang dipilih.',['Pilih karyawan, lalu Unduh PDF, Kirim via email, atau Kirim PDF via WhatsApp.','Untuk mengirim ke semua karyawan sekaligus, pakai tombol Kirim semua slip via email di halaman Payroll.','Kirim slip setelah payroll dikunci, supaya angkanya tidak berubah lagi.']],
+ loan:['Pinjaman karyawan dan cicilannya.',['Klik + Catat kasbon, isi jumlah dan cicilan per bulan.','Cicilan dipotong otomatis di Payroll setiap periode sampai lunas.','Saldo baru berkurang resmi saat payroll periode itu dikunci.']],
+ leave:['Kuota, pemakaian, dan sisa cuti tahunan tiap karyawan.',['Cuti terpakai dihitung dari kode C di Absensi; tidak perlu diisi di sini.','Kuota per karyawan bisa diubah langsung di tabel.','Saldo diperbarui otomatis tiap awal tahun cuti (bulannya diatur di Pengaturan).']],
+ ctr:['Masa kontrak karyawan dan data siswa PKL.',['Kontrak yang akan habis dalam 90 hari muncul di Dasbor.','Tanggal kontrak diubah lewat data Karyawan, atau otomatis saat membuat surat kontrak.','Siswa PKL dicatat dengan + Tambah siswa PKL.']],
+ note:['Catatan bebas untuk kantor atau per karyawan, dengan tanggal pengingat.',['Klik + Tambah catatan dan isi tanggal pengingat bila perlu diingatkan.','Catatan yang mendekati tanggal pengingat muncul di Dasbor.','Tandai Selesai bila sudah beres.']],
+ sp:['Daftar surat peringatan dan masa berlakunya.',['Klik + Catat SP, pilih karyawan, tingkat, tanggal terbit, dan lama berlaku.','Tanggal Berlaku sampai terisi otomatis dan bisa diubah.','SP yang tinggal 30 hari muncul di Dasbor.','Suratnya sendiri dibuat dari Karyawan → Buat surat.']],
+ kpi:['Penilaian kinerja bulanan per karyawan, berdasarkan indikator tiap divisi.',['Pilih bulan, lalu klik karyawan untuk mengisi nilainya.','Lengkapi otomatis mengisi nilai kehadiran dari Absensi.','Bisa impor dan ekspor Excel dari tombol di kanan atas.']],
+ rep:['Ringkasan satu periode untuk pimpinan: gaji, kehadiran, per jabatan, dan catatan SDM.',['Pilih periode dengan tombol ‹ ›.','Unduh Excel, atau Cetak / simpan PDF.','Kirim laporan setelah payroll dikunci; sebelum itu angkanya masih draft.']],
+ set:['Aturan yang dipakai seluruh aplikasi, dan cadangan data.',['Ubah hanya bila aturannya memang berubah: tarif lembur, tanggal tutup absen, libur nasional, potongan.','Klik Simpan pengaturan setelah mengubah.','Unduh cadangan setiap bulan setelah payroll dikunci.']],
+ help:['Panduan lengkap aplikasi ini.',['Klik judul bagian untuk membukanya.','Mulai dari bagian 1, Rutinitas bulanan.']]};
+function pageHelp(){const h=PAGE_HELP[S.tab];if(!h)return;const nm=(TABS.find(t=>t[0]===S.tab)||[])[1]||'';
+  openModal('<h3>'+esc(nm)+'</h3><p style="margin:0">'+esc(h[0])+'</p><ul style="margin:0 0 0 18px;padding:0;line-height:1.55">'+h[1].map(x=>'<li style="margin:5px 0">'+esc(x)+'</li>').join('')+'</ul>'+
+  '<div class="row">'+(S.tab==='help'?'':'<button class="btn" data-act="goTab" data-id="help">Buka panduan lengkap</button>')+'<button class="btn primary" data-act="closeModal">Mengerti</button></div>')}
+
 // ===== Tanda SP =====
 function spPill(empId){const a=activeWarns(empId);if(!a.length)return '';a.sort((x,y)=>String(y.tingkat).localeCompare(x.tingkat)||String(y.sampai).localeCompare(String(x.sampai)));const w=a[0];
   return ' <span class="pill p-bad" title="'+esc(w.tingkat+' berlaku sampai '+fmtD(w.sampai))+'">'+esc(w.tingkat)+' s/d '+esc(fmtD(w.sampai))+'</span>'}
@@ -1454,6 +1522,8 @@ async function repXlsx(){
   try{await S.dl.save({filename:'Laporan '+periodLabel(key)+'.xlsx',data:new Blob([buf])});toast('Laporan diunduh.')}catch(e){if(e&&e.code!=='declined')toast('Unduhan gagal.')}
 }
 
+function repDone(){const key=S.periodKey;const per=S.periods[key];if(per&&!(per.ceklis||{}).laporan&&!S.readonly)patchPeriod({ceklis:{laporan:true}})}
+
 // ===== Cadangan data =====
 const BK_COLS=[['employees','emps'],['loans','loans'],['warnings','warns'],['interns','interns'],['notes','notes'],['periods','periods'],['kpiDivisi','kpiD'],['kpiNilai','kpiN'],['surat','surat']];
 function backupObj(){const o={settings:{company:clone(S.settings||{})}};BK_COLS.forEach(([c,k])=>{o[c]=clone(S[k]||{})});return o}
@@ -1482,7 +1552,7 @@ function vHelp(){
   const ul=a=>'<ul style="margin:6px 0 0 18px;padding:0">'+a.map(x=>'<li style="margin:4px 0">'+x+'</li>').join('')+'</ul>';
   const st=(S.settings||{});const c=cutoff();
   return topbar('Panduan penggunaan',false)+
-  '<p class="note" style="margin:0">Panduan ini untuk siapa pun yang memegang HRD. Mulailah dari “Rutinitas bulanan”.</p>'+
+  '<p class="note" style="margin:0">Panduan ini untuk siapa pun yang memegang HRD. Mulailah dari “Rutinitas bulanan”. Di setiap halaman, tombol <b>?</b> di samping judul menampilkan petunjuk singkat halaman itu.</p>'+
   sec('1. Rutinitas bulanan (urutan kerja)',ol([
    '<b>Absensi</b>: pilih periode dengan tombol ‹ ›, pilih kode di atas (H, SH, I, S, C, A, L, LM, LTM), lalu klik sel tanggal. Klik judul tanggal untuk mengisi satu kolom. Tombol “Isi H semua hari kerja kosong” mempercepat. Perhatikan panel <b>Cek absensi</b> di atas tabel.',
    '<b>Lembur</b>: ketik jam lembur per tanggal, atau pakai <b>Impor laporan lembur</b>. Lembur hari Minggu / tanggal merah diisi di Absensi dengan kode LM / LTM.',
@@ -1503,7 +1573,7 @@ function vHelp(){
    '<b>Setengah hari (SH)</b> dipotong nominal tetap yang diatur di Pengaturan. Karyawan TETAP tidak dipotong.',
    '<b>THP</b> = gaji + lembur + reimburse − potongan setengah hari − potongan absen − kasbon − potongan lain.']))+
   sec('4. Fungsi tiap menu',ul([
-   '<b>Dasbor</b>: ringkasan dan daftar “Perlu perhatian” (kontrak habis, SP berakhir, cuti habis, payroll belum dikunci, cadangan lama).',
+   '<b>Dasbor</b>: <b>Checklist</b> langkah bulanan (✓ muncul otomatis; tombol Buka menuju halamannya), ringkasan, dan daftar “Perlu perhatian” (kontrak habis, SP berakhir, cuti habis, payroll belum dikunci, cadangan lama).',
    '<b>Karyawan</b>: data karyawan, gaji, skema, identitas. Tanda merah “SP 1 s/d …” muncul di samping nama karyawan yang sedang punya SP berlaku. Tombol “Buat surat” menyiapkan PKWT, SP, skorsing, keterangan kerja, dan penawaran kerja. Surat diunduh sebagai <b>Word (.docx)</b> supaya bisa diedit sebelum dicetak; versi PDF juga tersedia.',
    '<b>Absensi, Lembur, Payroll, Slip Gaji</b>: lihat Rutinitas bulanan.',
    '<b>Kasbon</b>: pinjaman karyawan dan cicilannya. Saldo berkurang resmi saat payroll dikunci. Bila payroll dibuka kuncinya, potongan periode itu dibatalkan.',
@@ -1941,8 +2011,11 @@ document.addEventListener('click',async ev=>{
   if(a==='unlockPay'){if(armed('unlockPay'))unlockPay();return}
   if(a==='cyPrev'||a==='cyNext'){S.cutiYear+=(a==='cyPrev'?-1:1);render(true);return}
   if(a==='impWarn'){$('#impWarnFile').click();return}
-  if(a==='repXlsx')return repXlsx();
-  if(a==='repPrint'){window.print();return}
+  if(a==='pageHelp')return pageHelp();
+  if(a==='goTab'){closeModal();S.tab=id;S.armed=null;lsSet('hrd.tab',S.tab);renderNav();render(true);window.scrollTo(0,0);return}
+  if(a==='cklTick')return cklTick(id);
+  if(a==='repXlsx'){await repXlsx();repDone();return}
+  if(a==='repPrint'){window.print();repDone();return}
   if(a==='bkDown')return backupDownload();
   if(a==='bkRestore'){if(armed('bkRestore'))$('#bkFile').click();return}
   if(a==='addWarn')return warnForm(null);
