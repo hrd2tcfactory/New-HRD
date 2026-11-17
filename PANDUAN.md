@@ -88,3 +88,18 @@ Slip PDF dikirim ke email karyawan lewat Gmail SMTP. Di halaman **Payroll** ada 
 **Cara pakai bulanan**: kunci payroll → buka Payroll → **Kirim semua slip via email** → cek ringkasan hasil (yang gagal ditampilkan beserta alasannya).
 
 Kalau email masuk spam, minta karyawan menandainya "bukan spam" sekali saja.
+
+---
+
+## Pengingat email otomatis dari server
+
+Tanpa langkah ini, email pengingat hanya terkirim saat aplikasi dibuka. Dengan langkah ini, Vercel menjalankan `/api/cron-pengingat` setiap hari sekitar pukul 07.00 WIB dan mengirim email sesuai pengaturan di **Pengaturan → Pengingat email**.
+
+1. Firebase → ikon gerigi → **Project settings → Service accounts** → **Generate new private key**. Sebuah file JSON terunduh. Simpan baik-baik dan jangan dikirim ke siapa pun.
+2. Vercel → project → **Settings → Environment Variables**, tambahkan:
+   - `FIREBASE_SERVICE_ACCOUNT` = seluruh isi file JSON tadi
+   - `CRON_SECRET` = teks acak minimal 16 huruf/angka (buat sendiri)
+   - `APP_URL` (opsional) = alamat situs, mis. `https://newhrdsistem.vercel.app`
+   - `GMAIL_USER` dan `GMAIL_APP_PASSWORD` sudah ada dari fitur kirim slip.
+3. Vercel → **Deployments** → titik tiga di deployment teratas → **Redeploy**.
+4. Untuk mencoba: Vercel → **Settings → Cron Jobs** → **Run**. Setelah itu halaman Pengingat email menampilkan "Otomatis dari server aktif".

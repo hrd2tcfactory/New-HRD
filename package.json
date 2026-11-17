@@ -2,6 +2,7 @@
   "name": "hrd-sopandi",
   "private": true,
   "dependencies": {
-    "nodemailer": "6.9.16"
+    "nodemailer": "6.9.16",
+    "firebase-admin": "12.7.0"
   }
 }
