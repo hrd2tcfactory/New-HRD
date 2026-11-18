@@ -436,6 +436,7 @@ function payChecks(key){
     const pr=prev&&prev.rows[e.id];const pt=pr&&+pr.r.thp;
     if(pt>0&&r.thp>=0&&Math.abs(r.thp-pt)/pt>0.3)add('info','THP '+(r.thp>pt?'naik':'turun')+' '+Math.round(Math.abs(r.thp-pt)/pt*100)+'% dari bulan lalu (Rp '+rp(pt)+' → Rp '+rp(r.thp)+')');
     if(!String(e.rekening||'').trim())add('info','Nomor rekening belum diisi');
+    if(r.pro)add('info','Gaji pokok prorata '+r.pro.dj+'/'+r.pro.wd+' hari kerja ('+(r.pro.from>iso(periodRange(key).start)?'masuk '+fmtD(r.pro.from):'')+(r.pro.from>iso(periodRange(key).start)&&r.pro.to<iso(periodRange(key).end)?', ':'')+(r.pro.to<iso(periodRange(key).end)?'keluar '+fmtD(r.pro.to):'')+'). Pastikan tanggalnya benar');
   });
   return out}
 function chkList(chk,title){return '<details class="panel"'+(chk.length?' open':'')+'><summary style="cursor:pointer;font-family:var(--f-display);font-weight:700">'+title+': '+(chk.length?chk.length+' hal perlu dicek':'tidak ada masalah')+'</summary>'+(chk.length?'<div class="list" style="margin-top:8px">'+chk.slice(0,40).map(c=>'<div class="li"><span class="pill '+(c.lvl==='bad'?'p-bad':c.lvl==='info'?'p-mute':'p-warn')+'">'+(c.lvl==='bad'?'Salah':c.lvl==='info'?'Info':'Cek')+'</span><div class="t"><div class="name">'+esc(c.t)+'</div><div class="sub">'+esc(c.s)+'</div></div></div>').join('')+(chk.length>40?'<div class="sub">…dan '+(chk.length-40)+' lainnya</div>':'')+'</div>':'')+'</details>'}
@@ -458,10 +459,8 @@ function liveCalc(e,key){
   const ltm=Math.round(harian*c.LTM)*((+e.kaliLTM)||1);
   const jam=otHours(e.id,key);const rateJam=otRate(e);const lj=Math.round(jam*rateJam);const hariUM=mealDays(e.id,key);const um=hariUM*mealCfg().amt;
   let base=e.metode==='HARIAN'?gajiHadir:(+e.gajiPokok||0);
-  // karyawan bulanan yang keluar di tengah periode: gaji pokok × hari kerja s/d hari terakhir ÷ hari kerja satu periode
-  let pro=null;if(e.metode!=='HARIAN'&&e.tglKeluar){const {start,end}=periodRange(key);const s0=iso(start),s1=iso(end);
-    if(e.tglKeluar>=s0&&e.tglKeluar<s1){const wd=workDays(s0,s1),dj=workDays(s0,e.tglKeluar);if(wd){pro={dj,wd};base=Math.round((+e.gajiPokok||0)*dj/wd)}}
-    else if(e.tglKeluar<s0){pro={dj:0,wd:workDays(s0,s1)};base=0}}
+  // karyawan bulanan yang masuk atau keluar di tengah periode: prorata menurut hari kerja (lihat proRange)
+  let pro=null;if(e.metode!=='HARIAN'){pro=proRange(e,key);if(pro)base=Math.round((+e.gajiPokok||0)*pro.dj/pro.wd)}
   const cut=e.metode==='HARIAN'?[]:((S.settings&&S.settings.potongBulanan)||[]);
   const hariPotong=cut.reduce((n,k)=>n+(c[k]||0),0);const potAbsen=Math.round(harian*hariPotong);
   const reimb=+((per.reimburse||{})[e.id])||0;const pot=+((per.potonganLain||{})[e.id])||0;
@@ -469,6 +468,11 @@ function liveCalc(e,key){
   const terima=base+lm+ltm+lj+um+reimb;
   return {c,harian,gajiHadir,lm,ltm,jam,lj,um,hariUM,base,pro,reimb,pot,kas,potAbsen,hariPotong,cutKode:cut.slice(),potSH,shRate,rateJam,terima,potongan:kas+pot+potAbsen+potSH,thp:Math.round(terima-kas-pot-potAbsen-potSH)}
 }
+// Hari kerja yang dibayar untuk karyawan bulanan di satu periode: dari tanggal bergabung (bila di dalam periode)
+// sampai hari terakhir (bila keluar di dalam periode). null = bekerja penuh satu periode.
+function proRange(e,key,keluar){const {start,end}=periodRange(key);const s0=iso(start),s1=iso(end);const out=keluar!=null?keluar:e.tglKeluar;const join=e.tglBergabung||'';
+  const from=join>s0?join:s0;const to=out&&out<s1?out:s1;if(from===s0&&to===s1)return null;const wd=workDays(s0,s1);if(!wd)return null;
+  return {dj:to<from?0:workDays(from,to),wd,from,to}}
 function workDays(a,b){const hol=holidays();let n=0;for(let d=parse(a);iso(d)<=b;d.setDate(d.getDate()+1)){if(d.getDay()!==0&&!hol.has(iso(d)))n++}return n}
 function mealCfg(){const st=S.settings||{};return {amt:st.uangMakan!=null?+st.uangMakan:20000,min:st.makanMinJam!=null?+st.makanMinJam:4}}
 function mealDays(empId,key){const l=((S.periods[key]||{}).lembur||{})[empId]||{};const m=mealCfg();let n=0;for(const d in l)if(+l[d]>=m.min)n++;return n}
@@ -1587,7 +1591,7 @@ function exitSummary(e,tgl){
   let after=0;for(const k in S.periods){const r=((S.periods[k].absensi||{})[e.id])||{};for(const d in r)if(r[d]&&d>tgl)after++}
   const sp=activeWarns(e.id);const li=[];
   li.push(['Payroll terakhir','<b>'+esc(periodLabel(key))+'</b> ('+esc(periodSub(key))+'). Mulai periode berikutnya tidak masuk payroll.']);
-  if(e.metode!=='HARIAN'){const {start,end}=periodRange(key);const s0=iso(start),s1=iso(end);const wd=workDays(s0,s1),dj=workDays(s0,tgl);li.push(['Gaji bulanan',tgl>=s1?'Dibayar penuh (keluar di akhir periode).':'Prorata '+dj+' dari '+wd+' hari kerja = <b>Rp '+rp(Math.round((+e.gajiPokok||0)*dj/wd))+'</b> dari gaji pokok Rp '+rp(e.gajiPokok)+'.'])}
+  if(e.metode!=='HARIAN'){const pr=proRange(e,key,tgl);li.push(['Gaji bulanan',!pr?'Dibayar penuh (keluar di akhir periode).':'Prorata '+pr.dj+' dari '+pr.wd+' hari kerja = <b>Rp '+rp(Math.round((+e.gajiPokok||0)*pr.dj/pr.wd))+'</b> dari gaji pokok Rp '+rp(e.gajiPokok)+'.'])}
   li.push(['Sisa cuti',cutiSisa(e,cutiYearOf(tgl))+' hari (tahun cuti '+cutiYearOf(tgl)+'/'+String(cutiYearOf(tgl)+1).slice(2)+')']);
   li.push(['Kasbon',sisaKas?'Sisa <b>Rp '+rp(sisaKas)+'</b>. Dipotong di payroll terakhir Rp '+rp(potKas)+(sisaKas-potKas>0?'; sisa <b>Rp '+rp(sisaKas-potKas)+'</b> perlu diselesaikan langsung.':'.'):'Tidak ada']);
   if(sp.length)li.push(['Surat peringatan',esc(sp.map(w=>w.tingkat+' s/d '+fmtD(w.sampai)).join(', '))]);
@@ -1876,7 +1880,7 @@ function vHelp(){
   sec('2. Periode dan cut-off','<p style="margin:0">Satu periode gaji berjalan dari tanggal <b>'+c+'</b> bulan sebelumnya sampai tanggal <b>'+(c-1)+'</b>. Contoh: periode Oktober = 21 September s/d 20 Oktober. Tanggal cut-off bisa diubah di Pengaturan (“Tanggal tutup absen”). Tanggal merah / libur nasional diisi di Pengaturan supaya kolomnya berwarna merah.</p>')+
   sec('3. Kode absensi dan rumus gaji',ul([
    '<b>H</b> hadir, <b>SH</b> setengah hari, <b>I</b> izin, <b>S</b> sakit, <b>C</b> cuti, <b>A</b> alpha, <b>L</b> libur, <b>LM</b> lembur Minggu, <b>LTM</b> lembur tanggal merah.',
-   '<b>Karyawan bulanan</b>: gaji pokok penuh; bila keluar di tengah periode, prorata menurut hari kerja sampai hari terakhirnya. Potongan absen hanya untuk kode yang dicentang di Pengaturan (“Potong gaji karyawan bulanan”).',
+   '<b>Karyawan bulanan</b>: gaji pokok penuh; bila masuk atau keluar di tengah periode, prorata: gaji pokok × hari kerja yang dijalani ÷ hari kerja satu periode (Senin–Sabtu, di luar tanggal merah). Potongan absen hanya untuk kode yang dicentang di Pengaturan (“Potong gaji karyawan bulanan”).',
    '<b>Karyawan harian</b>: (gaji pokok ÷ pembagi) × (hari H + SH + C).',
    '<b>Gaji per hari</b> = gaji pokok ÷ pembagi (24 bila tidak diubah).',
    '<b>Lembur Minggu</b> = gaji/hari × LM × 2. <b>Lembur tanggal merah</b> = gaji/hari × LTM × pengali karyawan. <b>Lembur per jam</b> = jam × tarif (umum, gaji/hari ÷ 8, atau nominal khusus per karyawan).',

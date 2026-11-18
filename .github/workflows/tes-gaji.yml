@@ -1,0 +1,15 @@
+# Menjalankan tes rumus gaji dan pengingat setiap ada perubahan kode.
+# Bila merah, ada hitungan yang berubah: periksa sebelum situs dipakai.
+name: Tes gaji
+on:
+  push:
+  pull_request:
+jobs:
+  tes:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm test

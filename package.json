@@ -1,6 +1,9 @@
 {
   "name": "hrd-sopandi",
   "private": true,
+  "scripts": {
+    "test": "node --test tests/*.test.js"
+  },
   "dependencies": {
     "nodemailer": "6.9.16",
     "firebase-admin": "12.7.0"
