@@ -487,7 +487,8 @@ function cutiLabel(y){const {from,to}=cutiRange(y);const f=parse(from),t=parse(t
 function cutiAwalYear(){return (S.settings&&+S.settings.cutiAwalTahun)||2026}
 function kuotaFor(e,y){const o=(e.kuotaTahun||{})[y];if(o!=null&&o!=='')return +o;return y===cutiAwalYear()?(+e.kuotaCuti||0):((S.settings&&+S.settings.kuotaCutiDefault)||12)}
 function awalFor(e,y){return y===cutiAwalYear()?(+e.cutiTerpakaiAwal||0):0}
-function cutiUsed(e,y){if(y==null)y=cutiYearOf(new Date());const {from,to}=cutiRange(y);let n=0;for(const k in S.periods){const a=(S.periods[k].absensi||{})[e.id]||{};for(const d in a)if(a[d]==='C'&&d>=from&&d<=to)n++}return n}
+// cutiReset: kode C sebelum tanggal ini tidak dihitung lagi (saldo cuti diatur ulang)
+function cutiUsed(e,y){if(y==null)y=cutiYearOf(new Date());const {from,to}=cutiRange(y);const rs=e.cutiReset||'';let n=0;for(const k in S.periods){const a=(S.periods[k].absensi||{})[e.id]||{};for(const d in a)if(a[d]==='C'&&d>=from&&d<=to&&d>=rs)n++}return n}
 function cutiSisa(e,y){if(y==null)y=cutiYearOf(new Date());return kuotaFor(e,y)-awalFor(e,y)-cutiUsed(e,y)}
 
 // ---------- writes ----------
@@ -2423,7 +2424,12 @@ S.tab=lsGet('hrd.tab')||'dash';renderNav();render();window.__runImport=b=>runImp
   runMigrations(be.db);
 })();
 // Perubahan data satu kali (dijalankan otomatis oleh akun HRD yang login, lalu ditandai di settings.migrasi supaya tidak terulang).
-const MIGRATIONS=[{id:'2026-11-11-struktur-organisasi',run:async db=>{
+const MIGRATIONS=[{id:'2026-11-18-reset-cuti-wawan',run:async db=>{
+  const e=Object.values(S.emps).find(x=>(x.nama||'').trim().toUpperCase()==='WAWAN ANJANI');if(!e)return [];
+  const t=todayISO();await db.doc('employees/'+e.id).update({cutiTerpakaiAwal:0,cutiReset:t});
+  logAct('data','Mengatur ulang cuti terpakai · '+e.nama,{dari:(+e.cutiTerpakaiAwal||0)+' hari sebelum sistem + kode C di absensi',ke:'0 hari',ket:'Kode C sebelum '+fmtD(t)+' tidak dihitung lagi'});
+  return ['cuti terpakai Wawan Anjani diatur ulang jadi 0']}},
+{id:'2026-11-11-struktur-organisasi',run:async db=>{
   const done=[];const byName=n=>Object.values(S.emps).find(e=>(e.nama||'').trim().toUpperCase()===n);
   for(const [nama,jab] of [['GALANG AJI','PENASEHAT'],['RAFI RAMADHAN','OPERATOR CUTTING'],['FAHMI DWI PERMANA','OPERATOR CNC']]){
     const e=byName(nama);if(e&&e.jabatan!==jab){await db.doc('employees/'+e.id).update({jabatan:jab});done.push(nama+' → '+jab)}}
