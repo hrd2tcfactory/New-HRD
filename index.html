@@ -2465,6 +2465,15 @@ const MIGRATIONS=[{id:'2026-11-19-kpi-hanya-cnc',run:async db=>{
     logAct('data','Memindahkan divisi KPI · '+fa.nama,{dari:lama||'(kosong)',ke:t.nama,ket:'Skor bulan sebelumnya disimpan sebagai skor akhir; mulai '+kpiMonthLabel(cur)+' dinilai dengan indikator '+t.nama});
     done.push('divisi KPI '+fa.nama+' → '+t.nama)}
   return done}},
+{id:'2026-11-19-kpi-penilai-gustiar',run:async db=>{
+  // Gustiar dinilai HRD; karyawan lain yang ikut KPI dinilai Gustiar.
+  const g=Object.values(S.emps).filter(e=>/\bGUSTIAR\b/.test((e.nama||'').toUpperCase()));if(g.length!==1)throw new Error('karyawan Gustiar tidak ditemukan atau lebih dari satu');
+  const gid=g[0].id;const ubah=[];
+  for(const id in S.emps){if(!kpiDinilai(id))continue;const want=id===gid?'HRD':'GUSTIAR';const e=S.emps[id];if((e.kpiPenilai||'')===want)continue;
+    await db.doc('employees/'+id).update({kpiPenilai:want});ubah.push(e.nama+': '+(e.kpiPenilai||'—')+' → '+want);e.kpiPenilai=want}
+  if(!ubah.length)return [];
+  logAct('data','Mengatur penilai KPI',{ket:'Gustiar dinilai HRD; karyawan lain dinilai Gustiar. '+ubah.join('; ')});
+  return ['penilai KPI diatur: Gustiar dinilai HRD, karyawan lain dinilai Gustiar']}},
 {id:'2026-11-18-reset-cuti-wawan',run:async db=>{
   const e=Object.values(S.emps).find(x=>(x.nama||'').trim().toUpperCase()==='WAWAN ANJANI');if(!e)return [];
   const t=todayISO();await db.doc('employees/'+e.id).update({cutiTerpakaiAwal:0,cutiReset:t});
