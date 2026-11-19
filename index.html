@@ -1981,7 +1981,7 @@ function vKpi(){
   if(!Object.keys(S.kpiD).length)return bar+'<div class="panel" style="max-width:640px"><h2>Belum ada templat KPI</h2><p class="note">Impor sheet KPI (file Excel dengan sheet <b>Rekap Okt</b>, <b>Rekap Jun-Des</b> dan <b>Detail Indikator</b>) untuk membuat templat indikator tiap divisi dan menetapkan divisi serta penilai tiap karyawan. Setelah itu nilai diisi per karyawan di sini.</p><div class="row"><button class="btn primary" data-act="kpiImport">Impor dari Excel</button></div></div>';
   const all=empList();
   const divs=[...new Set(all.map(e=>e.kpiDivisi).filter(Boolean))].sort();
-  const rows=all.filter(e=>(!S.kDiv||(S.kDiv==='-'?!e.kpiDivisi:e.kpiDivisi===S.kDiv))&&(!q||(e.nama+' '+e.jabatan+' '+e.id+' '+(e.kpiDivisi||'')).toLowerCase().includes(q)));
+  const rows=all.filter(e=>(!S.kDiv?!!kpiTpl(e):(S.kDiv==='-'?!kpiTpl(e):e.kpiDivisi===S.kDiv))&&(!q||(e.nama+' '+e.jabatan+' '+e.id+' '+(e.kpiDivisi||'')).toLowerCase().includes(q)));
   const sc=rows.map(e=>[e,kpiScore(e,key)]);
   const got=sc.filter(x=>x[1].skor!=null);
   const avg=got.length?got.reduce((a,x)=>a+x[1].skor,0)/got.length:null;
@@ -1990,8 +1990,8 @@ function vKpi(){
   const kp='<div class="kpis"><div class="kpi"><span class="k">Sudah dinilai</span><span class="v">'+got.length+'<small style="font-size:14px;color:var(--muted)"> / '+rows.length+'</small></span><span class="s">'+kpiMonthLabel(key)+'</span></div>'+
    '<div class="kpi"><span class="k">Rata-rata skor</span><span class="v">'+(avg==null?'—':avg.toFixed(1))+'</span><span class="s">'+(avg==null?'Belum ada nilai':kpiPred(avg)[1])+'</span></div>'+
    '<div class="kpi"><span class="k">Sebaran predikat</span><span class="v" style="font-size:16px">'+(KPI_PRED.map(p=>cnt[p[1]]?p[1]+' '+cnt[p[1]]:'').filter(Boolean).join(' · ')||'—')+'</span></div>'+
-   '<div class="kpi"><span class="k">Divisi belum diatur</span><span class="v">'+noDiv+'</span><span class="s">Karyawan tanpa templat KPI</span></div></div>';
-  const filt='<div class="row"><input id="q" class="search" type="search" placeholder="Cari nama, jabatan, ID…" value="'+esc(S.q)+'"><select id="kpiDiv"><option value="">Semua divisi KPI</option>'+divs.map(d=>'<option'+(S.kDiv===d?' selected':'')+'>'+esc(d)+'</option>').join('')+'<option value="-"'+(S.kDiv==='-'?' selected':'')+'>Belum diatur</option></select><span class="sub">'+rows.length+' orang</span></div>';
+   '<div class="kpi"><span class="k">Tidak dinilai</span><span class="v">'+noDiv+'</span><span class="s">Karyawan tanpa divisi KPI</span></div></div>';
+  const filt='<div class="row"><input id="q" class="search" type="search" placeholder="Cari nama, jabatan, ID…" value="'+esc(S.q)+'"><select id="kpiDiv"><option value="">Semua yang dinilai</option>'+divs.map(d=>'<option'+(S.kDiv===d?' selected':'')+'>'+esc(d)+'</option>').join('')+'<option value="-"'+(S.kDiv==='-'?' selected':'')+'>Tidak dinilai (tanpa divisi KPI)</option></select><span class="sub">'+rows.length+' orang</span></div>';
   const tbl='<div class="tablewrap"><table><thead><tr><th class="num">No</th><th>ID</th><th>Nama & jabatan</th><th>Divisi KPI</th><th>Penilai</th><th>Status</th><th class="num">Skor</th><th>Predikat</th><th></th></tr></thead><tbody>'+
    (sc.length?sc.map(([e,r],i)=>'<tr><td class="num sub">'+(i+1)+'</td><td class="sub">'+esc(e.id)+'</td><td><div class="name">'+esc(e.nama)+'</div><div class="sub">'+esc(e.jabatan)+'</div></td><td>'+esc(e.kpiDivisi||'—')+'</td><td class="sub">'+esc(e.kpiPenilai||'—')+'</td><td>'+kpiStatusPill(r,e)+'</td><td class="num"><b>'+(r.skor==null?'—':r.skor.toFixed(1))+'</b></td><td>'+kpiPill(r.skor)+'</td><td><button class="btn" data-act="kpiNilai" data-id="'+esc(e.id)+'">'+(r.done?'Ubah nilai':'Isi nilai')+'</button></td></tr>').join(''):'<tr><td colspan="9" class="empty">Tidak ada karyawan yang cocok.</td></tr>')+
    '</tbody></table></div>';
@@ -2428,7 +2428,20 @@ S.tab=lsGet('hrd.tab')||'dash';renderNav();render();window.__runImport=b=>runImp
   runMigrations(be.db);
 })();
 // Perubahan data satu kali (dijalankan otomatis oleh akun HRD yang login, lalu ditandai di settings.migrasi supaya tidak terulang).
-const MIGRATIONS=[{id:'2026-11-18-reset-cuti-wawan',run:async db=>{
+const MIGRATIONS=[{id:'2026-11-19-kpi-hanya-cnc',run:async db=>{
+  // KPI hanya untuk jabatan yang punya indikator dan target. Nilai karyawan lain dihapus; salinannya disimpan di arsip/kpi-2026-11-19.
+  let n=0;while(!S.ready.kpiN&&n++<400)await new Promise(r=>setTimeout(r,50));if(!S.ready.kpiN)throw new Error('data KPI belum termuat');
+  const KEEP=['OPERATOR CNC','MANAGER CNC'];const keep=id=>{const e=S.emps[id];return !!e&&KEEP.includes(normJab(e.jabatan||''))};
+  const MAPS=['nilai','def','hist','catatan','absen','lap'];const arsip={kpiNilai:{},kpiDivisi:{}};let nNilai=0;const orang=new Set();
+  for(const k in S.kpiN){const d=S.kpiN[k];let ubah=false;const nd=clone(d);
+    MAPS.forEach(m=>{const o=d[m]||{};Object.keys(o).forEach(id=>{if(keep(id))return;((arsip.kpiNilai[k]=arsip.kpiNilai[k]||{})[m]=arsip.kpiNilai[k][m]||{})[id]=o[id];delete nd[m][id];ubah=true;if(m==='nilai'||m==='hist'){nNilai++;orang.add(id)}})});
+    if(ubah){await db.doc('kpiNilai/'+k).set(nd);S.kpiN[k]=nd}}
+  for(const id in S.emps){const e=S.emps[id];if(!keep(id)&&e.kpiDivisi){arsip.kpiDivisi[id]={kpiDivisi:e.kpiDivisi,kpiPenilai:e.kpiPenilai||''};await db.doc('employees/'+id).update({kpiDivisi:'',kpiPenilai:''});e.kpiDivisi='';e.kpiPenilai=''}}
+  const nDiv=Object.keys(arsip.kpiDivisi).length;if(!nNilai&&!nDiv)return [];
+  await db.doc('arsip/kpi-2026-11-19').set(Object.assign({dibuat:new Date().toISOString(),ket:'Nilai KPI dan divisi KPI karyawan selain Operator CNC dan Manager CNC sebelum dihapus'},arsip));
+  logAct('hapus','Menghapus nilai KPI selain Operator CNC dan Manager CNC',{ket:orang.size+' karyawan, '+nNilai+' penilaian bulanan; divisi KPI '+nDiv+' karyawan dikosongkan. Salinan di arsip/kpi-2026-11-19'});
+  return ['nilai KPI '+orang.size+' karyawan selain Operator CNC dan Manager CNC dihapus']}},
+{id:'2026-11-18-reset-cuti-wawan',run:async db=>{
   const e=Object.values(S.emps).find(x=>(x.nama||'').trim().toUpperCase()==='WAWAN ANJANI');if(!e)return [];
   const t=todayISO();await db.doc('employees/'+e.id).update({cutiTerpakaiAwal:0,cutiReset:t});
   logAct('data','Mengatur ulang cuti terpakai · '+e.nama,{dari:(+e.cutiTerpakaiAwal||0)+' hari sebelum sistem + kode C di absensi',ke:'0 hari',ket:'Kode C sebelum '+fmtD(t)+' tidak dihitung lagi'});
