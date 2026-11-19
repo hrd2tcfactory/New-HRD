@@ -2428,19 +2428,43 @@ S.tab=lsGet('hrd.tab')||'dash';renderNav();render();window.__runImport=b=>runImp
   runMigrations(be.db);
 })();
 // Perubahan data satu kali (dijalankan otomatis oleh akun HRD yang login, lalu ditandai di settings.migrasi supaya tidak terulang).
+// Jabatan yang punya indikator dan target KPI. Karyawan lain tidak dinilai.
+function kpiDinilai(id){const e=S.emps[id];if(!e)return false;const j=normJab(e.jabatan||'');return j==='OPERATOR CNC'||j==='MANAGER CNC'||/PROGRAMMER|\bCAM\b|CUTTING/.test(j)}
 const MIGRATIONS=[{id:'2026-11-19-kpi-hanya-cnc',run:async db=>{
   // KPI hanya untuk jabatan yang punya indikator dan target. Nilai karyawan lain dihapus; salinannya disimpan di arsip/kpi-2026-11-19.
   let n=0;while(!S.ready.kpiN&&n++<400)await new Promise(r=>setTimeout(r,50));if(!S.ready.kpiN)throw new Error('data KPI belum termuat');
-  const KEEP=['OPERATOR CNC','MANAGER CNC'];const keep=id=>{const e=S.emps[id];return !!e&&KEEP.includes(normJab(e.jabatan||''))};
+  const keep=kpiDinilai;
   const MAPS=['nilai','def','hist','catatan','absen','lap'];const arsip={kpiNilai:{},kpiDivisi:{}};let nNilai=0;const orang=new Set();
   for(const k in S.kpiN){const d=S.kpiN[k];let ubah=false;const nd=clone(d);
     MAPS.forEach(m=>{const o=d[m]||{};Object.keys(o).forEach(id=>{if(keep(id))return;((arsip.kpiNilai[k]=arsip.kpiNilai[k]||{})[m]=arsip.kpiNilai[k][m]||{})[id]=o[id];delete nd[m][id];ubah=true;if(m==='nilai'||m==='hist'){nNilai++;orang.add(id)}})});
     if(ubah){await db.doc('kpiNilai/'+k).set(nd);S.kpiN[k]=nd}}
   for(const id in S.emps){const e=S.emps[id];if(!keep(id)&&e.kpiDivisi){arsip.kpiDivisi[id]={kpiDivisi:e.kpiDivisi,kpiPenilai:e.kpiPenilai||''};await db.doc('employees/'+id).update({kpiDivisi:'',kpiPenilai:''});e.kpiDivisi='';e.kpiPenilai=''}}
   const nDiv=Object.keys(arsip.kpiDivisi).length;if(!nNilai&&!nDiv)return [];
-  await db.doc('arsip/kpi-2026-11-19').set(Object.assign({dibuat:new Date().toISOString(),ket:'Nilai KPI dan divisi KPI karyawan selain Operator CNC dan Manager CNC sebelum dihapus'},arsip));
-  logAct('hapus','Menghapus nilai KPI selain Operator CNC dan Manager CNC',{ket:orang.size+' karyawan, '+nNilai+' penilaian bulanan; divisi KPI '+nDiv+' karyawan dikosongkan. Salinan di arsip/kpi-2026-11-19'});
-  return ['nilai KPI '+orang.size+' karyawan selain Operator CNC dan Manager CNC dihapus']}},
+  await db.doc('arsip/kpi-2026-11-19').set(Object.assign({dibuat:new Date().toISOString(),ket:'Nilai KPI dan divisi KPI karyawan yang tidak dinilai, sebelum dihapus'},arsip));
+  logAct('hapus','Menghapus nilai KPI selain Operator CNC, Manager CNC, Programmer, CAM dan Cutting',{ket:orang.size+' karyawan, '+nNilai+' penilaian bulanan; divisi KPI '+nDiv+' karyawan dikosongkan. Salinan di arsip/kpi-2026-11-19'});
+  return ['nilai KPI '+orang.size+' karyawan selain Operator CNC, Manager CNC, Programmer, CAM dan Cutting dihapus']}},
+{id:'2026-11-19-kpi-programmer-cam-cutting-fahmi',run:async db=>{
+  let n=0;while(!(S.ready.kpiN&&S.ready.kpiD)&&n++<400)await new Promise(r=>setTimeout(r,50));if(!(S.ready.kpiN&&S.ready.kpiD))throw new Error('data KPI belum termuat');
+  const done=[];const f=Object.values(S.emps).filter(e=>/\bFAHMI\b/.test((e.nama||'').toUpperCase()));const fa=f.length===1?f[0]:null;
+  // 1) Fahmi berjabatan Operator CNC
+  if(fa&&normJab(fa.jabatan||'')!=='OPERATOR CNC'){await db.doc('employees/'+fa.id).update({jabatan:'OPERATOR CNC'});fa.jabatan='OPERATOR CNC';done.push(fa.nama+' → OPERATOR CNC')}
+  // 2) kembalikan nilai Programmer, CAM, Cutting (dan Fahmi) bila sudah sempat dihapus
+  const snap=await db.doc('arsip/kpi-2026-11-19').get();
+  if(snap.exists){const a=snap.data()||{};const who=new Set();
+    for(const k in (a.kpiNilai||{})){const patch={};for(const m in a.kpiNilai[k])for(const id in a.kpiNilai[k][m]){if(!kpiDinilai(id))continue;(patch[m]=patch[m]||{})[id]=a.kpiNilai[k][m][id];who.add(id)}
+      if(Object.keys(patch).length){await db.doc('kpiNilai/'+k).update(patch);if(!S.kpiN[k])S.kpiN[k]={key:k};deepMerge(S.kpiN[k],clone(patch))}}
+    for(const id in (a.kpiDivisi||{})){if(!kpiDinilai(id))continue;const v=a.kpiDivisi[id];await db.doc('employees/'+id).update(v);Object.assign(S.emps[id],v);who.add(id)}
+    if(who.size){done.push('KPI '+who.size+' karyawan dikembalikan dari arsip');logAct('data','Mengembalikan nilai KPI dari arsip',{ket:[...who].map(enm).join(', ')})}}
+  // 3) divisi KPI Fahmi pindah ke Operator CNC; skor bulan lalu di divisi lama disimpan sebagai skor akhir, bulan ini dinilai ulang
+  const t=Object.values(S.kpiD).find(x=>/operator\s*cnc/i.test(x.nama||''));
+  if(fa&&t&&fa.kpiDivisi!==t.nama){const cur=kpiKey();const lama=fa.kpiDivisi||'';
+    for(const k in S.kpiN){const d=S.kpiN[k];const v=(d.nilai||{})[fa.id];if(!v||!Object.keys(v).length)continue;
+      const sc=k<cur&&kpiTpl(fa)?kpiScore(fa,k).skor:null;const nd=clone(d);delete nd.nilai[fa.id];if(nd.def)delete nd.def[fa.id];
+      if(sc!=null)(nd.hist=nd.hist||{})[fa.id]=Math.round(sc*100)/100;await db.doc('kpiNilai/'+k).set(nd);S.kpiN[k]=nd}
+    await db.doc('employees/'+fa.id).update({kpiDivisi:t.nama});fa.kpiDivisi=t.nama;
+    logAct('data','Memindahkan divisi KPI · '+fa.nama,{dari:lama||'(kosong)',ke:t.nama,ket:'Skor bulan sebelumnya disimpan sebagai skor akhir; mulai '+kpiMonthLabel(cur)+' dinilai dengan indikator '+t.nama});
+    done.push('divisi KPI '+fa.nama+' → '+t.nama)}
+  return done}},
 {id:'2026-11-18-reset-cuti-wawan',run:async db=>{
   const e=Object.values(S.emps).find(x=>(x.nama||'').trim().toUpperCase()==='WAWAN ANJANI');if(!e)return [];
   const t=todayISO();await db.doc('employees/'+e.id).update({cutiTerpakaiAwal:0,cutiReset:t});
