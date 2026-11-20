@@ -380,7 +380,7 @@ function shiftKey(key,n){let [y,m]=key.split('-').map(Number);m+=n;while(m>12){m
 function periodLabel(key){const [y,m]=key.split('-').map(Number);return MONTHS[m-1]+' '+y}
 function periodSub(key){const {start,end}=periodRange(key);return start.getDate()+' '+MS[start.getMonth()]+' – '+end.getDate()+' '+MS[end.getMonth()]+' '+end.getFullYear()}
 function holidays(){return new Set(((S.settings&&S.settings.libur)||[]))}
-function P(){return S.periods[S.periodKey]||{absensi:{},lembur:{},reimburse:{},potonganLain:{}}}
+function P(){return S.periods[S.periodKey]||{absensi:{},lembur:{},reimburse:{},bonus:{},potonganLain:{}}}
 
 // ---------- employees ----------
 const DEFAULT_ORDER=['PENASEHAT','GENERAL MANAGER','MANAGER','MANAGER CNC','KABAG PRODUKSI','HRD','FINANCE','CAM PRODUKSI','PROGRAMMER','PPIC','DESIGN','SUPERVISIOR CNC','WAKIL SUPERVISIOR','OPERATOR CNC','OPERATOR CUTTING','WELDING','ASSEMBLY','LASER MARKING','ADMIN','CONTENT CREATOR','GUDANG','PACKER','DRIVER','OB'];
@@ -427,9 +427,10 @@ function payChecks(key){
     if(r.thp<0)add('bad','THP minus (Rp '+rp(r.thp)+'): potongan lebih besar dari pendapatan');
     else if(r.thp===0&&gp)add('warn','THP Rp 0');
     if(e.metode==='HARIAN'&&gp&&!(r.c.H+(r.c.SH||0)+r.c.C))add('warn','Karyawan harian tanpa hari hadir: gaji dibayar Rp 0');
-    if(gp&&r.reimb>gp*0.5)add('warn','Reimburse/bonus Rp '+rp(r.reimb)+' lebih dari setengah gaji pokok. Cek jumlah nol');
+    if(gp&&r.reimb>gp*0.5)add('warn','Reimburse Rp '+rp(r.reimb)+' lebih dari setengah gaji pokok. Cek jumlah nol');
+    if(gp&&r.bonus>gp*0.5)add('warn','Bonus Rp '+rp(r.bonus)+' lebih dari setengah gaji pokok. Cek jumlah nol');
     if(gp&&r.pot>gp*0.5)add('warn','Potongan lain Rp '+rp(r.pot)+' lebih dari setengah gaji pokok. Cek jumlah nol');
-    if((r.reimb%100)||(r.pot%100))add('info','Reimburse/potongan lain bukan kelipatan 100. Mungkin salah ketik');
+    if((r.reimb%100)||((r.bonus||0)%100)||(r.pot%100))add('info','Reimburse, bonus, atau potongan lain bukan kelipatan 100. Mungkin salah ketik');
     Object.entries(Lm[e.id]||{}).forEach(([d,h])=>{if(+h>12)add('bad','Lembur '+h+' jam dalam sehari ('+fmtD(d)+'). Mungkin salah ketik')});
     if(r.jam>60)add('warn','Total lembur '+r.jam+' jam dalam satu periode');
     if(gp&&r.thp>gp*2)add('warn','THP Rp '+rp(r.thp)+' lebih dari 2× gaji pokok');
@@ -463,10 +464,10 @@ function liveCalc(e,key){
   let pro=null;if(e.metode!=='HARIAN'){pro=proRange(e,key);if(pro)base=Math.round((+e.gajiPokok||0)*pro.dj/pro.wd)}
   const cut=e.metode==='HARIAN'?[]:((S.settings&&S.settings.potongBulanan)||[]);
   const hariPotong=cut.reduce((n,k)=>n+(c[k]||0),0);const potAbsen=Math.round(harian*hariPotong);
-  const reimb=+((per.reimburse||{})[e.id])||0;const pot=+((per.potonganLain||{})[e.id])||0;
+  const reimb=+((per.reimburse||{})[e.id])||0;const bonus=+((per.bonus||{})[e.id])||0;const pot=+((per.potonganLain||{})[e.id])||0;
   const kas=kasbonFor(e.id,key);
-  const terima=base+lm+ltm+lj+um+reimb;
-  return {c,harian,gajiHadir,lm,ltm,jam,lj,um,hariUM,base,pro,reimb,pot,kas,potAbsen,hariPotong,cutKode:cut.slice(),potSH,shRate,rateJam,terima,potongan:kas+pot+potAbsen+potSH,thp:Math.round(terima-kas-pot-potAbsen-potSH)}
+  const terima=base+lm+ltm+lj+um+reimb+bonus;
+  return {c,harian,gajiHadir,lm,ltm,jam,lj,um,hariUM,base,pro,reimb,bonus,pot,kas,potAbsen,hariPotong,cutKode:cut.slice(),potSH,shRate,rateJam,terima,potongan:kas+pot+potAbsen+potSH,thp:Math.round(terima-kas-pot-potAbsen-potSH)}
 }
 // Hari kerja yang dibayar untuk karyawan bulanan di satu periode: dari tanggal bergabung (bila di dalam periode)
 // sampai hari terakhir (bila keluar di dalam periode). null = bekerja penuh satu periode.
@@ -717,12 +718,13 @@ function lockBanner(){const L=lockOf();if(!L)return '';const d=new Date(L.at);
   return '<div class="lockbar" role="status"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><div><b>Payroll '+periodLabel(S.periodKey)+' sudah dikunci</b><span>Dikunci '+d.getDate()+' '+MS[d.getMonth()]+' '+d.getFullYear()+' pukul '+pad(d.getHours())+'.'+pad(d.getMinutes())+'. Absensi, lembur dan angka gaji periode ini tidak bisa diubah.</span></div></div>'}
 function vPay(){
   const key=S.periodKey;const locked=isLocked(key);const emps=payEmps(key);
-  const T={base:0,lm:0,ltm:0,lj:0,um:0,reimb:0,potSH:0,kas:0,pot:0,potAbsen:0,thp:0};
+  const T={base:0,lm:0,ltm:0,lj:0,um:0,reimb:0,bonus:0,potSH:0,kas:0,pot:0,potAbsen:0,thp:0};
   const showAbs=locked?emps.some(e=>calc(e,key).potAbsen):((S.settings&&S.settings.potongBulanan)||[]).length>0;
   const dis=locked?' disabled':'';
   const chk=locked?[]:payChecks(key);const flag={};chk.forEach(c=>{if(c.id&&c.lvl!=='info')flag[c.id]=flag[c.id]==='bad'?'bad':c.lvl});const nSerius=chk.filter(c=>c.lvl!=='info').length;
   const rows=emps.map(e=>{const r=calc(e,key);for(const k in T)T[k]+=(r[k]||0);return '<tr><td class="sub">'+esc(e.id)+'</td><td><div class="name">'+esc(e.nama)+keluarPill(S.emps[e.id]||e)+spPill(e.id)+(flag[e.id]?' <span class="pill '+(flag[e.id]==='bad'?'p-bad':'p-warn')+'">'+(flag[e.id]==='bad'?'Salah':'Cek')+'</span>':'')+'</div><div class="sub">'+esc(e.jabatan)+'</div></td><td class="sub">'+(e.metode==='HARIAN'?'Harian':'Bulanan')+' ÷'+(e.pembagi||24)+'</td><td class="num">'+rp(e.gajiPokok)+'</td><td class="num">'+rp(r.harian)+'</td><td class="num">'+(r.c.H+(r.c.SH||0)+r.c.C)+'</td><td class="num">'+rp(r.base)+(r.pro?'<div class="sub">prorata '+r.pro.dj+'/'+r.pro.wd+' hr kerja</div>':'')+'</td><td class="num">'+(r.lm?rp(r.lm):'–')+'</td><td class="num">'+(r.ltm?rp(r.ltm):'–')+'</td><td class="num">'+(r.lj?rp(r.lj):'–')+'</td><td class="num">'+(r.um?rp(r.um)+'<div class="sub">'+r.hariUM+' hari</div>':'–')+'</td>'+
     '<td class="num"><input class="cellin" type="number" min="0" step="1000" data-reimb="'+esc(e.id)+'" value="'+(r.reimb||'')+'" placeholder="0" aria-label="Reimburse '+esc(e.nama)+'"'+dis+'></td>'+
+    '<td class="num"><input class="cellin" type="number" min="0" step="1000" data-bonus="'+esc(e.id)+'" value="'+(r.bonus||'')+'" placeholder="0" aria-label="Bonus '+esc(e.nama)+'"'+dis+'></td>'+
     '<td class="num">'+(r.potSH?'−'+rp(r.potSH)+'<div class="sub">'+r.c.SH+' × '+rp(r.shRate)+'</div>':'–')+'</td>'+
     (showAbs?'<td class="num">'+(r.potAbsen?'−'+rp(r.potAbsen)+'<div class="sub">'+r.hariPotong+' hr</div>':'–')+'</td>':'')+
     '<td class="num">'+(r.kas?'−'+rp(r.kas):'–')+'</td>'+
@@ -734,12 +736,12 @@ function vPay(){
   '<div class="kpi"><span class="k">Total lembur</span><span class="v">Rp '+rp(T.lm+T.ltm+T.lj)+'</span><span class="s">Minggu '+rp(T.lm)+' · Tgl merah '+rp(T.ltm)+' · Per jam '+rp(T.lj)+'</span></div>'+
   '<div class="kpi"><span class="k">Potongan kasbon</span><span class="v">Rp '+rp(T.kas)+'</span><span class="s">'+(locked?'Sudah dicatat ke saldo kasbon':'Dicatat ke saldo kasbon saat payroll dikunci')+'</span></div>'+
   '<div class="kpi"><span class="k">Status periode</span><span class="v" style="font-size:20px">'+(locked?'Terkunci':'Terbuka')+'</span><span class="s">'+(locked?'Buka kunci hanya jika ada koreksi.':'Kunci setelah gaji dibayar agar angka tidak berubah lagi.')+'</span><div style="margin-top:6px">'+lockBtn+'</div></div></div>'+
-  (locked?'':chkList(chk,'Cek payroll'))+'<div class="tablewrap" style="max-height:72vh"><table><thead><tr><th>ID</th><th>Nama</th><th>Skema</th><th class="num">Gaji pokok</th><th class="num">Gaji/hari</th><th class="num">Hadir+cuti</th><th class="num">Gaji dibayar</th><th class="num">Lembur Minggu</th><th class="num">Lembur tgl merah</th><th class="num">Lembur/jam</th><th class="num">Uang makan</th><th class="num">Reimburse/bonus</th><th class="num">Potongan ½ hari</th>'+(showAbs?'<th class="num">Potongan absen</th>':'')+'<th class="num">Kasbon</th><th class="num">Potongan lain</th><th class="num">THP</th><th></th></tr></thead><tbody>'+rows+
-  '</tbody><tfoot><tr><td></td><td>Total</td><td></td><td></td><td></td><td></td><td class="num">'+rp(T.base)+'</td><td class="num">'+rp(T.lm)+'</td><td class="num">'+rp(T.ltm)+'</td><td class="num">'+rp(T.lj)+'</td><td class="num">'+rp(T.um)+'</td><td class="num">'+rp(T.reimb)+'</td><td class="num">−'+rp(T.potSH)+'</td>'+(showAbs?'<td class="num">−'+rp(T.potAbsen)+'</td>':'')+'<td class="num">−'+rp(T.kas)+'</td><td class="num">−'+rp(T.pot)+'</td><td class="num">'+rp(T.thp)+'</td><td></td></tr></tfoot></table></div>'+
+  (locked?'':chkList(chk,'Cek payroll'))+'<div class="tablewrap" style="max-height:72vh"><table><thead><tr><th>ID</th><th>Nama</th><th>Skema</th><th class="num">Gaji pokok</th><th class="num">Gaji/hari</th><th class="num">Hadir+cuti</th><th class="num">Gaji dibayar</th><th class="num">Lembur Minggu</th><th class="num">Lembur tgl merah</th><th class="num">Lembur/jam</th><th class="num">Uang makan</th><th class="num">Reimburse</th><th class="num">Bonus</th><th class="num">Potongan ½ hari</th>'+(showAbs?'<th class="num">Potongan absen</th>':'')+'<th class="num">Kasbon</th><th class="num">Potongan lain</th><th class="num">THP</th><th></th></tr></thead><tbody>'+rows+
+  '</tbody><tfoot><tr><td></td><td>Total</td><td></td><td></td><td></td><td></td><td class="num">'+rp(T.base)+'</td><td class="num">'+rp(T.lm)+'</td><td class="num">'+rp(T.ltm)+'</td><td class="num">'+rp(T.lj)+'</td><td class="num">'+rp(T.um)+'</td><td class="num">'+rp(T.reimb)+'</td><td class="num">'+rp(T.bonus)+'</td><td class="num">−'+rp(T.potSH)+'</td>'+(showAbs?'<td class="num">−'+rp(T.potAbsen)+'</td>':'')+'<td class="num">−'+rp(T.kas)+'</td><td class="num">−'+rp(T.pot)+'</td><td class="num">'+rp(T.thp)+'</td><td></td></tr></tfoot></table></div>'+
   '<p class="note">Semua angka dihitung otomatis dari halaman Absensi dan Lembur. <b>Bulanan</b> = gaji pokok penuh'+(((S.settings&&S.settings.potongBulanan)||[]).length?', dipotong gaji/hari untuk kode '+S.settings.potongBulanan.join(', '):' (tidak dipotong absen; atur di Pengaturan)')+'. <b>Harian</b> = (gaji pokok ÷ pembagi) × (hari H + SH + C). <b>Setengah hari (SH)</b> dihitung masuk, lalu dipotong Rp '+rp(shRateFor(1e12))+' per hari, atau Rp '+rp(shRateFor(0))+' bila gaji/hari di bawah Rp '+rp((S.settings&&S.settings.shBatas!=null)?S.settings.shBatas:100000)+'. Lembur Minggu = gaji/hari × LM × 2. Lembur tanggal merah = gaji/hari × LTM × pengali. Lembur per jam = jam × tarif. Uang makan = Rp '+rp(mealCfg().amt)+' untuk setiap hari yang lemburnya minimal '+mealCfg().min+' jam.</p>';
 }
 function payRows(){
-  return payEmps().map(e=>{const r=calc(e);return {ID:e.id,Nama:e.nama,Jabatan:e.jabatan,Status:e.status,Skema:e.metode,'Gaji Pokok':Math.round(e.gajiPokok||0),'Gaji Harian':Math.round(r.harian),'Hadir (H)':r.c.H,'Cuti (C)':r.c.C,'Izin (I)':r.c.I,'Sakit (S)':r.c.S,'Alpha (A)':r.c.A,'LM (hari)':r.c.LM,'LTM (hari)':r.c.LTM,'Gaji Dibayar':Math.round(r.base),'Prorata (hari kerja)':r.pro?r.pro.dj+'/'+r.pro.wd:'','Lembur Minggu':r.lm,'Lembur Tgl Merah':r.ltm,'Jam Lembur':r.jam,'Lembur/Jam':Math.round(r.lj),'Hari Uang Makan':r.hariUM||0,'Uang Makan':r.um||0,'Reimburse':r.reimb,'Setengah Hari (SH)':r.c.SH||0,'Potongan 1/2 Hari':r.potSH||0,'Potongan Absen':r.potAbsen||0,'Kasbon':Math.round(r.kas),'Potongan Lain':r.pot,'THP':r.thp,'Rekening':e.rekening}})
+  return payEmps().map(e=>{const r=calc(e);return {ID:e.id,Nama:e.nama,Jabatan:e.jabatan,Status:e.status,Skema:e.metode,'Gaji Pokok':Math.round(e.gajiPokok||0),'Gaji Harian':Math.round(r.harian),'Hadir (H)':r.c.H,'Cuti (C)':r.c.C,'Izin (I)':r.c.I,'Sakit (S)':r.c.S,'Alpha (A)':r.c.A,'LM (hari)':r.c.LM,'LTM (hari)':r.c.LTM,'Gaji Dibayar':Math.round(r.base),'Prorata (hari kerja)':r.pro?r.pro.dj+'/'+r.pro.wd:'','Lembur Minggu':r.lm,'Lembur Tgl Merah':r.ltm,'Jam Lembur':r.jam,'Lembur/Jam':Math.round(r.lj),'Hari Uang Makan':r.hariUM||0,'Uang Makan':r.um||0,'Reimburse':r.reimb,'Bonus':r.bonus||0,'Setengah Hari (SH)':r.c.SH||0,'Potongan 1/2 Hari':r.potSH||0,'Potongan Absen':r.potAbsen||0,'Kasbon':Math.round(r.kas),'Potongan Lain':r.pot,'THP':r.thp,'Rekening':e.rekening}})
 }
 
 // ===== File transfer BCA (Multi Payroll / MAT KlikBCA Bisnis) =====
@@ -803,8 +805,8 @@ async function exportPay(){
   const wb=XLSX.utils.book_new();const st=S.settings||{};
   const rows=payRows();const ws=XLSX.utils.aoa_to_sheet([[st.nama||''],[st.alamat||''],['PAYROLL '+periodLabel(S.periodKey).toUpperCase()+' ('+periodSub(S.periodKey)+')'+(isLocked()?' — FINAL':' — DRAFT')],[]]);
   XLSX.utils.sheet_add_json(ws,rows,{origin:'A5'});
-  const tot={ID:'',Nama:'TOTAL'};['Gaji Dibayar','Lembur Minggu','Lembur Tgl Merah','Lembur/Jam','Reimburse','Potongan 1/2 Hari','Potongan Absen','Kasbon','Potongan Lain','THP'].forEach(k=>tot[k]=rows.reduce((s,r)=>s+(+r[k]||0),0));
-  XLSX.utils.sheet_add_json(ws,[tot],{origin:-1,skipHeader:true});
+  const tot={ID:'',Nama:'TOTAL'};['Gaji Dibayar','Lembur Minggu','Lembur Tgl Merah','Lembur/Jam','Reimburse','Bonus','Potongan 1/2 Hari','Potongan Absen','Kasbon','Potongan Lain','THP'].forEach(k=>tot[k]=rows.reduce((s,r)=>s+(+r[k]||0),0));
+  XLSX.utils.sheet_add_json(ws,[tot],{origin:-1,skipHeader:true,header:rows.length?Object.keys(rows[0]):undefined});
   ws['!cols']=[{wch:6},{wch:28},{wch:18},{wch:14},{wch:9}].concat(Array(21).fill({wch:13}));
   XLSX.utils.book_append_sheet(wb,ws,'PAYROLL');
   const dates=periodDates(S.periodKey);const A=P().absensi||{};
@@ -856,7 +858,7 @@ function terbilang(n){n=Math.floor(Math.abs(n));const s=['','satu','dua','tiga',
 function slipLines(e,r){
   const plus=[['Gaji '+(e.metode==='HARIAN'?'hadir ('+(r.c.H+(r.c.SH||0)+r.c.C)+' hari)':r.pro?'pokok prorata ('+r.pro.dj+'/'+r.pro.wd+' hari kerja)':'pokok'),r.base]];
   if(r.lm)plus.push(['Lembur hari Minggu ('+r.c.LM+' hari)',r.lm]);if(r.ltm)plus.push(['Lembur tanggal merah ('+r.c.LTM+' hari)',r.ltm]);
-  if(r.lj)plus.push(['Lembur per jam ('+r.jam+' jam'+(r.rateJam?' × '+rp(r.rateJam):'')+')',r.lj]);if(r.um)plus.push(['Uang makan lembur ('+r.hariUM+' hari × '+rp(mealCfg().amt)+')',r.um]);if(r.reimb)plus.push(['Reimburse / bonus',r.reimb]);
+  if(r.lj)plus.push(['Lembur per jam ('+r.jam+' jam'+(r.rateJam?' × '+rp(r.rateJam):'')+')',r.lj]);if(r.um)plus.push(['Uang makan lembur ('+r.hariUM+' hari × '+rp(mealCfg().amt)+')',r.um]);if(r.reimb)plus.push(['Reimburse',r.reimb]);if(r.bonus)plus.push(['Bonus',r.bonus]);
   const minus=[];if(r.potSH)minus.push(['Setengah hari ('+r.c.SH+' × '+rp(r.shRate)+')',r.potSH]);if(r.potAbsen)minus.push(['Potongan absen ('+r.hariPotong+' hari '+(r.cutKode||[]).join('/')+')',r.potAbsen]);if(r.kas)minus.push(['Kasbon / pinjaman',r.kas]);if(r.pot)minus.push(['Potongan lain',r.pot]);
   return {plus,minus}}
 function vSlip(){
@@ -1527,7 +1529,7 @@ function checklist(key){
   const it=[];const add=(id,tab,judul,done,sub,manual)=>it.push({id,tab,judul,done:!!done,sub,manual:!!manual,dicentang:!!man[id]});
   add('absen','att','Lengkapi absensi',hasData&&!kos&&(locked||t>=endISO),!hasData?'Belum ada absensi di periode ini':kos?kos+' karyawan masih punya hari kerja kosong':t<endISO&&!locked?'Lengkap sampai hari ini. Periode ditutup '+fmtD(endISO):'Semua hari kerja sudah terisi');
   add('lembur','ot','Isi lembur',locked||jam>0||man.lembur,jam?jam+' jam lembur tercatat':man.lembur?'Ditandai: tidak ada lembur periode ini':'Belum ada jam lembur. Centang bila memang tidak ada lembur',!locked&&!jam);
-  add('cek','pay','Periksa payroll',locked||(hasData&&!pc.length&&t>=endISO&&!kos),locked?'Sudah dikunci':!hasData?'Menunggu absensi':pc.length?pc.length+' peringatan di panel Cek payroll':'Tidak ada peringatan. Isi reimburse dan potongan lain bila ada');
+  add('cek','pay','Periksa payroll',locked||(hasData&&!pc.length&&t>=endISO&&!kos),locked?'Sudah dikunci':!hasData?'Menunggu absensi':pc.length?pc.length+' peringatan di panel Cek payroll':'Tidak ada peringatan. Isi reimburse, bonus, dan potongan lain bila ada');
   add('kunci','pay','Kunci payroll setelah gaji dibayar',locked,locked?'Dikunci '+fmtD(lockAt):'Belum dikunci. Angka masih bisa berubah');
   add('slip','slip','Bagikan slip gaji',(emps.length&&nSlip>=emps.length)||man.slip,nSlip?nSlip+' dari '+emps.length+' slip terkirim lewat email'+(man.slip&&nSlip<emps.length?'; sisanya ditandai selesai':''):man.slip?'Ditandai selesai (dibagikan di luar email)':'Belum ada slip terkirim lewat email. Centang bila dibagikan lewat WhatsApp atau cetak',!(emps.length&&nSlip>=emps.length));
   add('laporan','rep','Unduh laporan bulanan',man.laporan,man.laporan?'Sudah diunduh atau dicetak':'Unduh Excel atau cetak PDF untuk pimpinan',true);
@@ -1551,7 +1553,7 @@ const PAGE_HELP={
  emp:['Data induk semua karyawan: jabatan, status, gaji, rekening, dan identitas.',['Klik satu baris untuk melihat rincian di panel kanan, lalu Ubah data untuk menggantinya. Tombol jarang dipakai ada di menu Lainnya.','Formulir dibagi per bagian; titik merah berarti harus diperbaiki, titik kuning berarti peringatan.','Karyawan yang resign: pilih orangnya lalu Proses keluar / resign. Datanya pindah ke tab Keluar dan tetap tersimpan.','Tombol Buat surat menyiapkan kontrak, SP, skorsing, keterangan kerja, dan penawaran kerja.','Tanda merah "SP" di samping nama berarti karyawan itu sedang punya SP berlaku.']],
  att:['Kehadiran harian setiap karyawan dalam satu periode gaji.',['Per hari: klik kode di samping nama untuk hari yang dipilih; setiap perubahan bisa diurungkan.','Tabel sebulan: pilih kode di atas tabel, lalu klik atau seret di sel tanggal. Klik judul tanggal untuk mengisi satu kolom.','Baca panel Cek absensi: di situ muncul hari kosong dan kode yang janggal.','Setelah payroll dikunci, absensi periode itu tidak bisa diubah.']],
  ot:['Jam lembur harian di luar jam kerja biasa.',['Ketik jumlah jam di tanggal lemburnya, atau pakai Impor laporan lembur.','Lembur hari Minggu dan tanggal merah tidak diisi di sini, tetapi di Absensi dengan kode LM atau LTM.','Tarif lembur per jam diatur di Pengaturan, atau khusus per karyawan di data Karyawan.']],
- pay:['Perhitungan gaji semua karyawan untuk periode yang dipilih. Angkanya dihitung otomatis dari Absensi, Lembur, dan Kasbon.',['Isi kolom Reimburse/bonus dan Potongan lain bila ada.','Perbaiki semua tanda Salah dan Cek di panel Cek payroll sebelum membayar.','Setelah gaji dibayar, klik Kunci payroll dua kali. Angka jadi final dan potongan kasbon tercatat.','Unduh Excel dan File transfer BCA dari tombol di kanan atas.']],
+ pay:['Perhitungan gaji semua karyawan untuk periode yang dipilih. Angkanya dihitung otomatis dari Absensi, Lembur, dan Kasbon.',['Isi kolom Reimburse, Bonus, dan Potongan lain bila ada.','Perbaiki semua tanda Salah dan Cek di panel Cek payroll sebelum membayar.','Setelah gaji dibayar, klik Kunci payroll dua kali. Angka jadi final dan potongan kasbon tercatat.','Unduh Excel dan File transfer BCA dari tombol di kanan atas.']],
  slip:['Slip gaji per karyawan untuk periode yang dipilih.',['Pilih karyawan, lalu Unduh PDF, Kirim via email, atau Kirim PDF via WhatsApp.','Untuk mengirim ke semua karyawan sekaligus, pakai tombol Kirim semua slip via email di halaman Payroll.','Kirim slip setelah payroll dikunci, supaya angkanya tidak berubah lagi.']],
  loan:['Pinjaman karyawan dan cicilannya.',['Klik + Catat kasbon, isi jumlah dan cicilan per bulan.','Cicilan dipotong otomatis di Payroll setiap periode sampai lunas.','Saldo baru berkurang resmi saat payroll periode itu dikunci.']],
  leave:['Kuota, pemakaian, dan sisa cuti tahunan tiap karyawan.',['Cuti terpakai dihitung dari kode C di Absensi; tidak perlu diisi di sini.','Bila sisa cuti 0, kode C ditolak di Absensi. Untuk pengecualian, naikkan kuota orang itu di sini; perubahannya tercatat di Riwayat.','Kuota per karyawan bisa diubah langsung di tabel.','Saldo diperbarui otomatis tiap awal tahun cuti (bulannya diatur di Pengaturan).']],
@@ -1614,9 +1616,9 @@ async function histGo(dir){const from=dir<0?HIST.u:HIST.r,to=dir<0?HIST.r:HIST.u
 function histBtns(){const u=HIST.u[HIST.u.length-1],r=HIST.r[HIST.r.length-1];
   return '<span class="histbtns"><button class="btn ghost icon" id="hUndo" data-act="hUndo" aria-label="Urungkan" title="'+esc(u?'Urungkan: '+u.label+' (Ctrl+Z)':'Tidak ada yang bisa diurungkan')+'"'+(u?'':' disabled')+'>↶</button><button class="btn ghost icon" id="hRedo" data-act="hRedo" aria-label="Ulangi" title="'+esc(r?'Ulangi: '+r.label+' (Ctrl+Y)':'Tidak ada yang bisa diulangi')+'"'+(r?'':' disabled')+'>↷</button></span>'}
 function patchPer(key,patch){
-  if(!S.periods[key])S.periods[key]={key,absensi:{},lembur:{},reimburse:{},potonganLain:{}};
+  if(!S.periods[key])S.periods[key]={key,absensi:{},lembur:{},reimburse:{},bonus:{},potonganLain:{}};
   deepMerge(S.periods[key],patch);
-  queuePatch('periods/'+key,patch,{key,absensi:{},lembur:{},reimburse:{},potonganLain:{}})}
+  queuePatch('periods/'+key,patch,{key,absensi:{},lembur:{},reimburse:{},bonus:{},potonganLain:{}})}
 // perubahan di dalam satu periode: before/after berbentuk patch yang sama
 function histPer(label,jenis,key,before,after){histPush(label,jenis,
   ()=>{if(isLocked(key)){toast('Payroll '+periodLabel(key)+' sudah dikunci, jadi perubahan ini tidak bisa diurungkan. Buka kunci dulu.');return false}patchPer(key,before)},
@@ -1635,7 +1637,7 @@ const ALASAN_KELUAR=['Mengundurkan diri','Kontrak berakhir','PHK','Meninggal dun
 function masaKerja(a,b){const d1=parse(a),d2=parse(b||todayISO());if(!d1||!d2||d2<d1)return '—';let m=(d2.getFullYear()-d1.getFullYear())*12+d2.getMonth()-d1.getMonth();if(d2.getDate()<d1.getDate())m--;const y=Math.floor(m/12);m=m%12;return (y?y+' tahun ':'')+(m||!y?m+' bulan':'').trim()}
 function kasbonSisa(id){let t=0;for(const k in S.loans){const l=S.loans[k];if(l.empId===id)t+=Math.max(0,(+l.jumlah||0)-loanPaidBefore(l,''))}return t}
 function empHistory(id){const why=[];
-  for(const k in S.periods){const p=S.periods[k];if(['absensi','lembur'].some(s=>Object.values((p[s]||{})[id]||{}).some(v=>v&&String(v)!=='0'))||+((p.reimburse||{})[id])||+((p.potonganLain||{})[id])||(p.kunci&&p.kunci.rows&&p.kunci.rows[id])){why.push('absensi/payroll');break}}
+  for(const k in S.periods){const p=S.periods[k];if(['absensi','lembur'].some(s=>Object.values((p[s]||{})[id]||{}).some(v=>v&&String(v)!=='0'))||+((p.reimburse||{})[id])||+((p.bonus||{})[id])||+((p.potonganLain||{})[id])||(p.kunci&&p.kunci.rows&&p.kunci.rows[id])){why.push('absensi/payroll');break}}
   if(Object.values(S.loans).some(l=>l.empId===id))why.push('kasbon');if(Object.values(S.warns).some(w=>w.empId===id))why.push('surat peringatan');
   if(Object.values(S.surat||{}).some(r=>r.empId===id))why.push('surat');if(Object.values(S.kpiN||{}).some(d=>(d.nilai||{})[id]))why.push('KPI');return why}
 function exitSummary(e,tgl){
@@ -1836,7 +1838,7 @@ function spPill(empId){const a=activeWarns(empId);if(!a.length)return '';a.sort(
 
 // ===== Laporan bulanan =====
 function repData(key){
-  const emps=payEmps(key);const T={base:0,lm:0,ltm:0,lj:0,reimb:0,potSH:0,potAbsen:0,kas:0,pot:0,thp:0,jam:0};const C={H:0,SH:0,I:0,S:0,C:0,A:0,LM:0,LTM:0};
+  const emps=payEmps(key);const T={base:0,lm:0,ltm:0,lj:0,reimb:0,bonus:0,potSH:0,potAbsen:0,kas:0,pot:0,thp:0,jam:0};const C={H:0,SH:0,I:0,S:0,C:0,A:0,LM:0,LTM:0};
   const jab={},st={};
   emps.forEach(e=>{const r=calc(e,key);for(const k in T)T[k]+=(+r[k]||0);for(const k in C)C[k]+=(r.c&&r.c[k])||0;
     const j=(e.jabatan||'—').toUpperCase();(jab[j]=jab[j]||{n:0,thp:0});jab[j].n++;jab[j].thp+=r.thp;st[e.status||'—']=(st[e.status||'—']||0)+1});
@@ -1861,7 +1863,7 @@ function vRep(){
   '<div class="kpi"><span class="k">Total take home pay</span><span class="v">Rp '+rp(T.thp)+'</span><span class="s">'+(diff==null?'Bulan lalu belum ada data':(diff>=0?'Naik ':'Turun ')+Math.abs(diff)+'% dari bulan lalu (Rp '+rp(D.prev.thp)+')')+'</span></div>'+
   '<div class="kpi"><span class="k">Total lembur</span><span class="v">Rp '+rp(T.lm+T.ltm+T.lj)+'</span><span class="s">'+T.jam+' jam lembur per jam</span></div>'+
   '<div class="kpi"><span class="k">Kasbon berjalan</span><span class="v">Rp '+rp(D.sisaKas)+'</span><span class="s">'+D.nKas+' karyawan masih punya sisa</span></div></div>'+
-  '<div class="panel"><h2>Ringkasan gaji</h2>'+tbl(['Komponen','Jumlah (Rp)'],[['Gaji dibayar',rp(T.base)],['Lembur Minggu',rp(T.lm)],['Lembur tanggal merah',rp(T.ltm)],['Lembur per jam',rp(T.lj)],['Reimburse / bonus',rp(T.reimb)],['Potongan setengah hari',(T.potSH?'−'+rp(T.potSH):'0')],['Potongan absen',(T.potAbsen?'−'+rp(T.potAbsen):'0')],['Potongan kasbon',(T.kas?'−'+rp(T.kas):'0')],['Potongan lain',(T.pot?'−'+rp(T.pot):'0')],['<b>Take home pay</b>','<b>'+rp(T.thp)+'</b>']])+'</div>'+
+  '<div class="panel"><h2>Ringkasan gaji</h2>'+tbl(['Komponen','Jumlah (Rp)'],[['Gaji dibayar',rp(T.base)],['Lembur Minggu',rp(T.lm)],['Lembur tanggal merah',rp(T.ltm)],['Lembur per jam',rp(T.lj)],['Reimburse',rp(T.reimb)],['Bonus',rp(T.bonus)],['Potongan setengah hari',(T.potSH?'−'+rp(T.potSH):'0')],['Potongan absen',(T.potAbsen?'−'+rp(T.potAbsen):'0')],['Potongan kasbon',(T.kas?'−'+rp(T.kas):'0')],['Potongan lain',(T.pot?'−'+rp(T.pot):'0')],['<b>Take home pay</b>','<b>'+rp(T.thp)+'</b>']])+'</div>'+
   '<div class="panel"><h2>Kehadiran</h2>'+tbl(['Kode','Total hari'],[['Hadir (H)',D.C.H],['Setengah hari (SH)',D.C.SH],['Cuti (C)',D.C.C],['Izin (I)',D.C.I],['Sakit (S)',D.C.S],['Alpha (A)',D.C.A],['Lembur Minggu (LM)',D.C.LM],['Lembur tgl merah (LTM)',D.C.LTM]])+'</div>'+
   '<div class="panel"><h2>Per jabatan</h2>'+tbl(['Jabatan','Orang','THP (Rp)'],D.jabList.map(([j,v])=>[esc(j),v.n,rp(v.thp)]))+'</div>'+
   '<div class="panel"><h2>Catatan SDM</h2><div class="list">'+
@@ -1878,7 +1880,7 @@ async function repXlsx(){
   const key=S.periodKey;const D=repData(key);const T=D.T;const st=S.settings||{};
   const wb=XLSX.utils.book_new();
   const aoa=[[st.nama||''],['LAPORAN BULANAN '+periodLabel(key).toUpperCase()+' ('+periodSub(key)+')'+(isLocked(key)?' — FINAL':' — DRAFT')],[],
-   ['Karyawan digaji',D.emps.length],['Gaji dibayar',T.base],['Lembur Minggu',T.lm],['Lembur tanggal merah',T.ltm],['Lembur per jam',T.lj],['Reimburse / bonus',T.reimb],['Potongan setengah hari',-T.potSH],['Potongan absen',-T.potAbsen],['Potongan kasbon',-T.kas],['Potongan lain',-T.pot],['Take home pay',T.thp],[],
+   ['Karyawan digaji',D.emps.length],['Gaji dibayar',T.base],['Lembur Minggu',T.lm],['Lembur tanggal merah',T.ltm],['Lembur per jam',T.lj],['Reimburse',T.reimb],['Bonus',T.bonus],['Potongan setengah hari',-T.potSH],['Potongan absen',-T.potAbsen],['Potongan kasbon',-T.kas],['Potongan lain',-T.pot],['Take home pay',T.thp],[],
    ['Kehadiran (hari)'],['Hadir (H)',D.C.H],['Setengah hari (SH)',D.C.SH],['Cuti (C)',D.C.C],['Izin (I)',D.C.I],['Sakit (S)',D.C.S],['Alpha (A)',D.C.A],['Lembur Minggu (LM)',D.C.LM],['Lembur tgl merah (LTM)',D.C.LTM],[],
    ['Kasbon berjalan (sisa)',D.sisaKas],['Karyawan masuk',D.masuk.map(e=>e.nama).join(', ')],['Karyawan keluar',D.keluar.map(e=>e.nama).join(', ')]];
   const ws=XLSX.utils.aoa_to_sheet(aoa);ws['!cols']=[{wch:30},{wch:40}];XLSX.utils.book_append_sheet(wb,ws,'RINGKASAN');
@@ -1923,7 +1925,7 @@ function vHelp(){
    '<b>Absensi</b>: pilih periode dengan tombol ‹ ›, pilih kode di atas (H, SH, I, S, C, A, L, LM, LTM), lalu klik sel tanggal. Klik judul tanggal untuk mengisi satu kolom. Tombol “Isi H semua hari kerja kosong” mempercepat. Perhatikan panel <b>Cek absensi</b> di atas tabel.',
    '<b>Lembur</b>: ketik jam lembur per tanggal, atau pakai <b>Impor laporan lembur</b>. Lembur hari Minggu / tanggal merah diisi di Absensi dengan kode LM / LTM.',
    '<b>Kasbon</b>: catat kasbon baru di halaman Kasbon. Cicilan dipotong otomatis di payroll.',
-   '<b>Payroll</b>: isi kolom Reimburse/bonus dan Potongan lain bila ada. Baca panel <b>Cek payroll</b> dan perbaiki semua tanda “Salah” dan “Cek”.',
+   '<b>Payroll</b>: isi kolom Reimburse, Bonus, dan Potongan lain bila ada. Baca panel <b>Cek payroll</b> dan perbaiki semua tanda “Salah” dan “Cek”.',
    '<b>Kunci payroll</b> setelah gaji dibayar (tombol “Kunci payroll” → klik lagi untuk konfirmasi). Setelah dikunci, angka tidak berubah lagi dan potongan kasbon tercatat permanen.',
    '<b>Unduh</b>: Excel payroll, file transfer BCA, dan slip gaji (PDF / email / WhatsApp).',
    '<b>Laporan bulanan</b>: buka menu Laporan, unduh Excel atau cetak ke PDF untuk pimpinan.',
@@ -1937,7 +1939,7 @@ function vHelp(){
    '<b>Gaji per hari</b> = gaji pokok ÷ pembagi (24 bila tidak diubah).',
    '<b>Lembur Minggu</b> = gaji/hari × LM × 2. <b>Lembur tanggal merah</b> = gaji/hari × LTM × pengali karyawan. <b>Lembur per jam</b> = jam × tarif (umum, gaji/hari ÷ 8, atau nominal khusus per karyawan).',
    '<b>Setengah hari (SH)</b> dipotong nominal tetap yang diatur di Pengaturan. Karyawan TETAP tidak dipotong.',
-   '<b>THP</b> = gaji + lembur + reimburse − potongan setengah hari − potongan absen − kasbon − potongan lain.']))+
+   '<b>THP</b> = gaji + lembur + uang makan lembur + reimburse + bonus − potongan setengah hari − potongan absen − kasbon − potongan lain.']))+
   sec('4. Fungsi tiap menu',ul([
    '<b>Dasbor</b>: <b>Checklist</b> langkah bulanan (✓ muncul otomatis; tombol Buka menuju halamannya), ringkasan, dan daftar “Perlu perhatian” (kontrak habis, SP berakhir, cuti habis, payroll belum dikunci, cadangan lama).',
    '<b>Karyawan</b>: data karyawan, gaji, skema, identitas. Tanda merah “SP 1 s/d …” muncul di samping nama karyawan yang sedang punya SP berlaku. Tombol “Buat surat” menyiapkan PKWT, SP, skorsing, keterangan kerja, penawaran kerja, paklaring, dan pemberhentian kerja (PHK) dengan templat per alasan. Surat diunduh sebagai <b>Word (.docx)</b> supaya bisa diedit sebelum dicetak; versi PDF juga tersedia.',
@@ -1950,7 +1952,7 @@ function vHelp(){
    '<b>KPI</b>: penilaian bulanan per divisi, bisa impor / ekspor Excel.',
    '<b>Laporan</b>: ringkasan bulanan untuk pimpinan.',
    '<b>Pengaturan</b>: data perusahaan, aturan gaji, urutan jabatan, pengingat email, dan cadangan data.',
-   '<b>Urungkan / ulangi</b>: tombol ↶ ↷ di kanan atas setiap halaman, atau Ctrl+Z / Ctrl+Y. Berlaku untuk absensi, lembur, reimburse, potongan, data karyawan, kasbon, SP, kuota cuti, dan pengaturan, selama halaman belum dimuat ulang. Kunci/buka kunci payroll tidak bisa diurungkan dengan cara ini.',
+   '<b>Urungkan / ulangi</b>: tombol ↶ ↷ di kanan atas setiap halaman, atau Ctrl+Z / Ctrl+Y. Berlaku untuk absensi, lembur, reimburse, bonus, potongan, data karyawan, kasbon, SP, kuota cuti, dan pengaturan, selama halaman belum dimuat ulang. Kunci/buka kunci payroll tidak bisa diurungkan dengan cara ini.',
    '<b>Karyawan keluar</b>: Karyawan → pilih orangnya → Proses keluar / resign. Data tetap tersimpan di tab Keluar; ia masih dibayar di periode terakhirnya lalu tidak masuk payroll lagi. Gaji karyawan bulanan di periode terakhir dihitung prorata: gaji pokok × hari kerja (Senin–Sabtu, di luar tanggal merah) sampai hari terakhir ÷ hari kerja satu periode. Paklaring dibuat dari tab Keluar → Buat surat. Hapus permanen hanya untuk data salah masuk yang belum punya absensi atau gaji.',
    '<b>Riwayat</b>: catatan otomatis siapa mengubah apa dan kapan (gaji, absensi, data karyawan, penghapusan, kunci payroll).']))+
   sec('5. Cadangan dan pemulihan',ol([
@@ -2456,11 +2458,12 @@ document.addEventListener('change',ev=>{
   if(t.id==='noteSt'){S.nSt=t.value;render(true);return}
   if(t.dataset.noteDone){const id=t.dataset.noteDone,n=S.notes[id];if(!n)return;const n2=Object.assign({},n,{selesai:t.checked});S.notes[id]=n2;render(true);saveDoc('notes/'+id,n2);return}
   if(t.id==='slipSel'){S.slipEmp=t.value;render(true);return}
-  if((t.dataset.ot||t.dataset.reimb||t.dataset.pot)&&isLocked()){toast('Periode ini sudah dikunci.');render(true);return}
+  if((t.dataset.ot||t.dataset.reimb||t.dataset.bonus||t.dataset.pot)&&isLocked()){toast('Periode ini sudah dikunci.');render(true);return}
   if(t.dataset.ttd){if(t.files&&t.files[0])ttdLoad(t.files[0],t.dataset.ttd);return}
   if(t.dataset.kuota){const id=t.dataset.kuota,y=S.cutiYear,v=Math.max(0,+t.value||0);const e=S.emps[id];if(!e)return;const pk=kuotaFor(e,y);const e0=clone(e);e.kuotaTahun=Object.assign({},e.kuotaTahun,{[y]:v});queuePatch('employees/'+id,{kuotaTahun:{[y]:v}});if(pk!==v){histDoc('Kuota cuti '+e.nama,'data','employees/'+id,e0,e,'emps',id)}if(pk!==v)logAct('data','Mengubah kuota cuti '+y+'/'+String(y+1).slice(2)+' · '+e.nama,{dari:pk+' hari',ke:v+' hari'});S.dirty=true;return}
   if(t.dataset.ot){const v=Math.max(0,+t.value||0);{const pv=+(((P().lembur||{})[t.dataset.ot]||{})[t.dataset.d])||0;if(pv&&pv!==v)logAct('absen','Mengubah lembur · '+enm(t.dataset.ot)+', '+fmtD(t.dataset.d),{dari:pv+' jam',ke:v+' jam'})}if(v>12)toast('Cek lagi: '+v+' jam lembur dalam sehari. Benar?');{const pv0=+(((P().lembur||{})[t.dataset.ot]||{})[t.dataset.d])||0;if(pv0!==v)histPer('Lembur '+enm(t.dataset.ot)+', '+fmtD(t.dataset.d),'absen',S.periodKey,{lembur:{[t.dataset.ot]:{[t.dataset.d]:pv0}}},{lembur:{[t.dataset.ot]:{[t.dataset.d]:v}}})}patchPeriod({lembur:{[t.dataset.ot]:{[t.dataset.d]:v}}});S.dirty=true;return}
-  if(t.dataset.reimb){const v=Math.max(0,+t.value||0);{const pv=+((P().reimburse||{})[t.dataset.reimb])||0;if(pv!==v)logAct('gaji','Mengubah reimburse/bonus · '+enm(t.dataset.reimb),{dari:'Rp '+rp(pv),ke:'Rp '+rp(v),ket:'Payroll '+periodLabel(S.periodKey)})}bigWarn(t.dataset.reimb,v,'Reimburse/bonus');{const pv0=+((P().reimburse||{})[t.dataset.reimb])||0;if(pv0!==v)histPer('Reimburse '+enm(t.dataset.reimb),'gaji',S.periodKey,{reimburse:{[t.dataset.reimb]:pv0}},{reimburse:{[t.dataset.reimb]:v}})}patchPeriod({reimburse:{[t.dataset.reimb]:v}});S.dirty=true;return}
+  if(t.dataset.reimb){const v=Math.max(0,+t.value||0);{const pv=+((P().reimburse||{})[t.dataset.reimb])||0;if(pv!==v)logAct('gaji','Mengubah reimburse · '+enm(t.dataset.reimb),{dari:'Rp '+rp(pv),ke:'Rp '+rp(v),ket:'Payroll '+periodLabel(S.periodKey)})}bigWarn(t.dataset.reimb,v,'Reimburse');{const pv0=+((P().reimburse||{})[t.dataset.reimb])||0;if(pv0!==v)histPer('Reimburse '+enm(t.dataset.reimb),'gaji',S.periodKey,{reimburse:{[t.dataset.reimb]:pv0}},{reimburse:{[t.dataset.reimb]:v}})}patchPeriod({reimburse:{[t.dataset.reimb]:v}});S.dirty=true;return}
+  if(t.dataset.bonus){const v=Math.max(0,+t.value||0);{const pv=+((P().bonus||{})[t.dataset.bonus])||0;if(pv!==v)logAct('gaji','Mengubah bonus · '+enm(t.dataset.bonus),{dari:'Rp '+rp(pv),ke:'Rp '+rp(v),ket:'Payroll '+periodLabel(S.periodKey)})}bigWarn(t.dataset.bonus,v,'Bonus');{const pv0=+((P().bonus||{})[t.dataset.bonus])||0;if(pv0!==v)histPer('Bonus '+enm(t.dataset.bonus),'gaji',S.periodKey,{bonus:{[t.dataset.bonus]:pv0}},{bonus:{[t.dataset.bonus]:v}})}patchPeriod({bonus:{[t.dataset.bonus]:v}});S.dirty=true;return}
   if(t.dataset.pot){const v=Math.max(0,+t.value||0);{const pv=+((P().potonganLain||{})[t.dataset.pot])||0;if(pv!==v)logAct('gaji','Mengubah potongan lain · '+enm(t.dataset.pot),{dari:'Rp '+rp(pv),ke:'Rp '+rp(v),ket:'Payroll '+periodLabel(S.periodKey)})}bigWarn(t.dataset.pot,v,'Potongan lain');{const pv0=+((P().potonganLain||{})[t.dataset.pot])||0;if(pv0!==v)histPer('Potongan lain '+enm(t.dataset.pot),'gaji',S.periodKey,{potonganLain:{[t.dataset.pot]:pv0}},{potonganLain:{[t.dataset.pot]:v}})}patchPeriod({potonganLain:{[t.dataset.pot]:v}});S.dirty=true;return}
 });
 

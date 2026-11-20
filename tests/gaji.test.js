@@ -83,10 +83,14 @@ test('tarif lembur per karyawan: gaji/hari ÷ 8 dan nominal khusus', () => {
   assert.equal(app.otRate(S.emps.K1), 35000);
 });
 
-test('reimburse ditambah, potongan lain dikurangi', () => {
-  setup({ emps: [emp({ gajiPokok: 4800000 })], periods: { [OKT]: per({ reimburse: { K1: 150000 }, potonganLain: { K1: 50000 } }) } });
+test('reimburse dan bonus ditambah terpisah, potongan lain dikurangi', () => {
+  setup({ emps: [emp({ gajiPokok: 4800000 })], periods: { [OKT]: per({ reimburse: { K1: 150000 }, bonus: { K1: 300000 }, potonganLain: { K1: 50000 } }) } });
   const r = app.liveCalc(S.emps.K1, OKT);
-  assert.equal(r.thp, 4800000 + 150000 - 50000);
+  assert.equal(r.reimb, 150000);
+  assert.equal(r.bonus, 300000);
+  assert.equal(r.thp, 4800000 + 150000 + 300000 - 50000);
+  S.periods[OKT].bonus = {};
+  assert.equal(app.liveCalc(S.emps.K1, OKT).bonus, 0, 'periode tanpa bonus');
 });
 
 test('kasbon: cicilan dipotong, tidak melebihi sisa, dan berhenti setelah lunas', () => {
