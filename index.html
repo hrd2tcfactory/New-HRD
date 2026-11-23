@@ -882,11 +882,11 @@ function vSlip(){
   '<div class="cols3">'+[['Dibuat oleh',st.pembuat,st.ttdPembuat],['Mengetahui',st.mengetahui,st.ttdMengetahui],['Penerima',e.nama,'']].map(c=>'<div><span>'+c[0]+'</span><div class="ttd">'+(c[2]?'<img src="'+esc(c[2])+'" alt="">':'')+'</div>'+esc(c[1]||'')+'</div>').join('')+'</div></div>';
 }
 function waText(e,r){const st=S.settings||{};const {plus,minus}=slipLines(e,r);
-  return 'Slip Gaji '+(st.nama||'')+'\nPeriode '+periodLabel(S.periodKey)+' ('+periodSub(S.periodKey)+')\n\nNama: '+e.nama+'\nJabatan: '+e.jabatan+'\n\nKehadiran:\n'+ATT_ITEMS.filter(([k])=>(r.c||{})[k]||k==='H'||k==='SH').map(([k,n])=>'- '+n+' ('+k+'): '+((r.c||{})[k]||0)+' hari').join('\n')+'\n- Hari dibayar: '+attSummary(r).dibayar+' hari'+(()=>{const c=cutiSlip(e,S.periodKey);return '\n\nCuti ('+c.label+'):\n- Kuota cuti: '+c.kuota+' hari\n- Cuti terpakai: '+c.used+' hari\n- Sisa cuti: '+c.sisa+' hari'})()+'\n\nPenerimaan:\n'+plus.map(a=>'- '+a[0]+': Rp '+rp(a[1])).join('\n')+(minus.length?'\n\nPotongan:\n'+minus.map(a=>'- '+a[0]+': Rp '+rp(a[1])).join('\n'):'')+'\n\nTake Home Pay: Rp '+rp(r.thp)+'\n('+terbilang(r.thp)+')\n\nTerima kasih.\nHRD'}
+  return 'Slip Gaji '+(st.nama||'')+'\nPeriode '+periodLabel(S.periodKey)+' ('+periodSub(S.periodKey)+')\n\nNama: '+e.nama+'\nJabatan: '+e.jabatan+'\n\nKehadiran:\n'+ATT_ITEMS.filter(([k])=>(r.c||{})[k]||k==='H'||k==='SH').map(([k,n])=>'- '+n+' ('+k+'): '+((r.c||{})[k]||0)+' hari').join('\n')+'\n- Hari dibayar: '+attSummary(r).dibayar+' hari'+(()=>{const c=cutiSlip(S.emps[e.id]||e,S.periodKey);return '\n\nCuti ('+c.label+'):\n- Kuota cuti: '+c.kuota+' hari\n- Cuti terpakai: '+c.used+' hari\n- Sisa cuti: '+c.sisa+' hari'})()+'\n\nPenerimaan:\n'+plus.map(a=>'- '+a[0]+': Rp '+rp(a[1])).join('\n')+(minus.length?'\n\nPotongan:\n'+minus.map(a=>'- '+a[0]+': Rp '+rp(a[1])).join('\n'):'')+'\n\nTake Home Pay: Rp '+rp(r.thp)+'\n('+terbilang(r.thp)+')\n\nTerima kasih.\nHRD'}
 const ATT_ITEMS=[['H','Hadir penuh'],['SH','Setengah hari'],['C','Cuti'],['I','Izin'],['S','Sakit'],['A','Alpha'],['LM','Lembur Minggu'],['LTM','Lembur tgl merah']];
 function cutiSlip(e,key){const end=iso(periodRange(key).end);const y=cutiYearOf(end);const {from,to}=cutiRange(y);const lim=end<to?end:to;let n=0;for(const k in S.periods){const a=(S.periods[k].absensi||{})[e.id]||{};for(const d in a)if(a[d]==='C'&&d>=from&&d<=lim)n++}
   const kuota=kuotaFor(e,y),used=awalFor(e,y)+n;return {kuota,used,sisa:kuota-used,label:'Periode cuti '+cutiLabel(y)+' · s.d. '+fmtD(lim)}}
-function slipCutiHtml(e){const c=cutiSlip(e,S.periodKey);
+function slipCutiHtml(e){const c=cutiSlip(S.emps[e.id]||e,S.periodKey);
   return '<div class="slipatt"><div class="slipatt-h"><span>Cuti</span><span>'+esc(c.label)+'</span></div><div class="slipcuti-g">'+
   [['Kuota cuti',c.kuota],['Cuti terpakai',c.used],['Sisa cuti',c.sisa]].map(([n,v],i)=>'<div class="slipatt-c'+(i===2?' hl':'')+'"><span class="slipatt-n">'+n+'</span><b'+(i===2&&v<=0?' style="color:var(--bad,#c0392b)"':'')+'>'+v+' <small>hari</small></b></div>').join('')+'</div></div>'}
 function attSummary(r){const c=r.c||{};return {dibayar:(c.H||0)+(c.SH||0)+(c.C||0),jam:r.jam||0}}
@@ -914,7 +914,7 @@ function drawAttBox(doc,r,L,R,y){const c=r.c||{};const W=R-L,cw=W/4,ch=12,hh=6.5
   doc.setFontSize(7.5);doc.setTextColor(...PDF_FG);doc.setFont('helvetica','normal');doc.text('Hari dibayar (H + SH + C): ',L+3,yf+4.4);doc.setFont('helvetica','bold');doc.text(sm.dibayar+' hari',L+3+doc.getTextWidth('Hari dibayar (H + SH + C): ')*1.02,yf+4.4);
   doc.setFont('helvetica','bold');const jt=sm.jam+' jam';doc.text(jt,R-3,yf+4.4,{align:'right'});doc.setFont('helvetica','normal');doc.text('Lembur per jam: ',R-3-doc.getTextWidth(jt)*1.05,yf+4.4,{align:'right'});
   return y+hh+ch*2+fh}
-function drawCutiBox(doc,e,L,R,y){const c=cutiSlip(e,S.periodKey);const W=R-L,cw=W/3,ch=8;
+function drawCutiBox(doc,e,L,R,y){const c=cutiSlip(S.emps[e.id]||e,S.periodKey);const W=R-L,cw=W/3,ch=8;
   doc.setDrawColor(...PDF_LINE);doc.setLineWidth(.25);doc.roundedRect(L,y,W,ch,1.6,1.6,'S');
   [['Kuota cuti',c.kuota],['Cuti terpakai',c.used],['Sisa cuti',c.sisa]].forEach(([n,v],i)=>{const x=L+i*cw;
     if(i)doc.line(x,y,x,y+ch);
