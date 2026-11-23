@@ -171,6 +171,15 @@ test('slip gaji periode yang dikunci tetap memakai kuota cuti karyawan', () => {
   assert.deepEqual(nums, [12, 10, 2]);
 });
 
+test('slip gaji ikut tanggal atur ulang cuti, sama dengan halaman Cuti', () => {
+  setup({ emps: [emp({ kuotaCuti: 12, cutiReset: '2026-10-10' })], settings: { cutiAwalTahun: 2026, cutiMulaiBulan: 4 },
+    periods: { [OKT]: per({ absensi: { K1: { '2026-10-01': 'C', '2026-10-12': 'C' } } }) } });
+  S.periodKey = OKT;
+  const nums = [...app.slipCutiHtml(S.emps.K1).matchAll(/<b[^>]*>(-?\d+) <small>/g)].map((m) => +m[1]);
+  assert.deepEqual(nums, [12, 1, 11]);
+  assert.equal(nums[2], app.cutiSisa(S.emps.K1, 2026));
+});
+
 test('telat tanpa keterangan: per jam yang dimulai × Rp 10.000', () => {
   const telat = { '2026-10-01': 5, '2026-10-02': 60, '2026-10-05': 61, '2026-10-06': 0, '2026-09-01': 30 };
   setup({ emps: [emp({ gajiPokok: 4800000, jabatan: 'OPERATOR CNC' })], periods: { [OKT]: per({ telat: { K1: telat } }) } });
