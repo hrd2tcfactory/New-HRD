@@ -19,7 +19,7 @@
   --c-H:#cfeedd; --c-I:#d6e4fb; --c-S:#e8dcf8; --c-C:#cdeef0; --c-A:#f9d6d2; --c-L:#e4e6ea; --c-LM:#fde7b8; --c-LTM:#fbd2b0; --c-SH:#e3f1c4;
   --t-H:#14532d; --t-I:#1e3a8a; --t-S:#5b2a91; --t-C:#0f5257; --t-A:#8a1c13; --t-L:#4b5563; --t-LM:#7a4500; --t-LTM:#8a3a00; --t-SH:#3f5a0a;
   --sun:#f6efe9;
-  --g-harian:#0f766e; --g-harian-soft:#d5f1ee; --g-gaji:#a15c00; --g-gaji-soft:#fdeccd; --g-karyawan:#6d3fb5; --g-karyawan-soft:#ebe2fa; --g-lainnya:#5d6879; --g-lainnya-soft:#e6e9ee;
+  --g-harian:#0f766e; --g-harian-soft:#d5f1ee; --g-gaji:#a15c00; --g-gaji-soft:#fdeccd; --g-karyawan:#6d3fb5; --g-karyawan-soft:#ebe2fa; --g-lainnya:#5d6879; --g-lainnya-soft:#e6e9ee; --g-dokumen:#1f5f8b; --g-dokumen-soft:#dceaf5;
   --f-display:"Archivo","Arial Narrow",system-ui,sans-serif; --f-body:"IBM Plex Sans",system-ui,sans-serif; --f-mono:"IBM Plex Mono",ui-monospace,monospace;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
@@ -28,7 +28,7 @@
   --ok:#5fd08f; --ok-soft:#173826; --warn:#f0b35a; --warn-soft:#3a2a10; --bad:#f2877c; --bad-soft:#3d1a17;
   --c-H:#1b4730; --c-I:#1d3156; --c-S:#3a2a57; --c-C:#14454a; --c-A:#562420; --c-L:#2a313c; --c-LM:#4d3911; --c-LTM:#55301a; --c-SH:#34431a;
   --t-H:#bdf0d2; --t-I:#c9dafc; --t-S:#e0cffb; --t-C:#bdeef2; --t-A:#ffd0ca; --t-L:#c8ced8; --t-LM:#ffe1a6; --t-LTM:#ffcfae; --t-SH:#dcefb0;
-  --g-harian:#5fd0c4; --g-harian-soft:#12403c; --g-gaji:#f0b35a; --g-gaji-soft:#3a2a10; --g-karyawan:#c0a2f5; --g-karyawan-soft:#33264f; --g-lainnya:#98a3b3; --g-lainnya-soft:#252f3d;
+  --g-harian:#5fd0c4; --g-harian-soft:#12403c; --g-gaji:#f0b35a; --g-gaji-soft:#3a2a10; --g-karyawan:#c0a2f5; --g-karyawan-soft:#33264f; --g-lainnya:#98a3b3; --g-lainnya-soft:#252f3d; --g-dokumen:#86bde6; --g-dokumen-soft:#16303f;
   --sun:#1f1d1c; color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#0f141b; --surface:#161d27; --surface-2:#1d2633; --line:#2b3646; --fg:#e6ebf2; --muted:#98a3b3;
@@ -289,6 +289,40 @@ tr.tdet>td{background:var(--surface-2);padding:0!important}table.dtab{width:100%
 .h3{font-size:15px;margin:6px 0 0}tr.now td{background:var(--accent-soft,var(--surface-2))}
 .grups{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}.gph{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-bottom:1px solid var(--line)}
 .gpm{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 14px;border-bottom:1px solid var(--line);font-size:13px}.gpm:last-child{border-bottom:none}.gpm select{font:inherit;font-size:12.5px;max-width:100%}
+/* Dokumen */
+.g-dokumen{--g:var(--g-dokumen);--gs:var(--g-dokumen-soft)}
+.sopr{display:grid;grid-template-columns:120px minmax(0,1fr) auto auto;gap:12px;align-items:center;padding:9px 14px;border-bottom:1px solid var(--line);font-size:13px;cursor:pointer}.sopr:last-child{border-bottom:none}.sopr:hover{background:var(--surface-2)}
+.mono{font-family:var(--f-mono,ui-monospace,monospace)}
+.sopwrap{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:14px;align-items:start}.sopwrap>.panel{padding:0}.sopwrap .form{padding:14px 16px}
+.steps-ed{padding:8px 16px 14px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:6px}
+.stp{display:grid;grid-template-columns:22px minmax(0,1fr) auto;gap:6px;align-items:start}.stp .n{padding-top:8px;font-weight:700;color:var(--muted)}.stp textarea{min-height:52px;font:inherit}.stpb{display:flex;gap:2px}
+#sopPrev{padding:16px;position:sticky;top:10px;background:#fff;color:#141d2b}
+.sopdoc{font-size:12px;line-height:1.5}.sd-h{display:flex;gap:10px;align-items:center;border-bottom:2px solid #141d2b;padding-bottom:8px}.sd-h img{height:36px}.sd-h b{display:block;font-size:13px}.sd-h span{font-size:10px;letter-spacing:.08em}
+.sd-t{width:100%;border-collapse:collapse;margin:8px 0}.sd-t td{border:1px solid #c9ced8;padding:4px 6px}.sd-t td:nth-child(odd){color:#5b6677;width:62px}
+.sd-b p{margin:2px 0 8px}.sd-b ol{margin:2px 0 8px;padding-left:18px}.sd-sign{display:grid;grid-template-columns:1fr 1fr;text-align:center;margin-top:12px}.sd-sign span{color:#5b6677}
+.tgx{display:inline-block;font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;border-radius:4px;padding:0 5px;margin-right:2px;vertical-align:1px}.tgx.nw{background:var(--ok-soft,#dcf2e4);color:var(--ok,#1d7a46)}.tgx.ch{background:var(--warn-soft,#fdeccd);color:var(--warn,#9a5700)}
+.dotn{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--ok,#1d7a46);margin-left:4px;vertical-align:1px}
+.ppw{display:grid;grid-template-columns:240px minmax(0,1fr);gap:14px;align-items:start}.toc{padding:8px;display:flex;flex-direction:column;gap:1px;position:sticky;top:10px}
+.toc button{all:unset;cursor:pointer;font-size:13px;padding:7px 9px;border-radius:6px;color:var(--muted)}.toc button[aria-current="true"]{background:var(--accent-soft,var(--surface-2));color:var(--accent);font-weight:600}
+.ppa{line-height:1.6}.ppl{padding-left:20px;margin:4px 0}.ppl li{margin:4px 0}.ppsign{margin-top:22px;text-align:right}
+.auto{background:var(--accent-soft,var(--surface-2));color:var(--accent);border-radius:4px;padding:0 4px;font-weight:600;white-space:nowrap}
+.ppi{display:grid;grid-template-columns:96px minmax(0,1fr) auto;gap:6px;align-items:start;margin:6px 0}.ppi textarea{font:inherit;min-height:44px}.ppi select{font:inherit}
+.ppprint{display:none}
+:root{--oline:#5b6f8f;--ohead:#2d4a74;--ohead2:#1f3557}
+.orgw{overflow-x:auto;padding:0}#org{position:relative;width:max-content;min-width:100%;padding:18px 20px 14px;box-sizing:border-box;background:var(--surface)}
+.oh{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid var(--ohead2);padding-bottom:8px;margin-bottom:14px;font-size:12px;color:var(--muted)}.oh b{display:block;font-family:var(--f-display);font-size:20px;letter-spacing:.06em;color:var(--fg)}
+.og{display:grid;grid-template-columns:190px 190px 360px 190px 200px 170px 170px;column-gap:14px;row-gap:22px;align-items:start;position:relative;z-index:1}
+.r1,.r2{grid-column:1/-1;justify-self:center}.r1{grid-row:1}.r2{grid-row:3}.rp{grid-column:1/-1;grid-row:2;justify-self:center;transform:translateX(165px);margin:-10px 0}
+.c-m{grid-column:1/5;grid-row:4;justify-self:center}.c-u{grid-column:5;grid-row:4}.c-h{grid-column:6;grid-row:4}.c-f{grid-column:7;grid-row:4}.c-e{grid-column:1;grid-row:5}.c-k{grid-column:2/5;grid-row:5;justify-self:center}
+.l-e{grid-column:1;grid-row:6}.l-k1{grid-column:2;grid-row:6}.l-k2{grid-column:3;grid-row:6}.l-k3{grid-column:4;grid-row:6}.l-u{grid-column:5;grid-row:5/7;margin-top:-12px}
+.ob{width:170px;border:1px solid var(--ohead);border-radius:5px;background:var(--surface);text-align:center;overflow:hidden}.ob .t{background:var(--ohead);color:#fff;font-size:10px;letter-spacing:.09em;text-transform:uppercase;padding:4px 6px}.ob .n{font-weight:700;font-size:13.5px;padding:8px 6px;line-height:1.35}.ob.top .t{background:var(--ohead2)}
+.l-e,.l-k1,.l-k2,.l-k3,.l-u{display:flex;flex-direction:column;gap:9px}.ol{border:1px solid var(--line);border-radius:5px;background:var(--surface);font-size:12px}
+.ol .t{background:var(--surface-2);font-weight:700;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;padding:5px 8px;display:flex;justify-content:space-between}.ol .t span{color:var(--muted);font-weight:600}
+.ol .b{padding:6px 8px;display:flex;flex-direction:column;gap:3px}.ol .b.c2{display:grid;grid-template-columns:1fr 1fr;column-gap:10px}.ol .b>div{white-space:nowrap}.ol .gb{font-size:9.5px;padding:0 4px;margin-left:5px}
+.olines{position:absolute;left:0;top:0;pointer-events:none;z-index:0}.of{display:flex;justify-content:space-between;border-top:1px solid var(--line);margin-top:22px;padding-top:6px;font-size:11px;color:var(--muted)}
+@media (max-width:860px){.sopwrap,.ppw{grid-template-columns:1fr}.toc{position:static}#sopPrev{position:static}.sopr{grid-template-columns:1fr auto}.sopr .mono{display:none}}
+@media print{body.print-sel *{visibility:hidden!important}body.print-sel .print-area,body.print-sel .print-area *{visibility:visible!important}body.print-sel .print-area{display:block!important;position:absolute;left:0;top:0;width:100%;border:0;box-shadow:none}body.print-sel .noprint{display:none!important}
+ body.print-sel.print-land #org{width:auto}body.print-sel .ppprint{font-family:Arial,sans-serif;font-size:11pt;color:#111}@page{margin:12mm}}
 </style>
 
 <style>html,body{margin:0}body{font-family:var(--f-body);font-size:14px}[hidden]{display:none!important}img{max-width:100%}</style>
@@ -345,6 +379,9 @@ const ICONS={
   emp:'<circle cx="9" cy="8" r="4"/><path d="M1 21c0-4 4-6 8-6s8 2 8 6M17 11a3 3 0 1 0 0-6M23 21c0-3-2-5-5-5.5"/>',
   att:'<rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4M8 14l2 2 4-4"/>',
   ot:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  sop:'<path d="M9 3h6v3H9z"/><path d="M7 4H5v17h14V4h-2M8 11h8M8 15h8M8 19h5"/>',
+  pp:'<path d="M4 4h12l4 4v12H4z"/><path d="M8 9h5M8 13h8M8 17h8"/><path d="M16 4v4h4"/>',
+  org:'<rect x="9" y="2" width="6" height="5" rx="1"/><rect x="2" y="16" width="6" height="5" rx="1"/><rect x="16" y="16" width="6" height="5" rx="1"/><path d="M12 7v5M5 16v-4h14v4"/>',
   telat:'<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M9 2h6M19 5l1.5-1.5"/>',
   pay:'<rect x="2" y="6" width="20" height="13" rx="2"/><circle cx="12" cy="12.5" r="2.5"/><path d="M6 10v5M18 10v5"/>',
   slip:'<path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6M9 13h8M9 17h8"/>',
@@ -364,9 +401,10 @@ const TABS=[
   ['att','Absensi','att','Harian'],['ot','Lembur','ot','Harian'],['telat','Telat & Shift','telat','Harian'],
   ['pay','Payroll','pay','Gaji'],['slip','Slip Gaji','slip','Gaji'],['loan','Kasbon','loan','Gaji'],['rep','Laporan','rep','Gaji'],
   ['emp','Karyawan','emp','Karyawan'],['leave','Cuti','leave','Karyawan'],['ctr','Kontrak & PKL','ctr','Karyawan'],['sp','Surat Peringatan','sp','Karyawan'],['kpi','KPI','kpi','Karyawan'],['note','Catatan','note','Karyawan'],
+  ['sop','SOP','sop','Dokumen'],['pp','Peraturan Perusahaan','pp','Dokumen'],['org','Struktur Organisasi','org','Dokumen'],
   ['set','Pengaturan','set','Lainnya'],['log','Riwayat','log','Lainnya'],['help','Panduan','help','Lainnya']];
 
-const S={db:null,dl:null,settings:null,emps:{},surat:{},loans:{},warns:{},interns:{},notes:{},kpiD:{},kpiN:{},kDiv:'',kpiMonth:null,kpiEmp:null,nCat:'',nSt:'aktif',periods:{},ready:{},tab:'dash',periodKey:null,brush:'H',q:'',status:'',slipEmp:null,dirty:false,saving:0,readonly:false,armed:null};
+const S={db:null,dl:null,settings:null,emps:{},sop:{},dok:{},surat:{},loans:{},warns:{},interns:{},notes:{},kpiD:{},kpiN:{},kDiv:'',kpiMonth:null,kpiEmp:null,nCat:'',nSt:'aktif',periods:{},ready:{},tab:'dash',periodKey:null,brush:'H',q:'',status:'',slipEmp:null,dirty:false,saving:0,readonly:false,armed:null};
 S.empView='aktif';S.logs={};S.attMode=lsGet('hrd.att')||'hari';S.lq='';S.lk='';S.lw='';S.empSel=null;
 
 // ---------- utils ----------
@@ -558,8 +596,8 @@ function render(force){
   if(!S.db){main.innerHTML=S.dbMissing?'<div class="panel empty"><b>Database tidak bisa dibuka di tampilan ini.</b><br>Buka halaman ini lewat claude.ai dalam keadaan masuk (login) agar data HRD bisa dibaca dan disimpan.</div>':'<div class="empty">Memuat data HRD…</div>';return}
   if(!S.ready.emps||!S.ready.settings){main.innerHTML='<div class="empty">Memuat data HRD…</div>';return}
   const sx=window.scrollX,sy=window.scrollY;const gw=main.querySelector('.tablewrap');const gl=gw?gw.scrollLeft:0;const gt=gw?gw.scrollTop:0;
-  const f={dash:vDash,emp:vEmp,att:vAtt,ot:vOt,telat:vTelat,pay:vPay,slip:vSlip,loan:vLoan,sp:vWarn,rep:vRep,help:vHelp,log:vLog,leave:vLeave,ctr:vCtr,note:vNote,kpi:vKpi,set:vSet}[S.tab]||vDash;
-  main.innerHTML=f();
+  const f={dash:vDash,emp:vEmp,att:vAtt,ot:vOt,telat:vTelat,pay:vPay,slip:vSlip,loan:vLoan,sp:vWarn,rep:vRep,help:vHelp,log:vLog,leave:vLeave,ctr:vCtr,note:vNote,kpi:vKpi,set:vSet,sop:vSop,pp:vPP,org:vOrg}[S.tab]||vDash;
+  main.innerHTML=f();if(S.tab==='org')requestAnimationFrame(orgLines);
   const gw2=main.querySelector('.tablewrap');if(gw2&&!force){gw2.scrollLeft=gl;gw2.scrollTop=gt}
   if(!force)window.scrollTo(sx,sy);
   if(S.settings)$('#coName').textContent=S.settings.nama||'';
@@ -656,7 +694,7 @@ async function saveEmp(isNew){
   if(isNew&&S.emps[id]){toast('ID '+id+' sudah dipakai.');return}
   if(!g('nama')){toast('Nama wajib diisi.');return}
   const prev=S.emps[id]||{};
-  const e=Object.assign({},prev,{id,nama:g('nama').toUpperCase(),jabatan:g('jabatan').toUpperCase(),status:g('status'),gajiPokok:+digits(g('gajiPokok'))||0,metode:g('metode'),pembagi:+g('pembagi')||24,kaliLTM:+g('kaliLTM')||1,lemburMode:$('#f_lemburMode').value,lemburTarif:+digits(g('lemburTarif'))||0,lemburKali:+g('lemburKali')||1,rekening:g('rekening'),wa:g('wa').replace(/\D/g,''),email:g('email').toLowerCase(),namaKtp:g('namaKtp').toUpperCase(),nik:g('nik').replace(/\D/g,''),npwp:g('npwp'),ktpUrl:g('ktpUrl'),alamat:g('alamat'),tglBergabung:g('tglBergabung'),kontrakMulai:g('kontrakMulai'),kontrakSelesai:g('kontrakSelesai'),kuotaCuti:+g('kuotaCuti')||0,grupShift:($('#f_grupShift')||{}).value||'',cutiTerpakaiAwal:+g('cutiTerpakaiAwal')||0,bebasTelat:$('#f_bebasTelat').checked,aktif:$('#f_aktif').checked,tglKeluar:$('#f_aktif').checked?'':(g('tglKeluar')||todayISO())});
+  const e=Object.assign({},prev,{id,nama:g('nama').toUpperCase(),jabatan:g('jabatan').toUpperCase(),status:g('status'),gajiPokok:+digits(g('gajiPokok'))||0,metode:g('metode'),pembagi:+g('pembagi')||24,kaliLTM:+g('kaliLTM')||1,lemburMode:$('#f_lemburMode').value,lemburTarif:+digits(g('lemburTarif'))||0,lemburKali:+g('lemburKali')||1,rekening:g('rekening'),wa:g('wa').replace(/\D/g,''),email:g('email').toLowerCase(),namaKtp:g('namaKtp').toUpperCase(),nik:g('nik').replace(/\D/g,''),npwp:g('npwp'),ktpUrl:g('ktpUrl'),alamat:g('alamat'),tglBergabung:g('tglBergabung'),kontrakMulai:g('kontrakMulai'),kontrakSelesai:g('kontrakSelesai'),kuotaCuti:+g('kuotaCuti')||0,grupShift:($('#f_grupShift')||{}).value||'',tampilBagan:!!($('#f_tampilBagan')||{checked:true}).checked,cutiTerpakaiAwal:+g('cutiTerpakaiAwal')||0,bebasTelat:$('#f_bebasTelat').checked,aktif:$('#f_aktif').checked,tglKeluar:$('#f_aktif').checked?'':(g('tglKeluar')||todayISO())});
   if(await saveDoc('employees/'+id,e)){logEmp(prev,e,isNew);histDoc((isNew?'Tambah ':'Ubah data ')+e.nama,'data','employees/'+id,isNew?null:prev,e,'emps',id);S.emps[id]=e;S.empSel=id;closeModal();toast('Data '+e.nama+' disimpan.');render(true)}
 }
 
@@ -1570,6 +1608,9 @@ const PAGE_HELP={
  dash:['Ringkasan kondisi hari ini dan daftar pekerjaan bulan ini.',['Ikuti Checklist dari atas ke bawah; tombol Buka membawa Anda ke halaman yang tepat.','Daftar "Perlu perhatian" berisi hal yang mendekati tenggat: kontrak habis, SP berakhir, cuti habis, cadangan lama.','Tombol ‹ › di kanan atas mengganti periode gaji yang ditampilkan.']],
  emp:['Data induk semua karyawan: jabatan, status, gaji, rekening, dan identitas.',['Klik satu baris untuk melihat rincian di panel kanan, lalu Ubah data untuk menggantinya. Tombol jarang dipakai ada di menu Lainnya.','Formulir dibagi per bagian; titik merah berarti harus diperbaiki, titik kuning berarti peringatan.','Karyawan yang resign: pilih orangnya lalu Proses keluar / resign. Datanya pindah ke tab Keluar dan tetap tersimpan.','Tombol Buat surat menyiapkan kontrak, SP, skorsing, keterangan kerja, dan penawaran kerja.','Tanda merah "SP" di samping nama berarti karyawan itu sedang punya SP berlaku.']],
  att:['Kehadiran harian setiap karyawan dalam satu periode gaji.',['Per hari: klik kode di samping nama untuk hari yang dipilih; setiap perubahan bisa diurungkan.','Tabel sebulan: pilih kode di atas tabel, lalu klik atau seret di sel tanggal. Klik judul tanggal untuk mengisi satu kolom.','Baca panel Cek absensi: di situ muncul hari kosong dan kode yang janggal.','Setelah payroll dikunci, absensi periode itu tidak bisa diubah.']],
+ sop:['SOP (standar kerja) tiap divisi: tulis, simpan draf, tandai berlaku, unduh Word atau cetak.',['Klik + Buat SOP, pilih divisi dan mulai dari kerangka atau contoh.','Isi langkah kerja satu kotak satu langkah; pratinjau cetak di kanan berubah saat mengetik.','Simpan &amp; tandai berlaku setelah disetujui. Mengubah SOP yang berlaku membuat versi baru.','SOP yang berlaku lebih dari 1 tahun ditandai Perlu ditinjau.']],
+ pp:['Peraturan Perusahaan per poin. Teks biru diambil dari Pengaturan (telat, cuti, SP).',['Pilih poin di kiri untuk membaca. Ubah untuk menambah, mengubah atau menghapus aturan.','Tandai aturan baru atau diubah supaya karyawan tahu apa yang berbeda.','Unduh Word atau Cetak / PDF untuk dibagikan dan diajukan ke Disnaker.']],
+ org:['Bagan perusahaan, dibuat otomatis dari jabatan di Data karyawan.',['Pindah jabatan atau resign: bagan ikut berubah.','Sembunyikan seseorang dari bagan lewat form karyawan (Tampil di bagan).','Cetak / PDF untuk ditempel atau disahkan Direktur.']],
  telat:['Rekap telat, daftar yang perlu dicek, dan jadwal shift grup A/B/C. Potongan masuk ke payroll per jam.',['Unggah file mesin absen: telat dihitung otomatis, karyawan shift dibandingkan dengan jam shift grupnya.','Tab Perlu dicek: hari tanpa scan masuk. Tidak dipotong sampai Anda memilih Isi telat atau Tidak telat.','Telat dengan keterangan: buka nama di Rekap, centang izin / tugas atasan.','1–60 menit dihitung 1 jam, 61–120 menit 2 jam. Hari Minggu tidak dihitung.','Jadwal shift berganti tiap Senin; pindah grup lewat tab Jadwal shift.']],
  ot:['Jam lembur harian di luar jam kerja biasa.',['Ketik jumlah jam di tanggal lemburnya, atau pakai Impor laporan lembur.','Lembur hari Minggu dan tanggal merah tidak diisi di sini, tetapi di Absensi dengan kode LM atau LTM.','Tarif lembur per jam diatur di Pengaturan, atau khusus per karyawan di data Karyawan.']],
  pay:['Perhitungan gaji semua karyawan untuk periode yang dipilih. Angkanya dihitung otomatis dari Absensi, Lembur, dan Kasbon.',['Isi kolom Reimburse, Bonus, dan Potongan lain bila ada.','Perbaiki semua tanda Salah dan Cek di panel Cek payroll sebelum membayar.','Setelah gaji dibayar, klik Kunci payroll dua kali. Angka jadi final dan potongan kasbon tercatat.','Unduh Excel dan File transfer BCA dari tombol di kanan atas.']],
@@ -1726,6 +1767,169 @@ function mesinTelatIsi(){const M=S.mesin;if(!M)return;const D=mesinDiff();if(isL
   logAct('absen','Mencatat telat dari mesin absen',{ket:late.length+' hari telat, '+cek.length+' perlu dicek · periode '+periodLabel(D.key)+' · file '+M.file});
   closeModal();S.tab='telat';S.telatTab=cek.length&&!late.length?'cek':'rekap';S.periodKey=D.key;lsSet('hrd.tab','telat');renderNav();render(true);
   toastUndo(late.length+' hari telat dicatat'+(cek.length?', '+cek.length+' perlu dicek':'')+'.')}
+
+// ===== Dokumen: SOP per divisi, Peraturan Perusahaan, Struktur Organisasi =====
+const SOP_DIV=['Produksi CNC','Engineering (CAM, Programmer, PPIC, Design)','Cutting','Welding & Assembly','Laser Marking','QC','Gudang, Packing & Driver','Admin & Finance','HRD','Umum (OB, Content Creator)'];
+const SOP_KODE={'Produksi CNC':'CNC','Engineering (CAM, Programmer, PPIC, Design)':'ENG','Cutting':'CUT','Welding & Assembly':'WLD','Laser Marking':'LSR','QC':'QC','Gudang, Packing & Driver':'GDG','Admin & Finance':'ADM','HRD':'HRD','Umum (OB, Content Creator)':'UMM'};
+const sopKode=d=>SOP_KODE[d]||String(d).toUpperCase().replace(/[^A-Z]/g,'').slice(0,3)||'SOP';
+function sopStatus(x){if(x.status!=='Berlaku')return 'Draf';if(x.berlaku&&daysBetween(x.berlaku,todayISO())>365)return 'Tinjau';return 'Berlaku'}
+const SOP_PILL={Berlaku:['p-ok','Berlaku'],Draf:['p-mute','Draf'],Tinjau:['p-warn','Perlu ditinjau']};
+const SOP_CONTOH={judul:'Pengoperasian mesin CNC',divisi:'Produksi CNC',tujuan:'Memastikan mesin CNC dioperasikan dengan aman, hasil potong sesuai gambar kerja, dan mesin terawat.',untuk:'Operator CNC, Wakil Supervisor, Supervisor CNC (grup A, B, C)',
+  langkah:['Cek kondisi mesin sebelum mulai: oli, angin kompresor, kebersihan meja, alat potong. Catat di checklist perawatan.','Baca gambar kerja dan program dari Programmer. Pastikan nomor program sama dengan nomor order.','Pasang material, kencangkan klem, lalu set titik nol (zero point) sesuai gambar.','Jalankan potongan pertama dengan kecepatan rendah, minta Supervisor atau QC mengecek ukurannya.','Jika ukuran sesuai, lanjutkan produksi. Jika tidak, hentikan dan laporkan ke Supervisor.','Selama mesin berjalan, jangan tinggalkan area mesin. Tekan emergency stop bila ada bunyi atau getaran tidak normal.','Setelah selesai, bersihkan mesin dan area kerja, kembalikan alat ke tempatnya.','Isi laporan harian produksi dan serahkan kondisi mesin ke shift berikutnya (form serah terima).'],
+  k3:'Wajib kacamata pelindung dan sepatu safety. Jangan membuka pintu mesin saat spindle berputar. Tombol emergency stop harus bisa dijangkau.',terkait:'Form laporan harian produksi, checklist perawatan mesin, form serah terima shift'};
+const SOP_KOSONG={tujuan:'',untuk:'',langkah:['Persiapan: …','Pelaksanaan: …','Pemeriksaan hasil: …','Pelaporan: …'],k3:'',terkait:''};
+function sopList(){return Object.entries(S.sop||{}).map(([id,x])=>Object.assign({id},x))}
+function sopNomor(div,skip){const k=sopKode(div);let n=0;sopList().forEach(x=>{if(x.id===skip)return;const m=new RegExp('^SOP-'+k+'-(\\d+)$').exec(x.nomor||'');if(m)n=Math.max(n,+m[1])});return 'SOP-'+k+'-'+String(n+1).padStart(3,'0')}
+const nmJab=e=>e?e.nama+' · '+e.jabatan:'';
+function vSop(){if(S.sopEdit&&(S.sopDraft||(S.sop||{})[S.sopEdit]))return vSopEdit();
+  const all=sopList();const q=(S.q||'').toLowerCase();const fl=S.sopF||'';const st=x=>sopStatus(x);
+  const nB=all.filter(x=>st(x)!=='Draf').length,nT=all.filter(x=>st(x)==='Tinjau').length,nD=all.filter(x=>st(x)==='Draf').length;const divs=sopDivs();const tanpa=divs.filter(d=>!all.some(x=>x.divisi===d&&st(x)!=='Draf'));
+  return topbar('SOP per divisi',false,S.readonly?'':'<button class="btn primary" data-act="sopNew">+ Buat SOP</button>')+
+  '<p class="note" style="margin:0">Standar kerja tiap divisi. Bisa diunduh Word atau dicetak (PDF) untuk ditempel di area kerja. SOP berlaku lebih dari 1 tahun ditandai perlu ditinjau.</p>'+
+  '<div class="kpis"><div class="kpi"><span class="k">SOP berlaku</span><span class="v">'+nB+'</span><span class="s">di '+new Set(all.filter(x=>st(x)!=='Draf').map(x=>x.divisi)).size+' divisi</span></div><div class="kpi'+(nT?' kwarn':'')+'"><span class="k">Perlu ditinjau</span><span class="v">'+nT+'</span><span class="s">berlaku lebih dari 1 tahun</span></div><div class="kpi"><span class="k">Draf</span><span class="v">'+nD+'</span><span class="s">belum berlaku</span></div><div class="kpi"><span class="k">Divisi tanpa SOP berlaku</span><span class="v">'+tanpa.length+'</span><span class="s">'+esc(tanpa.slice(0,3).join(', ')+(tanpa.length>3?', …':''))+'</span></div></div>'+
+  '<div class="row"><input id="q" class="search" type="search" placeholder="Cari judul atau nomor SOP…" value="'+esc(S.q)+'"><div class="seg2">'+[['','Semua'],['Berlaku','Berlaku'],['Draf','Draf'],['Tinjau','Perlu ditinjau']].map(([k,l])=>'<button data-act="sopF" data-id="'+k+'" aria-pressed="'+(fl===k)+'">'+l+'</button>').join('')+'</div></div>'+
+  divs.concat([...new Set(all.map(x=>x.divisi).filter(d=>d&&!divs.includes(d)))]).map(d=>{const it=all.filter(x=>x.divisi===d).sort((a,b)=>String(a.nomor).localeCompare(String(b.nomor)));const r=it.filter(x=>(!fl||st(x)===fl)&&(!q||((x.nomor||'')+' '+(x.judul||'')).toLowerCase().includes(q)));if((fl||q)&&!r.length)return '';
+    return '<div class="panel" style="padding:0"><div class="gph"><b>'+esc(d)+'</b><span class="sub">'+(it.length?it.length+' SOP':'<span class="pill p-bad">belum ada SOP</span>')+'</span></div>'+
+    (r.length?r.map(x=>{const p=SOP_PILL[st(x)];return '<div class="sopr" data-act="sopOpen" data-id="'+esc(x.id)+'" role="button" tabindex="0"><span class="mono sub">'+esc(x.nomor||'')+'</span><span>'+esc(x.judul||'(tanpa judul)')+'</span><span class="sub hide-s">v'+(+x.versi||1)+(x.berlaku?' · '+esc(fmtD(x.berlaku)):'')+'</span><span class="pill '+p[0]+'">'+p[1]+'</span></div>'}).join(''):
+     (S.readonly?'':'<div class="sopr" data-act="sopNew" data-id="'+esc(d)+'" role="button" tabindex="0"><span class="sub">—</span><span class="sub">Mulai SOP '+esc(d)+'</span><span></span><span class="pill p-mute">+ Buat</span></div>'))+'</div>'}).join('')}
+function sopDivs(){const a=(S.settings||{}).sopDivisi;return Array.isArray(a)&&a.length?a:SOP_DIV}
+function sopNewModal(div){openModal('<h3>Buat SOP</h3><div class="form"><label class="full">Divisi<select id="sn_div">'+sopDivs().map(d=>'<option'+(d===div?' selected':'')+'>'+esc(d)+'</option>').join('')+'</select></label>'+
+  '<label class="full">Judul SOP<input id="sn_judul" type="text" placeholder="Contoh: Pemeriksaan barang pertama"></label>'+
+  '<label class="full">Mulai dari<select id="sn_tpl"><option value="kosong">Kerangka kosong (persiapan, pelaksanaan, pemeriksaan, pelaporan)</option><option value="cnc">Contoh: SOP pengoperasian mesin CNC</option></select></label></div>'+
+  '<div class="row"><button class="btn" data-act="closeModal">Batal</button><button class="btn primary" data-act="sopCreate">Buat draf</button></div>')}
+function sopCreate(){const div=$('#sn_div').value,tpl=$('#sn_tpl').value;const base=tpl==='cnc'?SOP_CONTOH:SOP_KOSONG;const judul=$('#sn_judul').value.trim()||(tpl==='cnc'?SOP_CONTOH.judul:'');
+  if(!judul){toast('Isi judul SOP dulu.');$('#sn_judul').focus();return}
+  const id='SOP'+Date.now().toString(36);const gm=empList().find(e=>normJab(e.jabatan).includes('GENERAL MANAGER'));
+  S.sopDraft={nomor:sopNomor(div),judul,divisi:div,versi:1,status:'Draf',berlaku:'',disusun:'',disetujui:gm?gm.id:'',tujuan:base.tujuan,untuk:base.untuk,langkah:base.langkah.slice(),k3:base.k3,terkait:base.terkait,riwayat:[]};
+  S.sopEdit=id;S.sopNew=true;closeModal();render(true)}
+function sopIsi(x){return JSON.stringify([x.judul,x.divisi,x.tujuan,x.untuk,x.langkah,x.k3,x.terkait,x.disusun,x.disetujui,x.berlaku])}
+function sopPreview(x){const st=S.settings||{};const ps=S.emps[x.disusun],pt=S.emps[x.disetujui];const dir=(st.direktur||'').trim();
+  return '<div class="sopdoc"><div class="sd-h"><img src="'+esc(st.logo||SRT_LOGO)+'" alt=""><div><b>'+esc(String(st.nama||'CV. SOPANDI TEKNO UTAMA').toUpperCase())+'</b><span>STANDAR OPERASIONAL PROSEDUR</span></div></div>'+
+  '<table class="sd-t"><tr><td>Nomor</td><td>'+esc(x.nomor||'')+'</td><td>Revisi</td><td>'+String(+x.versi||1).padStart(2,'0')+'</td></tr><tr><td>Judul</td><td colspan="3"><b>'+esc(x.judul||'')+'</b></td></tr><tr><td>Divisi</td><td>'+esc(x.divisi||'')+'</td><td>Berlaku</td><td>'+(x.berlaku?esc(fmtD(x.berlaku)):'—')+'</td></tr></table>'+
+  '<div class="sd-b"><b>1. Tujuan</b><p>'+esc(x.tujuan||'—')+'</p><b>2. Berlaku untuk</b><p>'+esc(x.untuk||'—')+'</p><b>3. Langkah kerja</b><ol>'+(x.langkah||[]).filter(s=>String(s).trim()).map(s=>'<li>'+esc(s)+'</li>').join('')+'</ol>'+
+  (x.k3?'<b>4. Keselamatan kerja (K3)</b><p>'+esc(x.k3)+'</p>':'')+(x.terkait?'<b>'+(x.k3?5:4)+'. Dokumen / formulir terkait</b><p>'+esc(x.terkait)+'</p>':'')+'</div>'+
+  '<div class="sd-sign"><div>Disusun oleh<br><br><br><b>'+esc(ps?ps.nama:'')+'</b><br><span>'+esc(ps?ps.jabatan:'')+'</span></div><div>Disetujui oleh<br><br><br><b>'+esc(x.disetujui==='DIR'?dir:(pt?pt.nama:''))+'</b><br><span>'+esc(x.disetujui==='DIR'?'Direktur':(pt?pt.jabatan:''))+'</span></div></div></div>'}
+function vSopEdit(){const id=S.sopEdit;if(!S.sopDraft)S.sopDraft=clone(S.sop[id]);const x=S.sopDraft;const orig=(S.sop||{})[id];const ro=S.readonly;const emps=empList();const st=S.settings||{};
+  const opt=(v,list)=>'<option value="">—</option>'+list.map(([k,l])=>'<option value="'+esc(k)+'"'+(k===v?' selected':'')+'>'+esc(l)+'</option>').join('');
+  const pe=emps.map(e=>[e.id,nmJab(e)]);const changed=!orig||sopIsi(orig)!==sopIsi(x);const p=SOP_PILL[sopStatus(x)];
+  return topbar((x.nomor||'SOP')+' · '+(x.judul||''),false,'<button class="btn" data-act="sopBack">← Daftar SOP</button>')+
+  '<div class="row"><span class="pill '+p[0]+'">'+p[1]+'</span><span class="sub">versi '+(+x.versi||1)+(orig&&orig.diubah?' · disimpan '+esc(fmtD(orig.diubah.slice(0,10))):' · belum disimpan')+'</span><span style="flex:1"></span>'+
+  '<button class="btn" data-act="sopWord">Unduh Word</button><button class="btn" data-act="sopPrint">Cetak / PDF</button>'+(ro?'':'<button class="btn" data-act="sopSave"'+(changed?'':' disabled')+'>Simpan draf</button><button class="btn primary" data-act="sopBerlaku">'+(x.status==='Berlaku'&&!changed?'Sudah berlaku':'Simpan &amp; tandai berlaku')+'</button>')+'</div>'+
+  (x.status==='Berlaku'&&changed?'<div class="rule"><span>SOP ini sedang berlaku. Perubahan disimpan sebagai <b>versi '+((+x.versi||1)+1)+'</b> (draf); versi '+(+x.versi||1)+' tetap tercatat di riwayat.</span></div>':'')+
+  '<div class="sopwrap"><div class="panel"><div class="form">'+
+   '<label class="full">Judul<input id="so_judul" data-so="judul" type="text" value="'+esc(x.judul||'')+'"></label>'+
+   '<label>Divisi<select id="so_divisi" data-so="divisi">'+sopDivs().map(d=>'<option'+(d===x.divisi?' selected':'')+'>'+esc(d)+'</option>').join('')+'</select></label>'+
+   '<label>Nomor<input type="text" value="'+esc(x.nomor||'')+'" readonly><span class="hint">Dibuat otomatis</span></label>'+
+   '<label>Berlaku mulai<input data-so="berlaku" type="date" value="'+esc(x.berlaku||'')+'"></label>'+
+   '<label>Disusun oleh<select data-so="disusun">'+opt(x.disusun,pe)+'</select></label>'+
+   '<label class="full">Disetujui oleh<select data-so="disetujui">'+opt(x.disetujui,[['DIR',((st.direktur||'Direktur')+' · Direktur')]].concat(pe))+'</select></label>'+
+   '<label class="full">Tujuan<textarea data-so="tujuan" rows="2">'+esc(x.tujuan||'')+'</textarea></label>'+
+   '<label class="full">Berlaku untuk<input data-so="untuk" type="text" value="'+esc(x.untuk||'')+'" placeholder="Contoh: Operator CNC grup A, B, C"></label></div>'+
+   '<div class="steps-ed"><div class="row" style="justify-content:space-between"><b>Langkah kerja</b><span class="sub">Satu kotak satu langkah</span></div>'+
+   (x.langkah||[]).map((s,i)=>'<div class="stp"><span class="n">'+(i+1)+'.</span><textarea data-sost="'+i+'" rows="2" aria-label="Langkah '+(i+1)+'">'+esc(s)+'</textarea><span class="stpb"><button class="btn ghost icon" data-act="sopUp" data-id="'+i+'" aria-label="Naikkan"'+(i?'':' disabled')+'>↑</button><button class="btn ghost icon" data-act="sopDel" data-id="'+i+'" aria-label="Hapus langkah '+(i+1)+'">✕</button></span></div>').join('')+
+   '<button class="btn" data-act="sopAdd">+ Tambah langkah</button></div>'+
+   '<div class="form"><label class="full">Keselamatan kerja (K3)<textarea data-so="k3" rows="2">'+esc(x.k3||'')+'</textarea></label><label class="full">Dokumen / formulir terkait<input data-so="terkait" type="text" value="'+esc(x.terkait||'')+'"></label></div>'+
+   (orig&&!ro?'<div class="row" style="padding:0 16px 14px"><button class="btn ghost" data-act="sopHapus" style="color:var(--bad)">Hapus SOP</button></div>':'')+'</div>'+
+  '<div class="panel print-area" id="sopPrev">'+sopPreview(x)+'<p class="sub noprint" style="text-align:center;margin:6px 0 0">Pratinjau hasil cetak · berubah saat Anda mengetik</p></div></div>'+
+  ((x.riwayat||[]).length?'<div class="panel"><h2>Riwayat versi</h2><div class="list">'+x.riwayat.slice().reverse().map(r=>'<div class="li"><div class="t"><div class="name">Versi '+(+r.versi||1)+(r.berlaku?' · berlaku '+esc(fmtD(r.berlaku)):'')+'</div><div class="sub">diganti '+esc(fmtD(String(r.diganti||'').slice(0,10)))+'</div></div></div>').join('')+'</div></div>':'')}
+function sopRefresh(){const el=$('#sopPrev');if(el&&S.sopDraft)el.innerHTML=sopPreview(S.sopDraft)+'<p class="sub noprint" style="text-align:center;margin:6px 0 0">Pratinjau hasil cetak · berubah saat Anda mengetik</p>';
+  const orig=(S.sop||{})[S.sopEdit];const same=!!orig&&sopIsi(orig)===sopIsi(S.sopDraft);const b=document.querySelector('[data-act=sopSave]');if(b)b.disabled=same;const c=document.querySelector('[data-act=sopBerlaku]');if(c)c.textContent=S.sopDraft.status==='Berlaku'&&same?'Sudah berlaku':'Simpan & tandai berlaku'}
+async function sopSimpan(berlaku){const id=S.sopEdit;const x=S.sopDraft;if(!x)return;if(!String(x.judul||'').trim()){toast('Judul SOP masih kosong.');return}
+  const orig=(S.sop||{})[id];const d=clone(x);d.langkah=(d.langkah||[]).map(s=>String(s).trim()).filter(Boolean);
+  if(orig&&orig.status==='Berlaku'&&sopIsi(orig)!==sopIsi(x)){d.riwayat=(orig.riwayat||[]).concat([{versi:+orig.versi||1,berlaku:orig.berlaku||'',disetujui:orig.disetujui||'',diganti:new Date().toISOString(),isi:{judul:orig.judul,tujuan:orig.tujuan,untuk:orig.untuk,langkah:orig.langkah,k3:orig.k3,terkait:orig.terkait}}]).slice(-10);d.versi=(+orig.versi||1)+1;d.status='Draf';if(!berlaku)d.berlaku=''}
+  if(berlaku){d.status='Berlaku';if(!d.berlaku||d.berlaku<todayISO()&&orig&&orig.status==='Berlaku'&&d.versi!==orig.versi)d.berlaku=todayISO()}
+  if(orig&&orig.divisi!==d.divisi)d.nomor=sopNomor(d.divisi,id);d.diubah=new Date().toISOString();
+  if(await saveDoc('sop/'+id,d)){S.sop[id]=d;S.sopDraft=clone(d);S.sopNew=false;logAct('data',(orig?'Mengubah':'Membuat')+' SOP · '+d.nomor+' '+d.judul,{ket:(berlaku?'berlaku':'draf')+' · versi '+d.versi});toast(berlaku?'SOP disimpan dan berlaku.':'Draf SOP disimpan.');render(true)}}
+function docBlocksToDocx(title,blocks,sign){const D=docx;const fn='Arial';const tw=mm=>Math.round(mm*56.6929);
+  const R=(t,o)=>new D.TextRun(Object.assign({text:String(t==null?'':t),font:fn,size:21},o||{}));const P=(ch,o)=>new D.Paragraph(Object.assign({children:Array.isArray(ch)?ch:[ch],spacing:{after:80,line:276}},o||{}));
+  const kids=[P(R(title,{bold:true,size:28}),{alignment:D.AlignmentType.CENTER,spacing:{after:200}})];
+  blocks.forEach(b=>{if(b.h)kids.push(P(R(b.h,{bold:true,size:23}),{spacing:{before:200,after:80},keepNext:true}));if(b.p)kids.push(P(R(b.p)));
+    if(b.kv){const NB={style:D.BorderStyle.SINGLE,size:4,color:'999999'};const bd={top:NB,bottom:NB,left:NB,right:NB,insideHorizontal:NB,insideVertical:NB};
+      kids.push(new D.Table({width:{size:tw(168),type:D.WidthType.DXA},borders:bd,rows:b.kv.map(([k,v])=>new D.TableRow({children:[new D.TableCell({width:{size:tw(40),type:D.WidthType.DXA},children:[P(R(k,{color:'555555'}),{spacing:{after:0}})]}),new D.TableCell({width:{size:tw(128),type:D.WidthType.DXA},children:[P(R(v,{bold:true}),{spacing:{after:0}})]})]}))}));kids.push(P([]))}
+    (b.ol||[]).forEach((s,i)=>kids.push(P([R((i+1)+'.'),new D.TextRun({children:[new D.Tab()]}),R(s)],{indent:{left:tw(8),hanging:tw(6)},tabStops:[{type:D.TabStopType.LEFT,position:tw(8)}]})));
+    (b.ul||[]).forEach(s=>kids.push(P([R('•'),new D.TextRun({children:[new D.Tab()]}),R(s)],{indent:{left:tw(8),hanging:tw(5)},tabStops:[{type:D.TabStopType.LEFT,position:tw(8)}]})))});
+  if(sign&&sign.length){const NB={style:D.BorderStyle.NONE,size:0,color:'FFFFFF'};const noB={top:NB,bottom:NB,left:NB,right:NB,insideHorizontal:NB,insideVertical:NB};const w=Math.floor(168/sign.length);
+    kids.push(P([],{spacing:{before:300}}));kids.push(new D.Table({width:{size:tw(168),type:D.WidthType.DXA},borders:noB,rows:[new D.TableRow({cantSplit:true,children:sign.map(([l,n,j])=>new D.TableCell({width:{size:tw(w),type:D.WidthType.DXA},borders:noB,children:[P(R(l),{alignment:D.AlignmentType.CENTER}),P([],{spacing:{before:900}}),P(R(n||'',{bold:true,underline:{}}),{alignment:D.AlignmentType.CENTER,spacing:{after:0}}),P(R(j||''),{alignment:D.AlignmentType.CENTER})]}))})]}))}
+  const st=S.settings||{};const head=new D.Header({children:[P(R(String(st.nama||'CV. SOPANDI TEKNO UTAMA').toUpperCase(),{bold:true,size:24}),{alignment:D.AlignmentType.CENTER,spacing:{after:0}}),P(R(KOP_ALAMAT.join(' · '),{size:16,color:'555555'}),{alignment:D.AlignmentType.CENTER,border:{bottom:{style:D.BorderStyle.SINGLE,size:8,color:'000000',space:2}}})]});
+  const doc=new D.Document({creator:st.nama||'HRD',title,sections:[{properties:{page:{size:{width:11906,height:16838},margin:{top:tw(30),bottom:tw(20),left:tw(22),right:tw(20),header:tw(10)}}},headers:{default:head},children:kids}]});
+  return D.Packer.toBlob(doc)}
+async function docWord(fname,title,blocks,sign){try{toast('Menyiapkan file Word…');await loadDocx();const blob=await docBlocksToDocx(title,blocks,sign);await S.dl.save({filename:fname,data:blob})}catch(e){if(e&&e.code==='declined')return;console.error(e);toast('Gagal membuat file Word. Periksa koneksi internet lalu coba lagi, atau pakai Cetak / PDF.')}}
+function printArea(land){document.body.classList.add('print-sel');if(land)document.body.classList.add('print-land');const done=()=>{document.body.classList.remove('print-sel','print-land');window.removeEventListener('afterprint',done)};window.addEventListener('afterprint',done);window.print();setTimeout(done,1500)}
+function sopWord(){const x=S.sopDraft;const st=S.settings||{};const ps=S.emps[x.disusun],pt=S.emps[x.disetujui];
+  const b=[{kv:[['Nomor',x.nomor||''],['Judul',x.judul||''],['Divisi',x.divisi||''],['Revisi',String(+x.versi||1).padStart(2,'0')],['Berlaku',x.berlaku?fmtD(x.berlaku):'—']]},{h:'1. Tujuan'},{p:x.tujuan||'—'},{h:'2. Berlaku untuk'},{p:x.untuk||'—'},{h:'3. Langkah kerja',ol:(x.langkah||[]).filter(s=>String(s).trim())}];
+  if(x.k3)b.push({h:'4. Keselamatan kerja (K3)'},{p:x.k3});if(x.terkait)b.push({h:(x.k3?5:4)+'. Dokumen / formulir terkait'},{p:x.terkait});
+  docWord((x.nomor||'SOP')+' '+(x.judul||'')+'.docx','STANDAR OPERASIONAL PROSEDUR',b,[['Disusun oleh',ps?ps.nama:'',ps?ps.jabatan:''],['Disetujui oleh',x.disetujui==='DIR'?(st.direktur||''):(pt?pt.nama:''),x.disetujui==='DIR'?'Direktur':(pt?pt.jabatan:'')]])}
+
+// --- Peraturan Perusahaan ---
+// Teks bisa memakai {toleransi}, {tarifTelat}, {kuotaCuti}, {spLama}: diganti otomatis dari Pengaturan supaya sama dengan hitungan payroll.
+const PP_DEFAULT={judul:'PERATURAN PERUSAHAAN',dasar:'Maret 2026',revisi:'November 2026',tahap:1,poin:[
+ {j:'Ketentuan umum',i:[['','Peraturan perusahaan ini dibuat untuk mengatur hubungan kerja antara perusahaan dan karyawan agar tercipta lingkungan kerja yang tertib, aman, dan produktif.'],['baru','Peraturan ini berlaku untuk seluruh karyawan CV Sopandi Tekno Utama, baik karyawan kontrak maupun tetap.']]},
+ {j:'Jam kerja',i:[['','Hari kerja: Senin–Sabtu'],['','Jam kerja: 08.00–17.00'],['','Waktu istirahat Senin–Kamis dan Sabtu: 12.00–13.00'],['','Waktu istirahat hari Jumat karyawan non produksi: 11.00–13.00'],['','Shift 1: 00.00–08.00 (coffee break 02.00–02.10 dan 05.30–05.40)'],['','Shift 2: 08.00–16.00 (coffee break 10.00–10.10 dan 15.00–15.10)'],['','Shift 3: 16.00–00.00 (coffee break 18.30–18.40 dan 22.00–22.10)'],['','Istirahat salat & coffee break masing-masing 10 menit pada jam 10.00 dan jam 15.00 (serentak)'],['baru','Karyawan shift dibagi dalam grup (A, B, C). Shift tiap grup bergilir setiap hari Senin dengan urutan 00.00 → 08.00 → 16.00.'],['baru','Bekerja pada hari Minggu dan longshift (melanjutkan kerja 8 jam setelah shift selesai) dihitung sebagai lembur.']]},
+ {j:'Kehadiran dan absensi',i:[['','Karyawan wajib hadir tepat waktu'],['diubah','Keterlambatan lebih dari {toleransi} dianggap terlambat.'],['baru','Keterlambatan tanpa keterangan dikenakan potongan gaji {tarifTelat} per jam keterlambatan, dihitung per jam yang dimulai, dan tercantum di slip gaji.'],['baru','Keterlambatan karena izin atau tugas dari atasan tidak dipotong, dengan keterangan dari atasan.'],['diubah','Wajib melakukan absensi fingerprint saat masuk dan pulang kerja'],['','Ketidakhadiran harus jelas']]},
+ {j:'Izin dan cuti',i:[['','Izin sakit lebih dari 2 hari wajib melampirkan surat dokter'],['','Izin pribadi harus disetujui atasan'],['baru','Karyawan berhak atas cuti tahunan {kuotaCuti} setelah bekerja 3 bulan.'],['baru','Cuti diajukan kepada atasan dan HRD paling lambat 3 hari sebelumnya.']]},
+ {j:'Pakaian dan kedisiplinan',i:[['','Menggunakan APD (Alat Pelindung Diri) sesuai area kerja'],['','Memakai seragam dan sepatu yang sudah ditentukan'],['','Menjaga kebersihan dan kerapihan']]},
+ {j:'Kewajiban karyawan',i:[['','Mematuhi semua SOP perusahaan'],['','Menjaga kerahasiaan perusahaan'],['','Menjaga aset dan peralatan perusahaan']]},
+ {j:'Larangan',i:[['','Datang terlambat tanpa alasan jelas atau tidak masuk kerja tanpa izin (alpha)'],['','Dilarang merokok di jam kerja. Merokok hanya diperbolehkan pada saat istirahat dan coffee break di area tertentu seperti gazebo, bukan di area kerja.'],['','Terlibat dengan judi online, pinjaman online, mengonsumsi obat-obatan terlarang dan miras yang dapat memengaruhi kinerja dan perusahaan'],['','Melakukan pelanggaran, pencurian atau kecurangan']]},
+ {j:'Sistem penggajian dan lembur',i:[['','Gaji dibayarkan setiap akhir bulan'],['','Lembur dihitung per jam sesuai peraturan yang berlaku'],['baru','Potongan gaji yang dapat dilakukan: kasbon/pinjaman, tidak masuk tanpa keterangan, dan keterlambatan (poin 3).']]},
+ {j:'Sanksi pelanggaran',i:[['','Teguran lisan'],['diubah','Teguran tertulis: SP1, SP2, SP3, kemudian PHK'],['baru','SP1, SP2, dan SP3 masing-masing berlaku {spLama}. Pelanggaran yang diulang dalam masa berlaku SP dikenakan SP berikutnya.']]},
+ {j:'Keselamatan dan kesehatan kerja (K3)',i:[['','Wajib mengikuti prosedur keselamatan dan memakai APD']]},
+ {j:'Pengunduran diri',i:[['baru','Karyawan yang mengundurkan diri mengajukan surat pengunduran diri paling lambat 30 hari sebelumnya.'],['baru','Karyawan yang keluar menerima surat keterangan kerja (paklaring).']]},
+ {j:'Penutup',i:[['','Peraturan ini berlaku untuk seluruh karyawan dan wajib dipatuhi. Pelanggaran terhadap peraturan akan dikenakan sanksi sesuai ketentuan yang berlaku.']]}]};
+const PP_TAHAP=['Susun draf','Minta masukan wakil karyawan','Ajukan ke Disnaker','Sah · bagikan ke karyawan'];
+function ppData(){const d=(S.dok||{}).peraturan;return d&&Array.isArray(d.poin)?d:clone(PP_DEFAULT)}
+function ppVals(){const st=S.settings||{};const c=telatCfg();const tp=st.telatToleransiPP!=null&&st.telatToleransiPP!==''?+st.telatToleransiPP:c.tol;
+  return {toleransi:tp+' menit',tarifTelat:'Rp '+rp(c.tarif),kuotaCuti:((+st.kuotaCutiDefault)||12)+' hari',spLama:spLamaDef()+' bulan'}}
+function ppText(t,html){const v=ppVals();return String(t||'').replace(/\{(\w+)\}/g,(m,k)=>v[k]==null?m:(html?'<span class="auto" title="Diambil dari Pengaturan">'+esc(v[k])+'</span>':v[k]))}
+function ppTag(t){return t==='baru'?'<span class="tgx nw">baru</span> ':t==='diubah'?'<span class="tgx ch">diubah</span> ':''}
+function vPP(){const d=S.ppDraft||ppData();const cur=Math.min(S.ppCur||0,d.poin.length-1);const ed=!!S.ppDraft;const ro=S.readonly;const p=d.poin[cur]||{j:'',i:[]};
+  const nB=d.poin.reduce((a,x)=>a+x.i.filter(i=>i[0]==='baru').length,0),nU=d.poin.reduce((a,x)=>a+x.i.filter(i=>i[0]==='diubah').length,0);const tahap=+d.tahap||1;
+  const body=ed?'<div class="form"><label class="full">Judul poin<input data-ppj type="text" value="'+esc(p.j)+'"></label></div>'+p.i.map(([t,s],k)=>'<div class="ppi"><select data-ppt="'+k+'" aria-label="Tanda aturan"><option value=""'+(t?'':' selected')+'>—</option><option value="baru"'+(t==='baru'?' selected':'')+'>baru</option><option value="diubah"'+(t==='diubah'?' selected':'')+'>diubah</option></select><textarea data-pps="'+k+'" rows="2">'+esc(s)+'</textarea><button class="btn ghost icon" data-act="ppDelI" data-id="'+k+'" aria-label="Hapus aturan">✕</button></div>').join('')+
+     '<div class="row"><button class="btn" data-act="ppAddI">+ Tambah aturan</button><span style="flex:1"></span><button class="btn ghost" data-act="ppDelP" style="color:var(--bad)">Hapus poin ini</button></div>'+
+     '<p class="note" style="margin:8px 0 0">Kata otomatis dari Pengaturan: <code>{toleransi}</code> <code>{tarifTelat}</code> <code>{kuotaCuti}</code> <code>{spLama}</code>. Tulis persis seperti ini (dengan kurung kurawal).</p>'
+    :'<ul class="ppl">'+p.i.map(([t,s])=>'<li>'+ppTag(t)+ppText(esc(s),true)+'</li>').join('')+'</ul>'+(cur===d.poin.length-1?'<div class="ppsign">Direktur<br><br><br><b>'+esc((S.settings||{}).direktur||'')+'</b></div>':'');
+  return topbar('Peraturan Perusahaan',false,(ed?'<button class="btn" data-act="ppBatal">Batal</button><button class="btn primary" data-act="ppSave">Simpan</button>':'<button class="btn" data-act="ppWord">Unduh Word</button><button class="btn" data-act="ppPrint">Cetak / PDF</button>'+(ro?'':'<button class="btn primary" data-act="ppEdit">Ubah</button>')))+
+  '<p class="note" style="margin:0">Revisi dari versi '+esc(d.dasar||'')+' · '+d.poin.length+' poin · <span class="tgx nw">baru</span> '+nB+' aturan · <span class="tgx ch">diubah</span> '+nU+' aturan. Teks biru diambil dari Pengaturan (telat, cuti, SP), jadi selalu sama dengan hitungan payroll.</p>'+
+  '<div class="seg2">'+PP_TAHAP.map((t,i)=>'<button data-act="ppTahap" data-id="'+(i+1)+'" aria-pressed="'+(tahap===i+1)+'"'+(ro?' disabled':'')+'>'+(i+1<tahap?'✓ ':(i+1)+' ')+esc(t)+'</button>').join('')+'</div>'+
+  '<div class="ppw"><nav class="panel toc">'+d.poin.map((x,i)=>'<button data-act="ppCur" data-id="'+i+'" aria-current="'+(i===cur)+'">'+(i+1)+'. '+esc(x.j||'(tanpa judul)')+(x.i.some(y=>y[0])?' <span class="dotn"></span>':'')+'</button>').join('')+(ed?'<button data-act="ppAddP">+ Tambah poin</button>':'')+'</nav>'+
+  '<article class="panel ppa"><span class="sub">Poin '+(cur+1)+'</span><h3 style="margin:2px 0 8px">'+esc(p.j)+'</h3>'+body+'</article></div>'+
+  '<div class="print-area ppprint">'+ppPrintHtml(d)+'</div>'}
+function ppPrintHtml(d){const st=S.settings||{};return '<h1 style="text-align:center;font-size:16pt;text-decoration:underline">'+esc(d.judul||'PERATURAN PERUSAHAAN')+'</h1><p>Nama Perusahaan: '+esc(st.nama||'CV Sopandi Tekno Utama')+'<br>Tahun berlaku: '+esc(d.revisi||d.dasar||'')+'</p>'+
+  d.poin.map((p,i)=>'<h2 style="font-size:12pt;margin:12px 0 4px">'+(i+1)+'. '+esc(String(p.j).toUpperCase())+'</h2><ul>'+p.i.map(([t,s])=>'<li>'+esc(ppText(s,false))+'</li>').join('')+'</ul>').join('')+'<div style="margin-top:28px;text-align:right">Direktur<br><br><br><br><b><u>'+esc(st.direktur||'')+'</u></b></div>'}
+function ppWord(){const d=ppData();const st=S.settings||{};const b=[{p:'Nama Perusahaan: '+(st.nama||'CV Sopandi Tekno Utama')},{p:'Tahun berlaku: '+(d.revisi||d.dasar||'')}];
+  d.poin.forEach((p,i)=>b.push({h:(i+1)+'. '+String(p.j).toUpperCase(),ul:p.i.map(([t,s])=>ppText(s,false))}));docWord('Peraturan Perusahaan '+(d.revisi||'')+'.docx',d.judul||'PERATURAN PERUSAHAAN',b,[['',''],['Direktur',st.direktur||'','']])}
+async function ppSave(){const d=S.ppDraft;if(!d)return;d.poin=d.poin.map(p=>({j:String(p.j||'').trim(),i:p.i.map(([t,s])=>[t||'',String(s||'').trim()]).filter(x=>x[1])})).filter(p=>p.j||p.i.length);d.diubah=new Date().toISOString();
+  if(await saveDoc('dokumen/peraturan',d)){(S.dok=S.dok||{}).peraturan=d;S.ppDraft=null;logAct('data','Mengubah Peraturan Perusahaan',{ket:d.poin.length+' poin'});toast('Peraturan Perusahaan disimpan.');render(true)}}
+
+// --- Struktur Organisasi (otomatis dari jabatan di data karyawan) ---
+const ORG_LIST=[['eng','CAM Produksi',j=>j.includes('CAM')],['eng','Programmer',j=>j.includes('PROGRAMMER')],['eng','PPIC',j=>j.includes('PPIC')],['eng','Design',j=>j.includes('DESIGN')||j.includes('DESAIN')],
+  ['k1','Supervisor CNC',j=>j.includes('SUPERVISOR')&&!j.includes('WAKIL')],['k1','Wakil Supervisor',j=>j.includes('WAKIL')],['k1','Cutting',j=>j.includes('CUTTING')],['k2','Operator CNC',j=>j.includes('OPERATOR CNC')||j==='OPERATOR'],
+  ['k3','Welding',j=>j.includes('WELD')||j.includes('LAS')],['k3','Assembly',j=>j.includes('ASSEMBLY')||j.includes('PERAKITAN')],['k3','Laser Marking',j=>j.includes('LASER')],['k3','QC',j=>/\bQC\b|QUALITY/.test(j)],
+  ['u','Admin',j=>j.includes('ADMIN')],['u','Content Creator',j=>j.includes('CONTENT')],['u','Gudang',j=>j.includes('GUDANG')],['u','Packer',j=>j.includes('PACK')],['u','Driver',j=>j.includes('DRIVER')||j.includes('SOPIR')],['u','Office Boy',j=>/\bOB\b|OFFICE BOY/.test(j)]];
+const ORG_BOX=[['pen','Penasehat',j=>j.includes('PENASEHAT')],['gm','General Manager',j=>j.includes('GENERAL MANAGER')],['mcnc','Manager CNC',j=>j.includes('MANAGER CNC')],['kab','Kabag Produksi',j=>j.includes('KABAG')],['hrd','HRD',j=>/\bHRD\b|PERSONALIA/.test(j)],['fin','Finance',j=>j.includes('FINANCE')||j.includes('KEUANGAN')]];
+function orgData(){const emps=empList().filter(e=>e.tampilBagan!==false);const used=new Set();const box={},lists={eng:[],k1:[],k2:[],k3:[],u:[]};
+  ORG_BOX.forEach(([k,t,f])=>{const m=emps.filter(e=>!used.has(e.id)&&f(normJab(e.jabatan)));m.forEach(e=>used.add(e.id));box[k]={t,m}});
+  ORG_LIST.forEach(([col,t,f])=>{const m=emps.filter(e=>!used.has(e.id)&&f(normJab(e.jabatan))).sort(byRank);m.forEach(e=>used.add(e.id));if(m.length)lists[col].push({t,m})});
+  const sisa=emps.filter(e=>!used.has(e.id));if(sisa.length)lists.u.push({t:'Lainnya',m:sisa});return {box,lists,total:emps.length}}
+function vOrg(){const st=S.settings||{};const O=orgData();const showG=S.orgG!==false;
+  const nm=e=>esc(String(e.nama).toLowerCase().replace(/\b\w/g,c=>c.toUpperCase()))+(showG&&e.grupShift?'<span class="gb g'+esc(e.grupShift)+'">'+esc(e.grupShift)+'</span>':'');
+  const bx=(id,t,n,cls)=>'<div class="ob'+(cls?' '+cls:'')+'" id="o-'+id+'"><div class="t">'+esc(t)+'</div><div class="n">'+n+'</div></div>';
+  const pb=k=>{const b=O.box[k];return bx(k,b.t,b.m.length?b.m.map(e=>esc(String(e.nama).toLowerCase().replace(/\b\w/g,c=>c.toUpperCase()))).join('<br>'):'<span class="sub">(belum ada)</span>')};
+  const ls=arr=>arr.map(x=>'<div class="ol"><div class="t">'+esc(x.t)+' <span>'+x.m.length+'</span></div><div class="b'+(x.m.length>8?' c2':'')+'">'+x.m.map(e=>'<div>'+nm(e)+'</div>').join('')+'</div></div>').join('');
+  return topbar('Struktur Organisasi',false,'<button class="btn" data-act="orgG">'+(showG?'Sembunyikan':'Tampilkan')+' grup shift</button><button class="btn" data-act="orgPrint">Cetak / PDF</button>')+
+  '<p class="note" style="margin:0">Dibuat otomatis dari <b>jabatan</b> di Data karyawan. Kalau ada yang pindah jabatan atau resign, bagan ikut berubah. Karyawan yang disembunyikan dari bagan diatur di form karyawan (Tampil di bagan). Nama Direktur diatur di Pengaturan.</p>'+
+  '<div class="panel orgw"><div id="org" class="print-area">'+
+  '<div class="oh"><div><b>STRUKTUR ORGANISASI</b><span>'+esc(st.nama||'CV. Sopandi Tekno Utama')+' · Ciwidey</span></div><span>Per '+esc(MONTHS[new Date().getMonth()]+' '+new Date().getFullYear())+'</span></div>'+
+  '<div class="og"><div class="r1">'+bx('dir','Direktur',esc(st.direktur||'(isi di Pengaturan)'),'top')+'</div><div class="rp">'+pb('pen')+'</div><div class="r2">'+pb('gm').replace('class="ob"','class="ob top"')+'</div>'+
+   '<div class="c-m">'+pb('mcnc')+'</div><div class="c-u">'+bx('umum','Bagian','Umum')+'</div><div class="c-h">'+pb('hrd')+'</div><div class="c-f">'+pb('fin')+'</div>'+
+   '<div class="c-e">'+bx('eng','Engineering','Perencanaan &amp; Desain')+'</div><div class="c-k">'+pb('kab')+'</div>'+
+   '<div class="l-e">'+ls(O.lists.eng)+'</div><div class="l-k1">'+ls(O.lists.k1)+'</div><div class="l-k2">'+ls(O.lists.k2)+'</div><div class="l-k3">'+ls(O.lists.k3)+'</div><div class="l-u">'+ls(O.lists.u)+'</div></div>'+
+  '<div class="of"><span>Total '+O.total+' orang</span><span>Disahkan oleh Direktur: ____________________</span></div><svg class="olines" aria-hidden="true"></svg></div></div>'}
+function orgLines(){const org=$('#org');if(!org)return;const svg=org.querySelector('svg.olines');const R=org.getBoundingClientRect();const g=id=>{const el=$('#o-'+id);if(!el)return null;const r=el.getBoundingClientRect();return {x:r.left-R.left+r.width/2,t:r.top-R.top,b:r.bottom-R.top,l:r.left-R.left,y:r.top-R.top+r.height/2}};
+  svg.setAttribute('width',org.scrollWidth);svg.setAttribute('height',org.scrollHeight);let d='';
+  const tree=(p,kids)=>{const P=g(p),K=kids.map(g).filter(Boolean);if(!P||!K.length)return;const my=(P.b+Math.min(...K.map(k=>k.t)))/2;d+='M'+P.x+' '+P.b+'V'+my;const xs=K.map(k=>k.x).concat(P.x);d+='M'+Math.min(...xs)+' '+my+'H'+Math.max(...xs);K.forEach(k=>d+='M'+k.x+' '+my+'V'+k.t)};
+  tree('dir',['gm']);tree('gm',['mcnc','umum','hrd','fin']);tree('mcnc',['eng','kab']);const D=g('dir'),P=g('pen');
+  svg.innerHTML='<path d="'+d+'" fill="none" stroke="var(--oline)" stroke-width="1.2"/>'+(D&&P?'<path d="M'+D.x+' '+P.y+'H'+P.l+'" stroke="var(--oline)" stroke-dasharray="4 3" stroke-width="1.2"/>':'')}
+addEventListener('resize',()=>{if(S.tab==='org')orgLines()});
 
 // ===== Cocokkan absensi dengan file mesin absen (sidik jari) =====
 // Scan sebelum pukul 04.00 dihitung milik hari sebelumnya (pulang lembur lewat tengah malam).
@@ -1942,7 +2146,7 @@ function empForm(e){
     '<label>Tarif lembur per jam<select id="f_lemburMode"><option value="umum"'+(!e.lemburMode||e.lemburMode==='umum'?' selected':'')+'>Tarif umum (Pengaturan)</option><option value="harian8"'+(e.lemburMode==='harian8'?' selected':'')+'>Gaji per hari ÷ 8</option><option value="khusus"'+(e.lemburMode==='khusus'?' selected':'')+'>Nominal khusus</option></select></label>'+
     money('lemburTarif','Nominal khusus per jam (Rp)',e.lemburTarif,'Diisi hanya jika memilih nominal khusus')+
     f('lemburKali','Pengali (untuk gaji/hari ÷ 8)',e.lemburKali||1,'number',{hint:'Contoh 2 → (gaji/hari ÷ 8) × 2 per jam'})+
-    '<label>Grup shift<select id="f_grupShift"><option value="">Tidak shift (jam kantor)</option>'+GRUP.map(g=>'<option'+(e.grupShift===g?' selected':'')+'>'+g+'</option>').join('')+'</select><span class="hint">Karyawan shift: jam masuk mengikuti jadwal grupnya (lihat Telat &amp; Shift → Jadwal shift)</span></label>'+'<label style="flex-direction:row;align-items:center;gap:8px;color:var(--fg)"><input id="f_bebasTelat" type="checkbox"'+(e.bebasTelat?' checked':'')+'> Tidak dipotong telat</label>'+
+    '<label style="flex-direction:row;align-items:center;gap:8px;color:var(--fg)"><input id="f_tampilBagan" type="checkbox"'+(e.tampilBagan===false?'':' checked')+' style="width:auto"> Tampil di bagan perusahaan</label>'+'<label>Grup shift<select id="f_grupShift"><option value="">Tidak shift (jam kantor)</option>'+GRUP.map(g=>'<option'+(e.grupShift===g?' selected':'')+'>'+g+'</option>').join('')+'</select><span class="hint">Karyawan shift: jam masuk mengikuti jadwal grupnya (lihat Telat &amp; Shift → Jadwal shift)</span></label>'+'<label style="flex-direction:row;align-items:center;gap:8px;color:var(--fg)"><input id="f_bebasTelat" type="checkbox"'+(e.bebasTelat?' checked':'')+'> Tidak dipotong telat</label>'+
     f('rekening','Nomor rekening (a.n.)',e.rekening,'text')+'<div class="fcalc full" id="fcalc"></div>')+
    sec('ident',f('wa','No WhatsApp',e.wa,'tel',{hint:'Format 62…, tanpa + atau spasi'})+f('email','Email (untuk kirim slip)',e.email||'','email')+
     f('namaKtp','Nama sesuai KTP',e.namaKtp||'')+f('nik','NIK (16 digit)',e.nik||'','text',{attr:' inputmode="numeric" maxlength="20"'})+
@@ -2112,7 +2316,7 @@ async function repXlsx(){
 function repDone(){const key=S.periodKey;const per=S.periods[key];if(per&&!(per.ceklis||{}).laporan&&!S.readonly)patchPeriod({ceklis:{laporan:true}})}
 
 // ===== Cadangan data =====
-const BK_COLS=[['employees','emps'],['loans','loans'],['warnings','warns'],['interns','interns'],['notes','notes'],['periods','periods'],['kpiDivisi','kpiD'],['kpiNilai','kpiN'],['surat','surat'],['riwayat','logs']];
+const BK_COLS=[['employees','emps'],['loans','loans'],['warnings','warns'],['interns','interns'],['notes','notes'],['periods','periods'],['kpiDivisi','kpiD'],['kpiNilai','kpiN'],['surat','surat'],['riwayat','logs'],['sop','sop'],['dokumen','dok']];
 function backupObj(){const o={settings:{company:clone(S.settings||{})}};BK_COLS.forEach(([c,k])=>{o[c]=clone(S[k]||{})});return o}
 async function backupDownload(){
   if(!S.dl){toast('Unduhan tidak tersedia di tampilan ini.');return}
@@ -2529,7 +2733,7 @@ function vSet(){
   '<div class="panel"><h2>Profil perusahaan & aturan gaji</h2><div class="form">'+f('nama','Nama perusahaan')+f('alamat','Alamat')+f('pembuat','Pembuat laporan')+f('mengetahui','Mengetahui')+f('menyetujui','Menyetujui')+
   ttdField('logo','Logo perusahaan','Unggah logo (PNG latar transparan paling rapi). Tampil di kiri atas slip gaji. Klik Simpan setelah memilih.')+ttdField('ttdPembuat','Tanda tangan Dibuat oleh')+ttdField('ttdMengetahui','Tanda tangan Mengetahui')+
   f('uangLembur','Tarif lembur per jam (Rp)','number')+
-  f('telatTarif','Potongan telat per jam (Rp)','number','Telat tanpa keterangan, dihitung per jam yang dimulai')+f('jamMasuk','Jam masuk (JJ:MM)','text','Dipakai untuk menghitung telat dari mesin absen')+f('telatToleransi','Toleransi telat dipakai menghitung (menit)','number','Telat sampai batas ini tidak dipotong')+f('telatToleransiPP','Toleransi yang ditulis di Peraturan Perusahaan (menit)','number','Hanya untuk teks peraturan. Kosongkan kalau sama dengan yang dipakai')+'<label>Jam mulai shift<input id="s_shiftJam" type="text" value="'+esc(shiftJam().map(jamTxt).join(', '))+'"><span class="hint">Urutan gilir tiap Senin, pisahkan dengan koma</span></label>'+(()=>{const mon=seninOf(todayISO());return '<label class="full">Jadwal grup minggu ini ('+esc(fmtD(mon))+')<span class="row" style="gap:10px">'+GRUP.map(g=>'<span>Grup '+g+' <select id="s_shift_'+g+'">'+shiftJam().map(j=>'<option value="'+j+'"'+(shiftOf(g,mon)===j?' selected':'')+'>'+jamTxt(j)+'</option>').join('')+'</select></span>').join('')+'</span><span class="hint">Minggu berikutnya digilir otomatis. Ubah hanya kalau pabrik mengubah jadwal.</span></label>'})()+f('spLama','Lama berlaku Surat Peringatan (bulan)','number','Bawaan saat membuat SP baru')+
+  f('telatTarif','Potongan telat per jam (Rp)','number','Telat tanpa keterangan, dihitung per jam yang dimulai')+f('jamMasuk','Jam masuk (JJ:MM)','text','Dipakai untuk menghitung telat dari mesin absen')+f('telatToleransi','Toleransi telat dipakai menghitung (menit)','number','Telat sampai batas ini tidak dipotong')+f('telatToleransiPP','Toleransi yang ditulis di Peraturan Perusahaan (menit)','number','Hanya untuk teks peraturan. Kosongkan kalau sama dengan yang dipakai')+'<label>Jam mulai shift<input id="s_shiftJam" type="text" value="'+esc(shiftJam().map(jamTxt).join(', '))+'"><span class="hint">Urutan gilir tiap Senin, pisahkan dengan koma</span></label>'+(()=>{const mon=seninOf(todayISO());return '<label class="full">Jadwal grup minggu ini ('+esc(fmtD(mon))+')<span class="row" style="gap:10px">'+GRUP.map(g=>'<span>Grup '+g+' <select id="s_shift_'+g+'">'+shiftJam().map(j=>'<option value="'+j+'"'+(shiftOf(g,mon)===j?' selected':'')+'>'+jamTxt(j)+'</option>').join('')+'</select></span>').join('')+'</span><span class="hint">Minggu berikutnya digilir otomatis. Ubah hanya kalau pabrik mengubah jadwal.</span></label>'})()+f('spLama','Lama berlaku Surat Peringatan (bulan)','number','Bawaan saat membuat SP baru')+f('direktur','Nama Direktur','text','Tampil di bagan perusahaan, Peraturan Perusahaan dan pilihan penyetuju SOP')+
   '<label>Jabatan yang tidak dipotong telat<input id="s_telatBebasJab" type="text" value="'+esc((s.telatBebasJab!=null?s.telatBebasJab:['PROGRAMMER']).join(', '))+'"><span class="hint">Pisahkan dengan koma. Per orang diatur di data karyawan (Tidak dipotong telat).</span></label>'+
   '<label>Uang makan lembur (Rp)<input id="s_uangMakan" type="number" value="'+mealCfg().amt+'"><span class="hint">Dibayar per hari bila lembur mencapai batas jam di bawah</span></label>'+'<label>Minimal jam lembur untuk uang makan<input id="s_makanMinJam" type="number" step="0.5" value="'+mealCfg().min+'"><span class="hint">Uang makan diberikan jika lembur sehari minimal sebanyak angka ini</span></label>'+
   '<label>Bulan pembaruan cuti<select id="s_cutiMulaiBulan">'+MONTHS.map((m,i)=>'<option value="'+(i+1)+'"'+(cutiStartMonth()===i+1?' selected':'')+'>'+m+'</option>').join('')+'</select><span class="hint">Saldo cuti kembali penuh setiap tanggal 1 bulan ini</span></label>'+
@@ -2546,7 +2750,7 @@ async function saveSet(){
   const g=k=>$('#s_'+k).value.trim();
   const libur=g('libur').split(/[,\s]+/).filter(x=>/^\d{4}-\d{2}-\d{2}$/.test(x));
   const reminders=g('rem').split('\n').map(l=>l.trim()).filter(Boolean).map(l=>{const m=l.match(/^(\d{4}-\d{2}-\d{2})\s+(.+)$/);return m?{tanggal:m[1],judul:m[2]}:null}).filter(Boolean);
-  const s=Object.assign({},S.settings,{nama:g('nama'),alamat:g('alamat'),pembuat:g('pembuat'),mengetahui:g('mengetahui'),menyetujui:g('menyetujui'),uangLembur:+g('uangLembur')||0,telatTarif:g('telatTarif')===''?10000:Math.max(0,+g('telatTarif')||0),jamMasuk:/^\d{1,2}[:.]\d{2}$/.test(g('jamMasuk'))?g('jamMasuk').replace('.',':'):'08:00',telatToleransi:Math.max(0,+g('telatToleransi')||0),telatToleransiPP:g('telatToleransiPP')===''?'':Math.max(0,+g('telatToleransiPP')||0),spLama:Math.min(36,Math.max(1,+g('spLama')||1)),shiftJam:(()=>{const a=g('shiftJam').split(',').map(x=>x.trim().replace('.',':')).filter(x=>/^\d{1,2}:\d{2}$/.test(x)).map(x=>x.padStart(5,'0'));return a.length?a:shiftJam()})(),shiftRef:(()=>{const r={senin:seninOf(todayISO())};GRUP.forEach(x=>{const el=$('#s_shift_'+x);r[x]=el?el.value:shiftOf(x,r.senin)});return r})(),telatBebasJab:g('telatBebasJab').split(',').map(x=>x.trim().toUpperCase()).filter(Boolean),uangMakan:g('uangMakan')===''?20000:Math.max(0,+g('uangMakan')||0),makanMinJam:g('makanMinJam')===''?4:Math.max(0,+g('makanMinJam')||0),cutiMulaiBulan:+$('#s_cutiMulaiBulan').value||4,shPotong:+g('shPotong')||0,shPotongRendah:+g('shPotongRendah')||0,shBatas:+g('shBatas')||0,kuotaCutiDefault:+g('kuotaCutiDefault')||12,cutiAwalTahun:cutiAwalYear(),potongBulanan:['A','I','S'].filter(c=>$('#s_pb_'+c).checked),cutoff:Math.min(28,Math.max(2,(+$('#s_tutup').value||20)+1)),libur,reminders,jabatanOrder:g('jab').split('\n').map(x=>x.trim().toUpperCase()).filter(Boolean)});
+  const s=Object.assign({},S.settings,{nama:g('nama'),alamat:g('alamat'),pembuat:g('pembuat'),mengetahui:g('mengetahui'),menyetujui:g('menyetujui'),uangLembur:+g('uangLembur')||0,telatTarif:g('telatTarif')===''?10000:Math.max(0,+g('telatTarif')||0),jamMasuk:/^\d{1,2}[:.]\d{2}$/.test(g('jamMasuk'))?g('jamMasuk').replace('.',':'):'08:00',telatToleransi:Math.max(0,+g('telatToleransi')||0),telatToleransiPP:g('telatToleransiPP')===''?'':Math.max(0,+g('telatToleransiPP')||0),spLama:Math.min(36,Math.max(1,+g('spLama')||1)),direktur:g('direktur'),shiftJam:(()=>{const a=g('shiftJam').split(',').map(x=>x.trim().replace('.',':')).filter(x=>/^\d{1,2}:\d{2}$/.test(x)).map(x=>x.padStart(5,'0'));return a.length?a:shiftJam()})(),shiftRef:(()=>{const r={senin:seninOf(todayISO())};GRUP.forEach(x=>{const el=$('#s_shift_'+x);r[x]=el?el.value:shiftOf(x,r.senin)});return r})(),telatBebasJab:g('telatBebasJab').split(',').map(x=>x.trim().toUpperCase()).filter(Boolean),uangMakan:g('uangMakan')===''?20000:Math.max(0,+g('uangMakan')||0),makanMinJam:g('makanMinJam')===''?4:Math.max(0,+g('makanMinJam')||0),cutiMulaiBulan:+$('#s_cutiMulaiBulan').value||4,shPotong:+g('shPotong')||0,shPotongRendah:+g('shPotongRendah')||0,shBatas:+g('shBatas')||0,kuotaCutiDefault:+g('kuotaCutiDefault')||12,cutiAwalTahun:cutiAwalYear(),potongBulanan:['A','I','S'].filter(c=>$('#s_pb_'+c).checked),cutoff:Math.min(28,Math.max(2,(+$('#s_tutup').value||20)+1)),libur,reminders,jabatanOrder:g('jab').split('\n').map(x=>x.trim().toUpperCase()).filter(Boolean)});
   if(await saveDoc('settings/company',s)){{const ch=Object.keys(s).filter(k=>!/^(logo|ttd)/.test(k)&&JSON.stringify(s[k])!==JSON.stringify((S.settings||{})[k]));if(ch.length){logAct('gaji','Mengubah pengaturan',{ket:'Isian yang berubah: '+ch.join(', ')});histDoc('Ubah pengaturan','gaji','settings/company',S.settings,s,'settings')}}S.settings=s;toast('Pengaturan disimpan.');render(true)}
 }
 
@@ -2623,6 +2827,32 @@ document.addEventListener('click',async ev=>{
   if(a==='mesinIsi')return mesinIsi();
   if(a==='mesinTelat')return mesinTelatIsi();
   if(a==='telatTab'){S.telatTab=id;render(true);return}
+  if(a==='sopF'){S.sopF=id;render(true);return}
+  if(a==='sopNew')return sopNewModal(id);
+  if(a==='sopCreate')return sopCreate();
+  if(a==='sopOpen'){S.sopEdit=id;S.sopDraft=null;S.sopNew=false;render(true);window.scrollTo(0,0);return}
+  if(a==='sopBack'){const orig=(S.sop||{})[S.sopEdit];if(S.sopDraft&&(!orig||sopIsi(orig)!==sopIsi(S.sopDraft))&&!confirm('Perubahan SOP belum disimpan. Tetap keluar?'))return;S.sopEdit=null;S.sopDraft=null;render(true);return}
+  if(a==='sopAdd'){S.sopDraft.langkah.push('');render(true);const t=document.querySelectorAll('[data-sost]');if(t.length)t[t.length-1].focus();return}
+  if(a==='sopDel'){S.sopDraft.langkah.splice(+id,1);render(true);return}
+  if(a==='sopUp'){const L=S.sopDraft.langkah,i=+id;if(i>0){[L[i-1],L[i]]=[L[i],L[i-1]]}render(true);return}
+  if(a==='sopSave')return sopSimpan(false);
+  if(a==='sopBerlaku')return sopSimpan(true);
+  if(a==='sopWord')return sopWord();
+  if(a==='sopPrint')return printArea(false);
+  if(a==='sopHapus'){const x=S.sop[S.sopEdit];if(!x||!confirm('Hapus '+(x.nomor||'SOP')+' '+(x.judul||'')+'? Tidak bisa dikembalikan.'))return;const sid=S.sopEdit;if(await delDoc('sop/'+sid)){delete S.sop[sid];logAct('data','Menghapus SOP · '+(x.nomor||'')+' '+(x.judul||''));S.sopEdit=null;S.sopDraft=null;render(true);toast('SOP dihapus.')}return}
+  if(a==='ppCur'){S.ppCur=+id;render(true);return}
+  if(a==='ppEdit'){S.ppDraft=clone(ppData());render(true);return}
+  if(a==='ppBatal'){S.ppDraft=null;render(true);return}
+  if(a==='ppSave')return ppSave();
+  if(a==='ppAddI'){const d=S.ppDraft;d.poin[Math.min(S.ppCur||0,d.poin.length-1)].i.push(['baru','']);render(true);const t=document.querySelectorAll('[data-pps]');if(t.length)t[t.length-1].focus();return}
+  if(a==='ppDelI'){const d=S.ppDraft;d.poin[Math.min(S.ppCur||0,d.poin.length-1)].i.splice(+id,1);render(true);return}
+  if(a==='ppAddP'){const d=S.ppDraft;d.poin.push({j:'Poin baru',i:[['baru','']]});S.ppCur=d.poin.length-1;render(true);return}
+  if(a==='ppDelP'){const d=S.ppDraft;const c=Math.min(S.ppCur||0,d.poin.length-1);if(!confirm('Hapus poin "'+d.poin[c].j+'"?'))return;d.poin.splice(c,1);S.ppCur=Math.max(0,c-1);render(true);return}
+  if(a==='ppTahap'){if(S.readonly)return;const d=clone((S.dok||{}).peraturan||ppData());d.tahap=+id;if(S.ppDraft)S.ppDraft.tahap=+id;if(await saveDoc('dokumen/peraturan',d)){(S.dok=S.dok||{}).peraturan=d;logAct('data','Tahap Peraturan Perusahaan',{ke:PP_TAHAP[+id-1]})}render(true);return}
+  if(a==='ppWord')return ppWord();
+  if(a==='ppPrint')return printArea(false);
+  if(a==='orgG'){S.orgG=S.orgG===false;render(true);return}
+  if(a==='orgPrint')return printArea(true);
   if(a==='telatF'){S.telatF=id;render(true);return}
   if(a==='telatOpen'){if(ev.target.closest('label,input'))return;S.telatOpen=S.telatOpen===id?null:id;render(true);return}
   if(a==='ckIsi'||a==='ckOk'||a==='ckOkAll'){if(isLocked()){toast('Periode ini sudah dikunci.');return}const key=S.periodKey;
@@ -2667,6 +2897,9 @@ document.addEventListener('click',async ev=>{
 });
 document.addEventListener('input',ev=>{
   const t=ev.target;
+  if(t.dataset&&t.dataset.so&&S.sopDraft){S.sopDraft[t.dataset.so]=t.value;sopRefresh();return}
+  if(t.dataset&&t.dataset.sost!=null&&S.sopDraft){S.sopDraft.langkah[+t.dataset.sost]=t.value;sopRefresh();return}
+  if(t.dataset&&S.ppDraft&&(t.dataset.ppj!=null||t.dataset.pps!=null||t.dataset.ppt!=null)){const d=S.ppDraft;const p=d.poin[Math.min(S.ppCur||0,d.poin.length-1)];if(t.dataset.ppj!=null)p.j=t.value;else if(t.dataset.pps!=null)p.i[+t.dataset.pps][1]=t.value;else p.i[+t.dataset.ppt][0]=t.value;return}
   if(t.dataset&&t.dataset.srt!=null&&S.srt){clearTimeout(S.srtT);S.srtT=setTimeout(()=>{srtRead();srtPreview()},700);return}
   if(t.dataset.kn!=null){kpiLive();return}
   if(t.id==='x_tgl'){const id=($('[data-act=exitSave]')||{}).dataset;const e=id&&S.emps[id.id];if(e)$('#xsum').innerHTML=exitSummary(e,t.value);return}
@@ -2737,7 +2970,12 @@ S.tab=lsGet('hrd.tab')||'dash';renderNav();render();window.__runImport=b=>runImp
 // Perubahan data satu kali (dijalankan otomatis oleh akun HRD yang login, lalu ditandai di settings.migrasi supaya tidak terulang).
 // Jabatan yang punya indikator dan target KPI. Karyawan lain tidak dinilai.
 function kpiDinilai(id){const e=S.emps[id];if(!e)return false;const j=normJab(e.jabatan||'');return j==='OPERATOR CNC'||j==='MANAGER CNC'||/PROGRAMMER|\bCAM\b|CUTTING/.test(j)}
-const MIGRATIONS=[{id:'2026-11-24-shift',run:async db=>{
+const MIGRATIONS=[{id:'2026-11-24-dokumen',run:async db=>{
+  // Nama Direktur untuk bagan & peraturan; Putri Ayu Salamah (akan resign) tidak ditampilkan di bagan.
+  const out=[];const st=S.settings||{};if(!st.direktur){await db.doc('settings/company').update({direktur:'Eep Sopandi'});S.settings.direktur='Eep Sopandi';out.push('nama Direktur: Eep Sopandi')}
+  const e=Object.values(S.emps).find(x=>(x.nama||'').trim().toUpperCase()==='PUTRI AYU SALAMAH');if(e&&e.tampilBagan!==false){await db.doc('employees/'+e.id).update({tampilBagan:false});e.tampilBagan=false;out.push('Putri Ayu Salamah tidak tampil di bagan');logAct('data','Menyembunyikan dari bagan · '+e.nama)}
+  return out}},
+{id:'2026-11-24-shift',run:async db=>{
   // Grup shift A/B/C (gilir tiap Senin), toleransi telat 15 menit (peraturan menulis 10), SP berlaku 1 bulan, dan perubahan jabatan.
   const G={A:['M YOGI IBRAHIM','M RIZKI BAGJA FAISAL','RONI','RISMAN ZIHADLAN','FAHMI DWI PERMANA','SALEH ABDUL WAHID','DANDI TRISNADI','MOCHAMAD NASIHUL ANAM'],
     B:['EGA BUDIANSYAH','ALIF HAFID F','FAUZAN DZAKHWAN FEBRIANTO','HOLILUL RAHMAN','MUHAMMAD ZIDAN','ARDI ROMADHON','EGI BERLIANDI'],
@@ -2864,7 +3102,7 @@ function db_subscribe(db,err){
     if(target==='emps'&&snap.docs.length)S.needImport=false;
     if(target==='periods'||target==='kpiN'){const pre=target==='periods'?'periods/':'kpiNilai/';for(const p in Q)if(p.startsWith(pre)){const k=p.slice(pre.length);const pend=Q[p].patch&&Object.keys(Q[p].patch).length;if(!o[k]&&pend&&Q[p].create)o[k]=clone(Q[p].create);if(o[k]&&pend)deepMerge(o[k],clone(Q[p].patch))}}
     render()},err);
-  coll('employees','emps');coll('loans','loans');coll('warnings','warns');coll('interns','interns');coll('notes','notes');coll('periods','periods');coll('kpiDivisi','kpiD');coll('kpiNilai','kpiN');coll('surat','surat');coll('riwayat','logs');
+  coll('employees','emps');coll('loans','loans');coll('warnings','warns');coll('interns','interns');coll('notes','notes');coll('periods','periods');coll('kpiDivisi','kpiD');coll('kpiNilai','kpiN');coll('surat','surat');coll('riwayat','logs');coll('sop','sop');coll('dokumen','dok');
 }
 async function runImport(btn){
   btn.disabled=true;btn.textContent='Mengimpor…';
