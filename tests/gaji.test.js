@@ -159,3 +159,29 @@ test('cuti: kuota − terpakai sebelum sistem − kode C, dan atur ulang', () =>
   S.emps.K1.cutiTerpakaiAwal = 0; S.emps.K1.cutiReset = '2026-10-02';
   assert.equal(app.cutiSisa(S.emps.K1, 2026), 11, 'kode C sebelum tanggal atur ulang tidak dihitung');
 });
+
+test('telat tanpa keterangan: per jam yang dimulai × Rp 10.000', () => {
+  const telat = { '2026-10-01': 5, '2026-10-02': 60, '2026-10-05': 61, '2026-10-06': 0, '2026-09-01': 30 };
+  setup({ emps: [emp({ gajiPokok: 4800000, jabatan: 'OPERATOR CNC' })], periods: { [OKT]: per({ telat: { K1: telat } }) } });
+  const r = app.liveCalc(S.emps.K1, OKT);
+  assert.equal(r.telatJam, 1 + 1 + 2, '5 mnt = 1 jam, 60 mnt = 1 jam, 61 mnt = 2 jam; di luar periode tidak dihitung');
+  assert.equal(r.potTelat, 40000);
+  assert.equal(r.thp, 4800000 - 40000);
+  S.settings.telatToleransi = 10;
+  assert.equal(app.liveCalc(S.emps.K1, OKT).telatJam, 3, 'telat 5 menit masuk toleransi');
+  S.settings.telatTarif = 15000;
+  assert.equal(app.liveCalc(S.emps.K1, OKT).potTelat, 45000, 'tarif dari Pengaturan');
+});
+
+test('telat: tidak dipotong untuk jabatan Programmer dan karyawan yang ditandai', () => {
+  const telat = { '2026-10-01': 90 };
+  setup({ emps: [emp({ gajiPokok: 4800000, jabatan: 'PROGRAMMER' })], periods: { [OKT]: per({ telat: { K1: telat } }) } });
+  assert.equal(app.liveCalc(S.emps.K1, OKT).potTelat, 0, 'jabatan Programmer (bawaan Pengaturan)');
+  S.emps.K1.jabatan = 'GENERAL MANAGER'; S.emps.K1.bebasTelat = true;
+  assert.equal(app.liveCalc(S.emps.K1, OKT).potTelat, 0, 'ditandai tidak dipotong di data karyawan');
+  S.emps.K1.bebasTelat = false;
+  assert.equal(app.liveCalc(S.emps.K1, OKT).potTelat, 20000);
+  S.settings.telatBebasJab = [];
+  S.emps.K1.jabatan = 'PROGRAMMER';
+  assert.equal(app.liveCalc(S.emps.K1, OKT).potTelat, 20000, 'daftar jabatan dikosongkan: Programmer ikut dipotong');
+});
