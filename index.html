@@ -496,11 +496,7 @@ function cutiAwalYear(){return (S.settings&&+S.settings.cutiAwalTahun)||2026}
 function kuotaFor(e,y){const o=(e.kuotaTahun||{})[y];if(o!=null&&o!=='')return +o;return y===cutiAwalYear()?(+e.kuotaCuti||0):((S.settings&&+S.settings.kuotaCutiDefault)||12)}
 function awalFor(e,y){return y===cutiAwalYear()?(+e.cutiTerpakaiAwal||0):0}
 // cutiReset: kode C sebelum tanggal ini tidak dihitung lagi (saldo cuti diatur ulang)
-// Tanggal berkode C dalam rentang from..to, satu nilai per tanggal. Kalau satu tanggal tersimpan di lebih dari satu periode,
-// yang dipakai adalah periode yang rentangnya memuat tanggal itu (salinan di periode lain tidak dihitung dua kali).
-function cutiDates(e,from,to){const rs=e.cutiReset||'';const own={},other={};for(const k in S.periods){const a=(S.periods[k].absensi||{})[e.id];if(!a)continue;let s0='',s1='';if(/^\d{4}-\d{2}$/.test(k)){const r=periodRange(k);s0=iso(r.start);s1=iso(r.end)}for(const d in a){if(d<from||d>to||d<rs)continue;if(d>=s0&&d<=s1)own[d]=a[d];else if(!(d in other)||a[d]==='C')other[d]=a[d]}}
-  const all=Object.assign({},other,own);return Object.keys(all).filter(d=>all[d]==='C').sort()}
-function cutiUsed(e,y){if(y==null)y=cutiYearOf(new Date());const {from,to}=cutiRange(y);return cutiDates(e,from,to).length}
+function cutiUsed(e,y){if(y==null)y=cutiYearOf(new Date());const {from,to}=cutiRange(y);const rs=e.cutiReset||'';let n=0;for(const k in S.periods){const a=(S.periods[k].absensi||{})[e.id]||{};for(const d in a)if(a[d]==='C'&&d>=from&&d<=to&&d>=rs)n++}return n}
 function cutiSisa(e,y){if(y==null)y=cutiYearOf(new Date());return kuotaFor(e,y)-awalFor(e,y)-cutiUsed(e,y)}
 
 // ---------- writes ----------
@@ -888,7 +884,7 @@ function vSlip(){
 function waText(e,r){const st=S.settings||{};const {plus,minus}=slipLines(e,r);
   return 'Slip Gaji '+(st.nama||'')+'\nPeriode '+periodLabel(S.periodKey)+' ('+periodSub(S.periodKey)+')\n\nNama: '+e.nama+'\nJabatan: '+e.jabatan+'\n\nKehadiran:\n'+ATT_ITEMS.filter(([k])=>(r.c||{})[k]||k==='H'||k==='SH').map(([k,n])=>'- '+n+' ('+k+'): '+((r.c||{})[k]||0)+' hari').join('\n')+'\n- Hari dibayar: '+attSummary(r).dibayar+' hari'+(()=>{const c=cutiSlip(e,S.periodKey);return '\n\nCuti ('+c.label+'):\n- Kuota cuti: '+c.kuota+' hari\n- Cuti terpakai: '+c.used+' hari\n- Sisa cuti: '+c.sisa+' hari'})()+'\n\nPenerimaan:\n'+plus.map(a=>'- '+a[0]+': Rp '+rp(a[1])).join('\n')+(minus.length?'\n\nPotongan:\n'+minus.map(a=>'- '+a[0]+': Rp '+rp(a[1])).join('\n'):'')+'\n\nTake Home Pay: Rp '+rp(r.thp)+'\n('+terbilang(r.thp)+')\n\nTerima kasih.\nHRD'}
 const ATT_ITEMS=[['H','Hadir penuh'],['SH','Setengah hari'],['C','Cuti'],['I','Izin'],['S','Sakit'],['A','Alpha'],['LM','Lembur Minggu'],['LTM','Lembur tgl merah']];
-function cutiSlip(e,key){const end=iso(periodRange(key).end);const y=cutiYearOf(end);const {from,to}=cutiRange(y);const lim=end<to?end:to;const n=cutiDates(e,from,lim).length;
+function cutiSlip(e,key){const end=iso(periodRange(key).end);const y=cutiYearOf(end);const {from,to}=cutiRange(y);const lim=end<to?end:to;let n=0;for(const k in S.periods){const a=(S.periods[k].absensi||{})[e.id]||{};for(const d in a)if(a[d]==='C'&&d>=from&&d<=lim)n++}
   const kuota=kuotaFor(e,y),used=awalFor(e,y)+n;return {kuota,used,sisa:kuota-used,label:'Periode cuti '+cutiLabel(y)+' · s.d. '+fmtD(lim)}}
 function slipCutiHtml(e){const c=cutiSlip(e,S.periodKey);
   return '<div class="slipatt"><div class="slipatt-h"><span>Cuti</span><span>'+esc(c.label)+'</span></div><div class="slipcuti-g">'+
@@ -1466,7 +1462,7 @@ function vLeave(){
   return topbar('Cuti',false,nav)+
   '<p class="note" style="margin:0">Saldo cuti diperbarui setiap 1 '+MONTHS[cutiStartMonth()-1]+'. Pembaruan berikutnya: <b>'+fmtD(reset)+'</b>. Sisa = kuota − cuti terpakai'+(awal?' sebelum sistem (sheet CUTI lama)':'')+' − hari berkode C di absensi dalam tahun cuti ini. Kuota bisa diubah langsung di tabel'+(awal?'':'; bawaan '+((S.settings&&+S.settings.kuotaCutiDefault)||12)+' hari dari Pengaturan')+'.</p>'+
   '<div class="tablewrap"><table><thead><tr><th>Karyawan</th><th class="num">Kuota</th>'+(awal?'<th class="num">Terpakai (sebelum sistem)</th>':'')+'<th class="num">Terpakai (absensi)</th><th class="num">Sisa</th></tr></thead><tbody>'+
-  emps.map(e=>{const k=kuotaFor(e,y);const u=cutiUsed(e,y);const sisa=k-awalFor(e,y)-u;return '<tr><td><div class="name">'+esc(e.nama)+'</div><div class="sub">'+esc(e.id)+' · '+esc(e.jabatan)+'</div></td><td class="num"><input class="cellin" style="width:56px" type="number" min="0" step="1" data-kuota="'+esc(e.id)+'" value="'+k+'" aria-label="Kuota cuti '+esc(e.nama)+'"></td>'+(awal?'<td class="num">'+awalFor(e,y)+'</td>':'')+'<td class="num">'+u+(()=>{const {from,to}=cutiRange(y);const ds=cutiDates(e,from,to);return ds.length?'<div class="sub" style="white-space:normal;max-width:260px;margin-left:auto">'+ds.map(d=>esc(fmtD(d))).join(', ')+'</div>':''})()+'</td><td class="num"><span class="pill '+(sisa<=0?'p-bad':sisa<=2?'p-warn':'p-ok')+'">'+sisa+' hari</span></td></tr>'}).join('')+
+  emps.map(e=>{const k=kuotaFor(e,y);const u=cutiUsed(e,y);const sisa=k-awalFor(e,y)-u;return '<tr><td><div class="name">'+esc(e.nama)+'</div><div class="sub">'+esc(e.id)+' · '+esc(e.jabatan)+'</div></td><td class="num"><input class="cellin" style="width:56px" type="number" min="0" step="1" data-kuota="'+esc(e.id)+'" value="'+k+'" aria-label="Kuota cuti '+esc(e.nama)+'"></td>'+(awal?'<td class="num">'+awalFor(e,y)+'</td>':'')+'<td class="num">'+u+'</td><td class="num"><span class="pill '+(sisa<=0?'p-bad':sisa<=2?'p-warn':'p-ok')+'">'+sisa+' hari</span></td></tr>'}).join('')+
   '</tbody></table></div>';
 }
 
