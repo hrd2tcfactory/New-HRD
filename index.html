@@ -276,6 +276,19 @@ button.cklbox:hover{border-color:var(--accent)}button.cklbox:focus-visible{outli
 @media print{.helpbtn{display:none}}
 @media screen{.printonly{display:none}}
 @media print{.rail,.topbar .row,.period,.saving,#toastRoot,#modalRoot,.lockbar{display:none!important}.app{display:block}.printonly{display:block;margin-bottom:12px}.panel,.kpi{break-inside:avoid}.tablewrap{overflow:visible!important;max-height:none!important}body{background:#fff}}
+/* Telat & Shift */
+.rule{display:flex;gap:12px;justify-content:space-between;align-items:center;background:var(--accent-soft,var(--surface-2));border-radius:10px;padding:10px 14px;font-size:12.5px}
+.kpi.kwarn{border-color:var(--warn,#9a5700);cursor:pointer}.kpi.kwarn .v{color:var(--warn,#9a5700)}
+.seg2{display:flex;gap:4px;flex-wrap:wrap}.seg2 button{all:unset;cursor:pointer;font-size:12.5px;font-weight:600;padding:6px 12px;border-radius:999px;border:1px solid var(--line);color:var(--muted);background:var(--surface)}
+.seg2 button[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.gb{display:inline-block;font-size:11px;font-weight:700;border-radius:5px;padding:1px 6px;margin-left:6px;vertical-align:1px;background:var(--surface-2);color:var(--muted)}
+.gb.gA{background:#dbe7ff;color:#1f4fa3}.gb.gB{background:#ece1fb;color:#6d3fb5}.gb.gC{background:#d6f1ec;color:#0f766e}
+table.rk tr.rkrow{cursor:pointer}table.rk tr.rkrow:hover{background:var(--surface-2)}.chev{color:var(--muted);display:inline-block;transition:transform .15s}tr.open .chev{transform:rotate(90deg)}
+tr.tdet>td{background:var(--surface-2);padding:0!important}table.dtab{width:100%;font-size:13px}table.dtab td,table.dtab th{padding:7px 14px}table.dtab tr.off td{color:var(--muted)}
+.chk{display:inline-flex;align-items:center;gap:6px;cursor:pointer;font-size:12.5px}.chk input{width:15px;height:15px;margin:0}
+.h3{font-size:15px;margin:6px 0 0}tr.now td{background:var(--accent-soft,var(--surface-2))}
+.grups{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}.gph{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-bottom:1px solid var(--line)}
+.gpm{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 14px;border-bottom:1px solid var(--line);font-size:13px}.gpm:last-child{border-bottom:none}.gpm select{font:inherit;font-size:12.5px;max-width:100%}
 </style>
 
 <style>html,body{margin:0}body{font-family:var(--f-body);font-size:14px}[hidden]{display:none!important}img{max-width:100%}</style>
@@ -348,7 +361,7 @@ const ICONS={
 };
 const TABS=[
   ['dash','Dasbor','dash',''],
-  ['att','Absensi','att','Harian'],['ot','Lembur','ot','Harian'],['telat','Telat','telat','Harian'],
+  ['att','Absensi','att','Harian'],['ot','Lembur','ot','Harian'],['telat','Telat & Shift','telat','Harian'],
   ['pay','Payroll','pay','Gaji'],['slip','Slip Gaji','slip','Gaji'],['loan','Kasbon','loan','Gaji'],['rep','Laporan','rep','Gaji'],
   ['emp','Karyawan','emp','Karyawan'],['leave','Cuti','leave','Karyawan'],['ctr','Kontrak & PKL','ctr','Karyawan'],['sp','Surat Peringatan','sp','Karyawan'],['kpi','KPI','kpi','Karyawan'],['note','Catatan','note','Karyawan'],
   ['set','Pengaturan','set','Lainnya'],['log','Riwayat','log','Lainnya'],['help','Panduan','help','Lainnya']];
@@ -643,7 +656,7 @@ async function saveEmp(isNew){
   if(isNew&&S.emps[id]){toast('ID '+id+' sudah dipakai.');return}
   if(!g('nama')){toast('Nama wajib diisi.');return}
   const prev=S.emps[id]||{};
-  const e=Object.assign({},prev,{id,nama:g('nama').toUpperCase(),jabatan:g('jabatan').toUpperCase(),status:g('status'),gajiPokok:+digits(g('gajiPokok'))||0,metode:g('metode'),pembagi:+g('pembagi')||24,kaliLTM:+g('kaliLTM')||1,lemburMode:$('#f_lemburMode').value,lemburTarif:+digits(g('lemburTarif'))||0,lemburKali:+g('lemburKali')||1,rekening:g('rekening'),wa:g('wa').replace(/\D/g,''),email:g('email').toLowerCase(),namaKtp:g('namaKtp').toUpperCase(),nik:g('nik').replace(/\D/g,''),npwp:g('npwp'),ktpUrl:g('ktpUrl'),alamat:g('alamat'),tglBergabung:g('tglBergabung'),kontrakMulai:g('kontrakMulai'),kontrakSelesai:g('kontrakSelesai'),kuotaCuti:+g('kuotaCuti')||0,cutiTerpakaiAwal:+g('cutiTerpakaiAwal')||0,bebasTelat:$('#f_bebasTelat').checked,aktif:$('#f_aktif').checked,tglKeluar:$('#f_aktif').checked?'':(g('tglKeluar')||todayISO())});
+  const e=Object.assign({},prev,{id,nama:g('nama').toUpperCase(),jabatan:g('jabatan').toUpperCase(),status:g('status'),gajiPokok:+digits(g('gajiPokok'))||0,metode:g('metode'),pembagi:+g('pembagi')||24,kaliLTM:+g('kaliLTM')||1,lemburMode:$('#f_lemburMode').value,lemburTarif:+digits(g('lemburTarif'))||0,lemburKali:+g('lemburKali')||1,rekening:g('rekening'),wa:g('wa').replace(/\D/g,''),email:g('email').toLowerCase(),namaKtp:g('namaKtp').toUpperCase(),nik:g('nik').replace(/\D/g,''),npwp:g('npwp'),ktpUrl:g('ktpUrl'),alamat:g('alamat'),tglBergabung:g('tglBergabung'),kontrakMulai:g('kontrakMulai'),kontrakSelesai:g('kontrakSelesai'),kuotaCuti:+g('kuotaCuti')||0,grupShift:($('#f_grupShift')||{}).value||'',cutiTerpakaiAwal:+g('cutiTerpakaiAwal')||0,bebasTelat:$('#f_bebasTelat').checked,aktif:$('#f_aktif').checked,tglKeluar:$('#f_aktif').checked?'':(g('tglKeluar')||todayISO())});
   if(await saveDoc('employees/'+id,e)){logEmp(prev,e,isNew);histDoc((isNew?'Tambah ':'Ubah data ')+e.nama,'data','employees/'+id,isNew?null:prev,e,'emps',id);S.emps[id]=e;S.empSel=id;closeModal();toast('Data '+e.nama+' disimpan.');render(true)}
 }
 
@@ -1025,7 +1038,7 @@ function srtDefaults(j,e){
     tempatLahir:e.tempatLahir||'',tglLahir:e.tglLahir||'',pendidikan:e.pendidikan||'',jk:e.jk||'',agama:e.agama||'',gaji:Math.round(+e.gajiPokok||0),status:e.status||'',masuk:e.tglBergabung||''})}
   if(j==='pkwt'){f.mulai=(e&&e.kontrakMulai)||t;f.lama=12;f.selesai=addMonthsISO(f.mulai,12);f.lembur=+st.uangLembur||20000;f.tglGaji=25;
     f.tugas=(TUGAS[normJab((e||{}).jabatan||'')]||['','','']).join('\n');f.simpanKontrak=true}
-  if(j==='sp'){f.tingkat='SP 1';f.pelanggaran='';f.lama=6;f.sampai=addMonthsISO(t,6);f.catat=true}
+  if(j==='sp'){f.tingkat='SP 1';f.pelanggaran='';f.lama=spLamaDef();f.sampai=addMonthsISO(t,spLamaDef());f.catat=true}
   if(j==='skors'){f.pelanggaran='';f.mulai=t;f.selesai=t}
   if(j==='skk')f.keperluan='';
   if(j==='phk'){const dir=tCase(st.menyetujui||'Eep Sopandi');Object.assign(f,{ttdNama:dir,ttdJab:'Direktur',alasanPhk:'kompeten',akhir:t,rincian:'',riwayatSp:e?spRiwayat(e.id):'',mDari:'',mSampai:'',pgl1:'',pgl2:'',noKontrak:'',
@@ -1280,7 +1293,7 @@ function srtForm(){
   srtPreview();
 }
 function srtRead(){const f=S.srt.f;document.querySelectorAll('[data-srt]').forEach(el=>{const k=el.dataset.srt;f[k]=el.type==='checkbox'?el.checked:el.type==='number'?(+el.value||0):el.value});
-  if(S.srt.j==='pkwt')f.selesai=addMonthsISO(f.mulai,+f.lama||12);if(S.srt.j==='sp')f.sampai=addMonthsISO(f.tanggal,+f.lama||6);return f}
+  if(S.srt.j==='pkwt')f.selesai=addMonthsISO(f.mulai,+f.lama||12);if(S.srt.j==='sp')f.sampai=addMonthsISO(f.tanggal,+f.lama||spLamaDef());return f}
 function srtPreview(){if(!window.jspdf)return;const fr=$('#srtFrame');if(!fr)return;try{const d=srtPdf(S.srt.j,S.srt.f);if(S.srt.url)URL.revokeObjectURL(S.srt.url);S.srt.url=URL.createObjectURL(new Blob([d.output('arraybuffer')],{type:'application/pdf'}));fr.src=S.srt.url+'#toolbar=0&view=FitH'}catch(err){console.error(err)}}
 async function srtGo(fmt){
   const word=fmt==='docx';
@@ -1307,7 +1320,7 @@ async function srtGo(fmt){
       if(j==='phk'&&f.catatKeluar&&S.emps[empId]&&S.emps[empId].aktif!==false){const e0=clone(S.emps[empId]);const A=PHK_ALASAN[f.alasanPhk]||PHK_ALASAN.lain;
         const e1=Object.assign({},S.emps[empId],{aktif:false,tglKeluar:f.alasanPhk==='kontrak'?f.kontrakAkhir:f.akhir,alasanKeluar:A.keluar,catatanKeluar:'Surat '+f.nomor+' · '+A.n});
         if(await saveDoc('employees/'+empId,e1)){S.emps[empId]=e1;histDoc('Proses keluar '+e1.nama,'data','employees/'+empId,e0,e1,'emps',empId);logAct('data','Memproses karyawan keluar · '+e1.nama,{ket:A.keluar+' · hari terakhir '+fmtD(e1.tglKeluar)+' · surat '+f.nomor})}}
-      if(j==='sp'&&f.catat&&!S.srt.recId){const wid='W'+Date.now().toString(36);await S.db.doc('warnings/'+wid).set({empId,tingkat:f.tingkat,nomor:f.nomor,tanggal:f.tanggal,lama:+f.lama||6,sampai:f.sampai,pelanggaran:cl(f.pelanggaran)})}}
+      if(j==='sp'&&f.catat&&!S.srt.recId){const wid='W'+Date.now().toString(36);await S.db.doc('warnings/'+wid).set({empId,tingkat:f.tingkat,nomor:f.nomor,tanggal:f.tanggal,lama:+f.lama||spLamaDef(),sampai:f.sampai,pelanggaran:cl(f.pelanggaran)})}}
     logAct('surat','Membuat '+SURAT[j].n+' · '+cl(f.nama||''),{ket:f.nomor});closeModal();toast('Surat diunduh dan tercatat di riwayat.')
   }catch(err){handleErr(err)}
 }
@@ -1468,6 +1481,7 @@ function vLeave(){
 
 // ===== Surat Peringatan =====
 const SP_LEVELS=['SP 1','SP 2','SP 3'];
+function spLamaDef(){return +(S.settings||{}).spLama||1}
 function addMonthsISO(s,n){const d=parse(s);if(!d)return '';const y=d.getFullYear(),m=d.getMonth()+n;const r=new Date(y,m,Math.min(d.getDate(),new Date(y,m+1,0).getDate()));r.setDate(r.getDate()-1);return iso(r)}
 function warnStatus(w,t){t=t||todayISO();const d=daysBetween(t,w.sampai);
   if(w.tanggal&&w.tanggal>t)return {k:'next',label:'Belum mulai',cls:'p-mute',d};
@@ -1491,13 +1505,13 @@ function vWarn(){
   '</tbody></table></div>';
 }
 function warnForm(id){
-  const w=id?S.warns[id]:{empId:'',tingkat:'SP 1',nomor:'',tanggal:todayISO(),lama:6,sampai:addMonthsISO(todayISO(),6),pelanggaran:''};
+  const w=id?S.warns[id]:{empId:'',tingkat:'SP 1',nomor:'',tanggal:todayISO(),lama:spLamaDef(),sampai:addMonthsISO(todayISO(),spLamaDef()),pelanggaran:''};
   openModal('<h3>'+(id?'Ubah surat peringatan':'Catat surat peringatan')+'</h3><div class="form">'+
    '<label class="full">Karyawan<select id="w_emp">'+empList().map(e=>'<option value="'+esc(e.id)+'"'+(e.id===w.empId?' selected':'')+'>'+esc(e.id+' — '+e.nama)+'</option>').join('')+'</select></label>'+
    '<label>Tingkat<select id="w_lvl">'+SP_LEVELS.map(l=>'<option'+(l===w.tingkat?' selected':'')+'>'+l+'</option>').join('')+'</select></label>'+
    '<label>Nomor surat<input id="w_no" type="text" value="'+esc(w.nomor)+'"></label>'+
    '<label>Tanggal terbit<input id="w_tgl" type="date" value="'+esc(w.tanggal)+'"></label>'+
-   '<label>Lama berlaku (bulan)<input id="w_lama" type="number" min="1" max="36" step="1" value="'+(+w.lama||'')+'"><span class="hint">Umumnya 6 bulan, sesuai peraturan perusahaan</span></label>'+
+   '<label>Lama berlaku (bulan)<input id="w_lama" type="number" min="1" max="36" step="1" value="'+(+w.lama||'')+'"><span class="hint">Sesuai peraturan perusahaan: '+spLamaDef()+' bulan</span></label>'+
    '<label>Berlaku sampai<input id="w_sampai" type="date" value="'+esc(w.sampai)+'"><span class="hint">Terisi otomatis, bisa diubah</span></label>'+
    '<label class="full">Pelanggaran / alasan<input id="w_pel" type="text" value="'+esc(w.pelanggaran)+'"></label>'+
   '</div><div class="row"><button class="btn primary" data-act="saveWarn" data-id="'+esc(id||'')+'">Simpan</button><button class="btn" data-act="closeModal">Batal</button><span class="spacer"></span>'+(id?'<button class="btn danger" data-act="delWarn" data-id="'+esc(id)+'">'+(S.armed==='delW'+id?'Klik lagi untuk hapus':'Hapus')+'</button>':'')+'</div>');
@@ -1556,7 +1570,7 @@ const PAGE_HELP={
  dash:['Ringkasan kondisi hari ini dan daftar pekerjaan bulan ini.',['Ikuti Checklist dari atas ke bawah; tombol Buka membawa Anda ke halaman yang tepat.','Daftar "Perlu perhatian" berisi hal yang mendekati tenggat: kontrak habis, SP berakhir, cuti habis, cadangan lama.','Tombol ‹ › di kanan atas mengganti periode gaji yang ditampilkan.']],
  emp:['Data induk semua karyawan: jabatan, status, gaji, rekening, dan identitas.',['Klik satu baris untuk melihat rincian di panel kanan, lalu Ubah data untuk menggantinya. Tombol jarang dipakai ada di menu Lainnya.','Formulir dibagi per bagian; titik merah berarti harus diperbaiki, titik kuning berarti peringatan.','Karyawan yang resign: pilih orangnya lalu Proses keluar / resign. Datanya pindah ke tab Keluar dan tetap tersimpan.','Tombol Buat surat menyiapkan kontrak, SP, skorsing, keterangan kerja, dan penawaran kerja.','Tanda merah "SP" di samping nama berarti karyawan itu sedang punya SP berlaku.']],
  att:['Kehadiran harian setiap karyawan dalam satu periode gaji.',['Per hari: klik kode di samping nama untuk hari yang dipilih; setiap perubahan bisa diurungkan.','Tabel sebulan: pilih kode di atas tabel, lalu klik atau seret di sel tanggal. Klik judul tanggal untuk mengisi satu kolom.','Baca panel Cek absensi: di situ muncul hari kosong dan kode yang janggal.','Setelah payroll dikunci, absensi periode itu tidak bisa diubah.']],
- telat:['Menit telat tanpa keterangan per hari; dipotong di payroll per jam.',['Ketik menit telat di tanggalnya, atau pakai Isi dari mesin absen.','1–60 menit dihitung 1 jam, 61–120 menit 2 jam, dan seterusnya.','Telat dengan keterangan dikosongkan saja.','Siapa yang tidak dipotong diatur di Pengaturan (jabatan) dan di data karyawan (per orang).']],
+ telat:['Rekap telat, daftar yang perlu dicek, dan jadwal shift grup A/B/C. Potongan masuk ke payroll per jam.',['Unggah file mesin absen: telat dihitung otomatis, karyawan shift dibandingkan dengan jam shift grupnya.','Tab Perlu dicek: hari tanpa scan masuk. Tidak dipotong sampai Anda memilih Isi telat atau Tidak telat.','Telat dengan keterangan: buka nama di Rekap, centang izin / tugas atasan.','1–60 menit dihitung 1 jam, 61–120 menit 2 jam. Hari Minggu tidak dihitung.','Jadwal shift berganti tiap Senin; pindah grup lewat tab Jadwal shift.']],
  ot:['Jam lembur harian di luar jam kerja biasa.',['Ketik jumlah jam di tanggal lemburnya, atau pakai Impor laporan lembur.','Lembur hari Minggu dan tanggal merah tidak diisi di sini, tetapi di Absensi dengan kode LM atau LTM.','Tarif lembur per jam diatur di Pengaturan, atau khusus per karyawan di data Karyawan.']],
  pay:['Perhitungan gaji semua karyawan untuk periode yang dipilih. Angkanya dihitung otomatis dari Absensi, Lembur, dan Kasbon.',['Isi kolom Reimburse, Bonus, dan Potongan lain bila ada.','Perbaiki semua tanda Salah dan Cek di panel Cek payroll sebelum membayar.','Setelah gaji dibayar, klik Kunci payroll dua kali. Angka jadi final dan potongan kasbon tercatat.','Unduh Excel dan File transfer BCA dari tombol di kanan atas.']],
  slip:['Slip gaji per karyawan untuk periode yang dipilih.',['Pilih karyawan, lalu Unduh PDF, Kirim via email, atau Kirim PDF via WhatsApp.','Untuk mengirim ke semua karyawan sekaligus, pakai tombol Kirim semua slip via email di halaman Payroll.','Kirim slip setelah payroll dikunci, supaya angkanya tidak berubah lagi.']],
@@ -1614,32 +1628,104 @@ function cutiTolak(empId,d){const y=cutiYearOf(d);toast('Cuti '+enm(empId)+' sud
 function telatCfg(){const st=S.settings||{};const jm=/^(\d{1,2})[:.](\d{2})$/.exec(st.jamMasuk||'08:00');
   return {tarif:st.telatTarif!=null?+st.telatTarif:10000,tol:+st.telatToleransi||0,masuk:jm?(+jm[1])*60+(+jm[2]):480,masukTxt:st.jamMasuk||'08:00',bebasJab:(st.telatBebasJab!=null?st.telatBebasJab:['PROGRAMMER']).map(x=>normJab(x)).filter(Boolean)}}
 function telatBebas(e){if(!e)return false;if(e.bebasTelat)return true;const j=normJab(e.jabatan||'');return telatCfg().bebasJab.some(b=>j.includes(b))}
-function telatHitung(empId,key){const t=((S.periods[key]||{}).telat||{})[empId]||{};const {start,end}=periodRange(key);const f=iso(start),l=iso(end);const c=telatCfg();let jam=0,hari=0,menit=0;
-  for(const d in t){const m=+t[d]||0;if(d<f||d>l||m<=c.tol)continue;hari++;menit+=m;jam+=Math.ceil(m/60)}return {jam,hari,menit}}
-function vTelat(){
+// Hari Minggu dihitung lembur, jadi telat di hari Minggu tidak dipotong. Telat yang diberi keterangan (izin/tugas atasan) juga tidak.
+function telatHitung(empId,key){const per=S.periods[key]||{};const t=(per.telat||{})[empId]||{};const K=(per.telatKet||{})[empId]||{};const {start,end}=periodRange(key);const f=iso(start),l=iso(end);const c=telatCfg();let jam=0,hari=0,menit=0;
+  for(const d in t){const m=+t[d]||0;if(d<f||d>l||m<=c.tol||K[d]||parse(d).getDay()===0)continue;hari++;menit+=m;jam+=Math.ceil(m/60)}return {jam,hari,menit}}
+// ---------- Grup shift ----------
+// Karyawan shift masuk grup A/B/C. Jadwal grup digilir tiap Senin mengikuti urutan jam shift di Pengaturan (00.00 → 08.00 → 16.00).
+// Pengaturan menyimpan jadwal satu minggu acuan (shiftRef: {senin, A, B, C}); minggu lain dihitung dari situ.
+const GRUP=['A','B','C'];
+function shiftJam(){const a=((S.settings||{}).shiftJam||['00:00','08:00','16:00']).map(x=>String(x).trim().replace('.',':')).filter(x=>/^\d{1,2}:\d{2}$/.test(x)).map(x=>x.padStart(5,'0'));return a.length?a:['00:00','08:00','16:00']}
+const jamMin=x=>{const m=/^(\d{1,2})[:.](\d{2})$/.exec(String(x||'').trim());return m?(+m[1])*60+(+m[2]):null};
+const jamTxt=x=>String(x||'').replace(':','.');
+function seninOf(d){const x=parse(typeof d==='string'?d:iso(d));x.setDate(x.getDate()-((x.getDay()+6)%7));return iso(x)}
+function shiftOf(g,d){const ref=(S.settings||{}).shiftRef||{};const J=shiftJam();if(!g||!ref.senin||ref[g]==null)return null;const i0=J.indexOf(String(ref[g]).padStart(5,'0'));if(i0<0)return null;
+  const w=Math.round((parse(seninOf(d))-parse(ref.senin))/(7*864e5));return J[((i0+w)%J.length+J.length)%J.length]}
+function jadwalMasuk(e,d){const s=e&&e.grupShift?shiftOf(e.grupShift,d):null;return s||telatCfg().masukTxt}
+const grupPill=e=>e&&e.grupShift?' <span class="gb g'+esc(e.grupShift)+'">Grup '+esc(e.grupShift)+'</span>':'';
+function telatRows(key){const per=S.periods[key]||{};const T=per.telat||{},K=per.telatKet||{};const c=telatCfg();const {start,end}=periodRange(key);const f=iso(start),l=iso(end);
+  return periodEmps(key).map(e=>{const t=T[e.id]||{};const days=Object.keys(t).filter(d=>d>=f&&d<=l&&(+t[d]||0)>0).sort().map(d=>{const m=+t[d];const sun=parse(d).getDay()===0;return {d,m,j:jadwalMasuk(e,d),ket:!!(K[e.id]||{})[d],sun,ok:m>c.tol&&!sun}});
+    const h=telatHitung(e.id,key);const bb=telatBebas(e);return {e,days,h,bb,pot:bb?0:h.jam*c.tarif}}).filter(r=>r.days.length)}
+function telatCekList(key){const CK=(S.periods[key]||{}).telatCek||{};const out=[];for(const id in CK)for(const d in CK[id]){const x=CK[id][d];if(x&&typeof x==='object'&&S.emps[id])out.push(Object.assign({e:S.emps[id],d},x))}
+  return out.sort((a,b)=>String(a.k).localeCompare(String(b.k))||byRank(a.e,b.e)||a.d.localeCompare(b.d))}
+function vTelat(){const tab=S.telatTab||'rekap';const key=S.periodKey;const cek=telatCekList(key);
+  const tabs='<div class="ftabs" role="tablist">'+[['rekap','Rekap telat'],['cek','Perlu dicek'+(cek.length?' <span class="pill p-warn">'+cek.length+'</span>':'')],['jadwal','Jadwal shift'],['manual','Isi manual']].map(([k,l])=>'<button role="tab" data-act="telatTab" data-id="'+k+'" aria-selected="'+(k===tab)+'">'+l+'</button>').join('')+'</div>';
+  const body=tab==='cek'?vTelatCek(cek):tab==='jadwal'?vTelatJadwal():tab==='manual'?vTelatManual():vTelatRekap(cek.length);
+  return topbar('Telat & Shift',tab!=='jadwal',isLocked()||tab==='jadwal'?'':'<button class="btn primary" data-act="mesinOpen">Unggah file mesin absen</button>')+(tab==='jadwal'?'':lockBanner())+tabs+body}
+function telatAturan(){const c=telatCfg();const st=S.settings||{};
+  return '<div class="rule"><span><b>Aturan aktif:</b> non-shift masuk '+esc(jamTxt(c.masukTxt))+' · karyawan shift mengikuti jadwal grup · toleransi '+c.tol+' menit · Rp '+rp(c.tarif)+' per jam (dihitung per jam yang dimulai) · hari Minggu tidak dihitung · '+esc(((st.telatBebasJab!=null?st.telatBebasJab:['PROGRAMMER']).join(', ')||'—'))+' dan karyawan bertanda “Tidak dipotong telat” tidak dipotong</span><button class="btn ghost" data-act="goTab" data-id="set">Ubah</button></div>'}
+function vTelatRekap(nCek){const key=S.periodKey;const c=telatCfg();const locked=isLocked();let rows=telatRows(key);const q=(S.q||'').toLowerCase();const fl=S.telatF||'';
+  const tot=rows.reduce((a,r)=>a+r.pot,0),org=rows.filter(r=>r.pot).length,hari=rows.reduce((a,r)=>a+(r.bb?0:r.h.hari),0);
+  rows=rows.filter(r=>(!q||(r.e.nama+' '+r.e.id).toLowerCase().includes(q))&&(!fl||(fl==='s')===!!r.e.grupShift)).sort((a,b)=>b.pot-a.pot||byRank(a.e,b.e));
+  const det=r=>'<tr class="tdet"><td colspan="6"><table class="dtab"><thead><tr><th>Tanggal</th><th>Jadwal masuk</th><th class="num">Telat</th><th class="num">Dipotong</th><th>Ada keterangan?</th></tr></thead><tbody>'+
+    r.days.map(x=>{const pot=r.bb?'tidak dipotong':x.sun?'Minggu (lembur)':!x.ok?'dalam toleransi':x.ket?'batal':Math.ceil(x.m/60)+' jam · '+rp(Math.ceil(x.m/60)*c.tarif);
+      return '<tr class="'+(x.ket||!x.ok||r.bb?'off':'')+'"><td>'+esc(HARI[parse(x.d).getDay()].slice(0,3)+', '+fmtD(x.d))+'</td><td>'+esc(jamTxt(x.j))+(r.e.grupShift?' <span class="sub">(Grup '+esc(r.e.grupShift)+')</span>':'')+'</td><td class="num">'+x.m+' mnt</td><td class="num">'+pot+'</td><td>'+(x.ok&&!r.bb?'<label class="chk"><input type="checkbox" data-telatket="'+esc(r.e.id)+'" data-d="'+x.d+'"'+(x.ket?' checked':'')+(locked?' disabled':'')+'> izin / tugas atasan</label>':'')+'</td></tr>'}).join('')+'</tbody></table></td></tr>';
+  return telatAturan()+
+  '<div class="kpis"><div class="kpi"><span class="k">Total potongan</span><span class="v">Rp '+rp(tot)+'</span><span class="s">masuk ke payroll '+esc(periodLabel(key))+'</span></div><div class="kpi"><span class="k">Karyawan dipotong</span><span class="v">'+org+'</span><span class="s">'+hari+' hari telat</span></div>'+
+  '<div class="kpi'+(nCek?' kwarn" data-act="telatTab" data-id="cek" role="button" tabindex="0"':'"')+'><span class="k">Perlu dicek</span><span class="v">'+nCek+'</span><span class="s">'+(nCek?'belum dipotong · klik untuk cek':'tidak ada')+'</span></div></div>'+
+  '<div class="row"><input id="q" class="search" type="search" placeholder="Cari nama…" value="'+esc(S.q)+'"><div class="seg2">'+[['','Semua'],['s','Shift'],['n','Non-shift']].map(([k,l])=>'<button data-act="telatF" data-id="'+k+'" aria-pressed="'+(fl===k)+'">'+l+'</button>').join('')+'</div></div>'+
+  '<div class="tablewrap"><table class="rk"><thead><tr><th>Karyawan</th><th class="num">Hari telat</th><th class="num">Total menit</th><th class="num">Jam dipotong</th><th class="num">Potongan</th><th></th></tr></thead><tbody>'+
+  (rows.length?rows.map(r=>{const op=S.telatOpen===r.e.id;const mn=r.days.filter(x=>x.ok&&!x.ket).reduce((a,x)=>a+x.m,0);
+    return '<tr class="rkrow'+(op?' open':'')+'" data-act="telatOpen" data-id="'+esc(r.e.id)+'"><td><div class="name">'+esc(r.e.nama)+grupPill(r.e)+keluarPill(r.e)+'</div><div class="sub">'+esc(r.e.jabatan)+(r.e.grupShift?' · shift':' · masuk '+esc(jamTxt(c.masukTxt)))+(r.bb?' · <span class="pill p-mute">Tidak dipotong</span>':'')+'</div></td><td class="num">'+r.h.hari+'</td><td class="num">'+mn+'</td><td class="num">'+r.h.jam+'</td><td class="num"><b>'+(r.pot?rp(r.pot):'–')+'</b></td><td class="num"><span class="chev">›</span></td></tr>'+(op?det(r):'')}).join(''):'<tr><td colspan="6" class="empty">Belum ada telat tercatat di periode ini. Unggah file mesin absen, atau isi di tab Isi manual.</td></tr>')+
+  '</tbody></table></div><p class="note" style="margin:0">Klik nama untuk melihat rincian per tanggal. Centang <b>izin / tugas atasan</b> kalau telatnya ada keterangan: potongan hari itu batal, dan bisa diurungkan dengan ↶.</p>'}
+function vTelatCek(cek){const locked=isLocked();
+  if(!cek.length)return '<div class="panel empty">Tidak ada yang perlu dicek. Daftar ini terisi saat file mesin absen diunggah.</div>';
+  const G={lupa:['Lupa scan masuk','Ada scan di hari itu, tetapi tidak ada scan di sekitar jam masuknya. Biasanya lupa scan masuk. Tanyakan ke karyawan atau atasannya jam berapa dia datang.'],tanpa:['Tercatat hadir (H) tetapi tidak ada scan','Di Absensi tertulis H, tetapi mesin tidak punya scan hari itu. Cek apakah absennya benar, atau dia scan di mesin lain.']};
+  return '<p class="note" style="margin:0">Yang di bawah ini <b>tidak dipotong</b> sampai Anda memilih. Ketik menitnya lalu <b>Isi telat</b> kalau memang telat, atau <b>Tidak telat</b> kalau aman.</p>'+
+  Object.keys(G).map(k=>{const l=cek.filter(x=>x.k===k);if(!l.length)return '';
+    return '<div class="panel"><h2>'+G[k][0]+'<small>'+l.length+'</small></h2><p class="note" style="margin:0 0 6px">'+G[k][1]+'</p><div class="list">'+
+    l.map(x=>{const kk=esc(x.e.id)+'|'+x.d;return '<div class="li"><div class="t"><div class="name">'+esc(x.e.nama)+grupPill(x.e)+'</div><div class="sub">'+esc(HARI[parse(x.d).getDay()].slice(0,3)+', '+fmtD(x.d))+' · jadwal masuk '+esc(jamTxt(x.j))+(x.s?' · scan hari itu: '+esc(x.s):'')+'</div></div>'+
+      (locked?'':'<div class="row" style="flex-wrap:nowrap"><input class="cellin" style="width:76px" type="number" min="1" step="1" inputmode="numeric" placeholder="menit" aria-label="Menit telat '+esc(x.e.nama)+'" data-ckm="'+kk+'"><button class="btn" data-act="ckIsi" data-id="'+kk+'">Isi telat</button><button class="btn" data-act="ckOk" data-id="'+kk+'">Tidak telat</button></div>')+'</div>'}).join('')+'</div>'+
+    (l.length>1&&!locked?'<div class="row" style="margin-top:8px"><button class="btn" data-act="ckOkAll" data-id="'+k+'">Tidak telat semua ('+l.length+')</button></div>':'')+'</div>'}).join('')}
+function vTelatJadwal(){const st=S.settings||{};const J=shiftJam();const emps=empList();
+  if(!st.shiftRef||!st.shiftRef.senin)return '<div class="panel empty">Jadwal shift belum diatur. Atur di Pengaturan → Telat &amp; shift.</div>';
+  const mon=seninOf(todayISO());const weeks=[0,1,2,3].map(i=>{const x=parse(mon);x.setDate(x.getDate()+7*i);return iso(x)});
+  const wl=w=>{const a=parse(w),b=parse(w);b.setDate(b.getDate()+6);return a.getDate()+' '+MS[a.getMonth()]+' – '+b.getDate()+' '+MS[b.getMonth()]};
+  const gAt=(w,j)=>GRUP.filter(g=>shiftOf(g,w)===j);const mem=g=>emps.filter(e=>e.grupShift===g).sort(byRank);const spv=g=>mem(g).filter(e=>/SUPERVIS|SPV/.test(normJab(e.jabatan)));
+  const gTag=g=>'<span class="gb g'+g+'">Grup '+g+'</span>';
+  return '<p class="note" style="margin:0">Jadwal berganti otomatis tiap Senin dengan urutan '+J.map(jamTxt).join(' → ')+'. Hari Minggu dan longshift dihitung lembur. Shift '+esc(jamTxt(J[0]))+' dicatat di tanggal mulai shift (masuk Minggu malam = shift Senin).</p>'+
+  '<h3 class="h3">Minggu ini · '+esc(wl(mon))+'</h3><div class="kpis">'+J.map((j,i)=>{const gs=gAt(mon,j);return '<div class="kpi"><span class="k">Shift '+(i+1)+' · '+esc(jamTxt(j))+'–'+esc(jamTxt(J[(i+1)%J.length]))+'</span><span class="v">'+(gs.length?gs.map(g=>'Grup '+g).join(', '):'—')+'</span><span class="s">'+gs.map(g=>mem(g).length+' orang'+(spv(g).length?' · Spv '+spv(g).map(e=>esc(e.nama.split(' ').slice(0,2).join(' '))).join(', '):'')).join(' · ')+'</span></div>'}).join('')+'</div>'+
+  '<div class="tablewrap"><table><thead><tr><th>Minggu</th>'+J.map((j,i)=>'<th>Shift '+(i+1)+' · '+esc(jamTxt(j))+'</th>').join('')+'</tr></thead><tbody>'+weeks.map((w,i)=>'<tr'+(i?'':' class="now"')+'><td>'+esc(wl(w))+(i?'':' <span class="pill p-ok">minggu ini</span>')+'</td>'+J.map(j=>'<td>'+gAt(w,j).map(gTag).join(' ')+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>'+
+  '<h3 class="h3">Anggota grup</h3><div class="grups">'+GRUP.map(g=>'<div class="panel" style="padding:0"><div class="gph"><b>Grup '+g+'</b><span class="sub">minggu ini '+esc(jamTxt(shiftOf(g,mon)||''))+' · '+mem(g).length+' orang</span></div>'+
+    mem(g).map(e=>'<div class="gpm"><div><div>'+esc(e.nama)+'</div><div class="sub">'+esc(e.jabatan)+'</div></div><select data-grup="'+esc(e.id)+'" aria-label="Grup shift '+esc(e.nama)+'">'+GRUP.map(x=>'<option'+(x===g?' selected':'')+'>'+x+'</option>').join('')+'<option value="">Tidak shift</option></select></div>').join('')+
+    '<div class="gpm"><select data-grupadd="'+g+'" aria-label="Tambah anggota Grup '+g+'"><option value="">+ Tambah anggota…</option>'+emps.filter(e=>!e.grupShift).sort(byRank).map(e=>'<option value="'+esc(e.id)+'">'+esc(e.nama+' · '+e.jabatan)+'</option>').join('')+'</select></div></div>').join('')+'</div>'+
+  '<p class="note" style="margin:0">Pindah grup berlaku untuk hitungan telat berikutnya. Kalau pabrik mengubah jadwal, atur grup mana di shift mana minggu ini di Pengaturan → Telat &amp; shift.</p>'}
+function vTelatManual(){
   const key=S.periodKey;const T=(P().telat)||{};const dates=periodDates(key);const hol=holidays();const c=telatCfg();
   const emps=periodEmps().filter(e=>!S.q||(e.nama+' '+e.id).toLowerCase().includes(S.q.toLowerCase()));let gj=0,gr=0;
   const head='<tr><th class="stick">Karyawan</th>'+dates.map(d=>{const dt=parse(d);return '<th class="'+(dt.getDay()===0?'sun':'')+(hol.has(d)?' hol':'')+'">'+dt.getDate()+'<span class="dw">'+DOW[dt.getDay()]+'</span></th>'}).join('')+'<th class="tot">Jam</th><th class="tot">Potongan</th></tr>';
   const body=emps.map(e=>{const r=T[e.id]||{};const h=telatHitung(e.id,key);const bb=telatBebas(e);const pot=bb?0:h.jam*c.tarif;gj+=bb?0:h.jam;gr+=pot;
-    return '<tr><td class="stick"><div class="name" style="font-size:12.5px">'+esc(e.nama)+keluarPill(e)+'</div><div class="sub" style="font-size:11px">'+esc(e.id)+(bb?' · <span class="pill p-mute">Tidak dipotong</span>':'')+'</div></td>'+
+    return '<tr><td class="stick"><div class="name" style="font-size:12.5px">'+esc(e.nama)+keluarPill(e)+'</div><div class="sub" style="font-size:11px">'+esc(e.id)+(e.grupShift?' · Grup '+esc(e.grupShift):'')+(bb?' · <span class="pill p-mute">Tidak dipotong</span>':'')+'</div></td>'+
     dates.map(d=>{const v=+r[d]||'';const dt=parse(d);return '<td class="lcell'+(dt.getDay()===0?' sun':'')+(hol.has(d)?' hol':'')+'"><input type="number" min="0" step="1" inputmode="numeric" placeholder=" " aria-label="Menit telat '+esc(e.nama)+' '+d+'" data-telat="'+esc(e.id)+'" data-d="'+d+'" value="'+v+'"'+(isLocked()?' disabled':'')+'></td>'}).join('')+
     '<td class="tot">'+(h.jam||'')+'</td><td class="tot" style="text-align:right">'+(pot?rp(pot):bb&&h.jam?'—':'')+'</td></tr>'}).join('');
-  return topbar('Telat tanpa keterangan',true,isLocked()?'':'<button class="btn" data-act="mesinOpen">Isi dari mesin absen</button>')+lockBanner()+
-  '<div class="row"><input id="q" class="search" type="search" placeholder="Cari karyawan…" value="'+esc(S.q)+'"><span class="sub">Total periode: <b>'+gj+' jam = Rp '+rp(gr)+'</b></span></div>'+
-  '<p class="note" style="margin:0">Ketik <b>menit</b> telat di tanggalnya. Potongan Rp '+rp(c.tarif)+' per jam, dihitung per jam yang dimulai (1–60 menit = 1 jam, 61–120 menit = 2 jam)'+(c.tol?'; telat sampai '+c.tol+' menit tidak dihitung':'')+'. Jam masuk '+esc(c.masukTxt)+'. Telat dengan keterangan cukup dikosongkan. Karyawan bertanda “Tidak dipotong” tetap boleh dicatat tetapi tidak dipotong. Aturan diubah di Pengaturan.</p>'+
+  return '<div class="row"><input id="q" class="search" type="search" placeholder="Cari karyawan…" value="'+esc(S.q)+'"><span class="sub">Total periode: <b>'+gj+' jam = Rp '+rp(gr)+'</b></span></div>'+
+  '<p class="note" style="margin:0">Ketik <b>menit</b> telat di tanggalnya. Potongan Rp '+rp(c.tarif)+' per jam, dihitung per jam yang dimulai (1–60 menit = 1 jam, 61–120 menit = 2 jam)'+(c.tol?'; telat sampai '+c.tol+' menit tidak dihitung':'')+'. Hari Minggu tidak dihitung. Telat dengan keterangan cukup dikosongkan, atau centang di tab Rekap.</p>'+
   '<div class="tablewrap" style="max-height:70vh"><table class="att"><thead>'+head+'</thead><tbody>'+(body||'<tr><td class="empty" colspan="40">Belum ada karyawan.</td></tr>')+'</tbody></table></div>'}
-// telat menurut scan mesin: hari tercatat H, scan pertama sebelum 12.00 dan melewati jam masuk + toleransi
-function mesinTelat(D){const M=S.mesin;const c=telatCfg();const A=(S.periods[D.key]||{}).absensi||{};const TL=(S.periods[D.key]||{}).telat||{};const out=[];const hol=holidays();
-  const e2m={};for(const mid in M.map)if(M.map[mid].id)e2m[M.map[mid].id]=mid;
-  periodEmps(D.key).forEach(e=>{const mid=e2m[e.id];if(!mid||telatBebas(e))return;const pr=M.pres[mid]||{};
-    D.dates.forEach(d=>{const sc=pr[d];if(!sc||(A[e.id]||{})[d]!=='H'||parse(d).getDay()===0||hol.has(d))return;const late=sc.first-c.masuk;
-      if(sc.first<720&&late>c.tol&&!(+((TL[e.id]||{})[d])))out.push({e,d,m:late})})});return out}
+// Telat menurut scan mesin. Jam masuk tiap orang: karyawan shift mengikuti jadwal grupnya, lainnya jam masuk di Pengaturan.
+// Scan masuk = scan pertama dalam jendela (2 jam sebelum s.d. 4 jam sesudah jam masuk; non-shift 6 jam sebelum). Scan pulang
+// longshift (16 jam kemudian) tidak masuk jendela, jadi tidak terbaca telat. Hari Minggu dan hari libur dilewati.
+// Hari bertanda H tanpa scan di jendela masuk ke daftar "Perlu dicek" (tidak dipotong otomatis).
+function absMin(d,m){const [y,mo,da]=d.split('-').map(Number);return Date.UTC(y,mo-1,da)/6e4+(m||0)}
+function mesinTelatAll(D){const M=S.mesin;const c=telatCfg();const per=S.periods[D.key]||{};const A=per.absensi||{},TL=per.telat||{},CK=per.telatCek||{};const late=[],cek=[];const hol=holidays();
+  const e2m={};for(const mid in M.map)if(M.map[mid].id)e2m[M.map[mid].id]=mid;let f0=Infinity,f1=-Infinity;for(const k in (M.scans||{}))for(const t of M.scans[k]){if(t<f0)f0=t;if(t>f1)f1=t}// batas file = scan pertama s.d. scan terakhir
+  periodEmps(D.key).forEach(e=>{const mid=e2m[e.id];if(!mid||telatBebas(e))return;const sc=(M.scans||{})[mid]||[];
+    D.dates.forEach(d=>{if((A[e.id]||{})[d]!=='H'||parse(d).getDay()===0||hol.has(d))return;if(+((TL[e.id]||{})[d]))return;
+      const j=jadwalMasuk(e,d);const jm=jamMin(j);if(jm==null)return;const T=absMin(d,jm);const pre=e.grupShift?120:360;if(T-pre<f0||T+240>f1)return;
+      const w=sc.filter(t=>t>=T-pre&&t<=T+240);
+      if(w.length){const m=Math.min(...w)-T;if(m>c.tol)late.push({e,d,m,j});return}
+      if(Object.prototype.hasOwnProperty.call(CK[e.id]||{},d))return;
+      const day=sc.filter(t=>t>=absMin(d,0)&&t<absMin(d,1440)).sort((a,b)=>a-b);cek.push({e,d,j,k:day.length?'lupa':'tanpa',s:day.map(t=>hhmm(((t%1440)+1440)%1440)).join(' · ')})})});
+  return {late,cek}}
+function mesinTelat(D){return mesinTelatAll(D).late}
 function mesinTelatIsi(){const M=S.mesin;if(!M)return;const D=mesinDiff();if(isLocked(D.key)){toast('Periode ini sudah dikunci.');return}
-  const rows=mesinTelat(D);if(!rows.length){toast('Tidak ada telat baru dari mesin.');return}
-  const after={},before={};rows.forEach(r=>{(after[r.e.id]=after[r.e.id]||{})[r.d]=r.m;(before[r.e.id]=before[r.e.id]||{})[r.d]=0});
-  patchPer(D.key,{telat:after});histPer('Catat '+rows.length+' telat dari mesin absen','absen',D.key,{telat:before},{telat:after});
-  logAct('absen','Mencatat telat dari mesin absen',{ket:rows.length+' hari · periode '+periodLabel(D.key)+' · file '+M.file});
-  openModal(mesinView());toastUndo(rows.length+' hari telat dicatat dari mesin absen.')}
+  const {late,cek}=mesinTelatAll(D);if(!late.length&&!cek.length){toast('Tidak ada telat baru dari mesin.');return}
+  const after={telat:{},telatCek:{}},before={telat:{},telatCek:{}};
+  late.forEach(r=>{(after.telat[r.e.id]=after.telat[r.e.id]||{})[r.d]=r.m;(before.telat[r.e.id]=before.telat[r.e.id]||{})[r.d]=0});
+  cek.forEach(r=>{(after.telatCek[r.e.id]=after.telatCek[r.e.id]||{})[r.d]={k:r.k,j:r.j,s:r.s};(before.telatCek[r.e.id]=before.telatCek[r.e.id]||{})[r.d]=null});
+  patchPer(D.key,after);histPer('Catat telat dari mesin absen','absen',D.key,before,after);
+  logAct('absen','Mencatat telat dari mesin absen',{ket:late.length+' hari telat, '+cek.length+' perlu dicek · periode '+periodLabel(D.key)+' · file '+M.file});
+  closeModal();S.tab='telat';S.telatTab=cek.length&&!late.length?'cek':'rekap';S.periodKey=D.key;lsSet('hrd.tab','telat');renderNav();render(true);
+  toastUndo(late.length+' hari telat dicatat'+(cek.length?', '+cek.length+' perlu dicek':'')+'.')}
 
 // ===== Cocokkan absensi dengan file mesin absen (sidik jari) =====
 // Scan sebelum pukul 04.00 dihitung milik hari sebelumnya (pulang lembur lewat tengah malam).
@@ -1649,19 +1735,19 @@ function xlsDate(v){if(v instanceof Date)return iso(v);if(typeof v==='number'){c
 function xlsMinutes(v){if(typeof v==='number')return Math.round((v-Math.floor(v))*1440)%1440;if(v instanceof Date)return v.getHours()*60+v.getMinutes();const m=/(\d{1,2})[:.](\d{2})/.exec(String(v||''));return m?(+m[1])*60+(+m[2]):null}
 const hhmm=m=>pad(Math.floor(m/60)%24)+'.'+pad(m%60)+(m>=1440?' (+1)':'');
 function mesinParse(wb){
-  const people={},pres={};let from='',to='';
+  const people={},pres={},scans={};let from='',to='';
   const add=(id,nama,date,min)=>{if(!date||min==null||id==null||id==='')return;id=String(id).trim();if(!people[id])people[id]={id,nama:String(nama||'').trim()};
-    if(!from||date<from)from=date;if(!to||date>to)to=date;
+    if(!from||date<from)from=date;if(!to||date>to)to=date;(scans[id]=scans[id]||[]).push(absMin(date,min));
     let d=date,m=min;if(min<MESIN_SHIFT){const x=parse(date);x.setDate(x.getDate()-1);d=iso(x);m=min+1440}
     const p=(pres[id]=pres[id]||{})[d]||(pres[id][d]={first:m,last:m,n:0});p.first=Math.min(p.first,m);p.last=Math.max(p.last,m);p.n++};
   const sheets=wb.SheetNames.map(n=>({n,rows:XLSX.utils.sheet_to_json(wb.Sheets[n],{header:1,raw:true,defval:''})}));
   const find=(need)=>{for(const sh of sheets){for(let i=0;i<Math.min(sh.rows.length,10);i++){const h=sh.rows[i].map(x=>String(x).trim().toLowerCase());if(need.every(k=>h.some(c=>c===k||c.startsWith(k))))return {sh,i,h}}}return null};
   const col=(h,k)=>h.findIndex(c=>c===k||c.startsWith(k));
   let f=find(['id','nama','tanggal','jam']);
-  if(f){const {sh,i,h}=f;const ci=col(h,'id'),cn=col(h,'nama'),ct=col(h,'tanggal'),cj=col(h,'jam');sh.rows.slice(i+1).forEach(r=>add(r[ci],r[cn],xlsDate(r[ct]),xlsMinutes(r[cj])));return {people,pres,from,to,sumber:sh.n}}
+  if(f){const {sh,i,h}=f;const ci=col(h,'id'),cn=col(h,'nama'),ct=col(h,'tanggal'),cj=col(h,'jam');sh.rows.slice(i+1).forEach(r=>add(r[ci],r[cn],xlsDate(r[ct]),xlsMinutes(r[cj])));return {people,pres,scans,from,to,sumber:sh.n}}
   f=find(['id','nama','tanggal','semua scan']);
   if(f){const {sh,i,h}=f;const ci=col(h,'id'),cn=col(h,'nama'),ct=col(h,'tanggal'),cs=col(h,'semua scan');
-    sh.rows.slice(i+1).forEach(r=>{const d=xlsDate(r[ct]);String(r[cs]||'').split(',').forEach(x=>add(r[ci],r[cn],d,xlsMinutes(x)))});return {people,pres,from,to,sumber:sh.n}}
+    sh.rows.slice(i+1).forEach(r=>{const d=xlsDate(r[ct]);String(r[cs]||'').split(',').forEach(x=>add(r[ci],r[cn],d,xlsMinutes(x)))});return {people,pres,scans,from,to,sumber:sh.n}}
   throw new Error('Tidak menemukan sheet berisi kolom ID, Nama, Tanggal dan Jam (atau Semua Scan).')}
 // Nama di mesin biasanya pendek ("FAHMI", "EGA B", "teguh firmansya"). Skor = bagian nama mesin yang cocok dengan nama di website:
 // kata utuh atau terpotong (min. 4 huruf) bernilai 1, inisial bernilai 0,5 dan hanya dihitung bila ada kata yang cocok.
@@ -1708,7 +1794,7 @@ function mesinView(){
   '<div class="panel"><h2>Ada scan, tetapi absensi kosong<small>'+kosong.length+' hari</small></h2><div class="list">'+(kosong.length?grp(kosong,r=>esc(fmtD(r.d).replace(/ \d{4}$/,''))+(r.off?' (Minggu/libur)':'')):'<div class="empty">Tidak ada.</div>')+'</div></div>'+
   '<div class="panel"><h2>Ada scan, tetapi tercatat tidak hadir<small>'+beda.length+' hari</small></h2><div class="list">'+(beda.length?grp(beda,r=>esc(fmtD(r.d).replace(/ \d{4}$/,''))+' '+r.code+' ('+scTxt(r.sc)+')'):'<div class="empty">Tidak ada.</div>')+'</div></div>'+
   '<div class="panel"><h2>Tercatat hadir, tetapi tidak ada scan<small>'+tanpa.length+' hari</small></h2><div class="list">'+(tanpa.length?grp(tanpa,r=>esc(fmtD(r.d).replace(/ \d{4}$/,''))+' '+r.code):'<div class="empty">Tidak ada.</div>')+'</div></div>'+
-  (()=>{const tl=mesinTelat(D);const by={};tl.forEach(r=>{(by[r.e.id]=by[r.e.id]||{e:r.e,l:[]}).l.push(r)});return '<div class="panel"><h2>Telat menurut mesin (jam masuk '+esc(telatCfg().masukTxt)+')<small>'+tl.length+' hari belum dicatat</small></h2><div class="list">'+(tl.length?Object.values(by).sort((a,b)=>byRank(a.e,b.e)).map(x=>li(esc(x.e.nama),x.l.map(r=>esc(fmtD(r.d).replace(/ \d{4}$/,''))+' '+r.m+' mnt').join(' · '),'<span class="pill p-warn">'+x.l.reduce((a,r)=>a+Math.ceil(r.m/60),0)+' jam</span>')).join(''):'<div class="empty">Tidak ada telat baru.</div>')+'</div><p class="note" style="margin:8px 0 0">Hanya hari bertanda H dengan scan masuk sebelum 12.00. Karyawan yang tidak dipotong telat dilewati. Periksa dulu: telat dengan keterangan jangan dicatat, atau hapus setelahnya di halaman Telat.</p>'+(tl.length&&!locked?'<div class="row" style="margin-top:8px"><button class="btn" data-act="mesinTelat">Catat '+tl.length+' hari telat</button></div>':'')+'</div>'})()+
+  (()=>{const TA=mesinTelatAll(D);const tl=TA.late;const by={};tl.forEach(r=>{(by[r.e.id]=by[r.e.id]||{e:r.e,l:[]}).l.push(r)});return '<div class="panel"><h2>Telat menurut mesin<small>'+tl.length+' hari telat · '+TA.cek.length+' perlu dicek</small></h2><div class="list">'+(tl.length?Object.values(by).sort((a,b)=>byRank(a.e,b.e)).map(x=>li(esc(x.e.nama),x.l.map(r=>esc(fmtD(r.d).replace(/ \d{4}$/,''))+' '+r.m+' mnt'+(r.e.grupShift?' (masuk '+esc(jamTxt(r.j))+')':'')).join(' · '),'<span class="pill p-warn">'+x.l.reduce((a,r)=>a+Math.ceil(r.m/60),0)+' jam</span>')).join(''):'<div class="empty">Tidak ada telat baru.</div>')+'</div><p class="note" style="margin:8px 0 0">Hanya hari bertanda H (Senin–Sabtu). Karyawan shift dibandingkan dengan jam shift grupnya; yang tidak dipotong telat dilewati. Hari tanpa scan masuk masuk ke tab Perlu dicek, tidak dipotong otomatis. Telat dengan keterangan bisa dicentang di tab Rekap setelahnya.</p>'+((tl.length||TA.cek.length)&&!locked?'<div class="row" style="margin-top:8px"><button class="btn primary" data-act="mesinTelat">Catat '+tl.length+' hari telat'+(TA.cek.length?' & '+TA.cek.length+' perlu dicek':'')+'</button></div>':'')+'</div>'})()+
   '<div class="row"><button class="btn primary" data-act="mesinIsi"'+(locked||!isi.length?' disabled':'')+'>Isi H untuk '+isi.length+' hari kerja yang ada scan</button><button class="btn" data-act="mesinSimpan">Simpan pasangan nama</button><button class="btn" data-act="mesinXlsx">Unduh hasil (Excel)</button><button class="btn" data-act="mesinFile">Pilih file lain</button><button class="btn" data-act="closeModal">Tutup</button></div>'+
   (locked?'<p class="note" style="margin:0">Payroll '+esc(periodLabel(D.key))+' sudah dikunci, jadi absensi tidak bisa diisi dari sini.</p>':'<p class="note" style="margin:0">Tombol Isi hanya mengisi sel yang masih kosong di hari kerja. Hari Minggu/libur dan kode yang sudah ada tidak diubah; periksa sendiri. Bisa diurungkan dengan ↶.</p>')+'</div>'}
 function mesinOpen(){openModal('<div class="mesinwrap"><h3>Cocokkan dengan mesin absen</h3><p class="note" style="margin:0">Pilih file Excel dari mesin absen sidik jari (sheet berisi kolom ID, Nama, Tanggal dan Jam, atau rekap harian dengan kolom Semua Scan). Website membandingkannya dengan absensi yang tersimpan dan menunjukkan siapa yang tidak terdata.</p><label>File mesin absen<input id="mesinFile" type="file" accept=".xlsx,.xls,.csv"></label><div class="row"><button class="btn" data-act="closeModal">Tutup</button></div></div>')}
@@ -1856,7 +1942,7 @@ function empForm(e){
     '<label>Tarif lembur per jam<select id="f_lemburMode"><option value="umum"'+(!e.lemburMode||e.lemburMode==='umum'?' selected':'')+'>Tarif umum (Pengaturan)</option><option value="harian8"'+(e.lemburMode==='harian8'?' selected':'')+'>Gaji per hari ÷ 8</option><option value="khusus"'+(e.lemburMode==='khusus'?' selected':'')+'>Nominal khusus</option></select></label>'+
     money('lemburTarif','Nominal khusus per jam (Rp)',e.lemburTarif,'Diisi hanya jika memilih nominal khusus')+
     f('lemburKali','Pengali (untuk gaji/hari ÷ 8)',e.lemburKali||1,'number',{hint:'Contoh 2 → (gaji/hari ÷ 8) × 2 per jam'})+
-    '<label style="flex-direction:row;align-items:center;gap:8px;color:var(--fg)"><input id="f_bebasTelat" type="checkbox"'+(e.bebasTelat?' checked':'')+'> Tidak dipotong telat</label>'+
+    '<label>Grup shift<select id="f_grupShift"><option value="">Tidak shift (jam kantor)</option>'+GRUP.map(g=>'<option'+(e.grupShift===g?' selected':'')+'>'+g+'</option>').join('')+'</select><span class="hint">Karyawan shift: jam masuk mengikuti jadwal grupnya (lihat Telat &amp; Shift → Jadwal shift)</span></label>'+'<label style="flex-direction:row;align-items:center;gap:8px;color:var(--fg)"><input id="f_bebasTelat" type="checkbox"'+(e.bebasTelat?' checked':'')+'> Tidak dipotong telat</label>'+
     f('rekening','Nomor rekening (a.n.)',e.rekening,'text')+'<div class="fcalc full" id="fcalc"></div>')+
    sec('ident',f('wa','No WhatsApp',e.wa,'tel',{hint:'Format 62…, tanpa + atau spasi'})+f('email','Email (untuk kirim slip)',e.email||'','email')+
     f('namaKtp','Nama sesuai KTP',e.namaKtp||'')+f('nik','NIK (16 digit)',e.nik||'','text',{attr:' inputmode="numeric" maxlength="20"'})+
@@ -2443,7 +2529,7 @@ function vSet(){
   '<div class="panel"><h2>Profil perusahaan & aturan gaji</h2><div class="form">'+f('nama','Nama perusahaan')+f('alamat','Alamat')+f('pembuat','Pembuat laporan')+f('mengetahui','Mengetahui')+f('menyetujui','Menyetujui')+
   ttdField('logo','Logo perusahaan','Unggah logo (PNG latar transparan paling rapi). Tampil di kiri atas slip gaji. Klik Simpan setelah memilih.')+ttdField('ttdPembuat','Tanda tangan Dibuat oleh')+ttdField('ttdMengetahui','Tanda tangan Mengetahui')+
   f('uangLembur','Tarif lembur per jam (Rp)','number')+
-  f('telatTarif','Potongan telat per jam (Rp)','number','Telat tanpa keterangan, dihitung per jam yang dimulai')+f('jamMasuk','Jam masuk (JJ:MM)','text','Dipakai untuk menghitung telat dari mesin absen')+f('telatToleransi','Toleransi telat (menit)','number','Telat sampai batas ini tidak dihitung')+
+  f('telatTarif','Potongan telat per jam (Rp)','number','Telat tanpa keterangan, dihitung per jam yang dimulai')+f('jamMasuk','Jam masuk (JJ:MM)','text','Dipakai untuk menghitung telat dari mesin absen')+f('telatToleransi','Toleransi telat dipakai menghitung (menit)','number','Telat sampai batas ini tidak dipotong')+f('telatToleransiPP','Toleransi yang ditulis di Peraturan Perusahaan (menit)','number','Hanya untuk teks peraturan. Kosongkan kalau sama dengan yang dipakai')+'<label>Jam mulai shift<input id="s_shiftJam" type="text" value="'+esc(shiftJam().map(jamTxt).join(', '))+'"><span class="hint">Urutan gilir tiap Senin, pisahkan dengan koma</span></label>'+(()=>{const mon=seninOf(todayISO());return '<label class="full">Jadwal grup minggu ini ('+esc(fmtD(mon))+')<span class="row" style="gap:10px">'+GRUP.map(g=>'<span>Grup '+g+' <select id="s_shift_'+g+'">'+shiftJam().map(j=>'<option value="'+j+'"'+(shiftOf(g,mon)===j?' selected':'')+'>'+jamTxt(j)+'</option>').join('')+'</select></span>').join('')+'</span><span class="hint">Minggu berikutnya digilir otomatis. Ubah hanya kalau pabrik mengubah jadwal.</span></label>'})()+f('spLama','Lama berlaku Surat Peringatan (bulan)','number','Bawaan saat membuat SP baru')+
   '<label>Jabatan yang tidak dipotong telat<input id="s_telatBebasJab" type="text" value="'+esc((s.telatBebasJab!=null?s.telatBebasJab:['PROGRAMMER']).join(', '))+'"><span class="hint">Pisahkan dengan koma. Per orang diatur di data karyawan (Tidak dipotong telat).</span></label>'+
   '<label>Uang makan lembur (Rp)<input id="s_uangMakan" type="number" value="'+mealCfg().amt+'"><span class="hint">Dibayar per hari bila lembur mencapai batas jam di bawah</span></label>'+'<label>Minimal jam lembur untuk uang makan<input id="s_makanMinJam" type="number" step="0.5" value="'+mealCfg().min+'"><span class="hint">Uang makan diberikan jika lembur sehari minimal sebanyak angka ini</span></label>'+
   '<label>Bulan pembaruan cuti<select id="s_cutiMulaiBulan">'+MONTHS.map((m,i)=>'<option value="'+(i+1)+'"'+(cutiStartMonth()===i+1?' selected':'')+'>'+m+'</option>').join('')+'</select><span class="hint">Saldo cuti kembali penuh setiap tanggal 1 bulan ini</span></label>'+
@@ -2460,7 +2546,7 @@ async function saveSet(){
   const g=k=>$('#s_'+k).value.trim();
   const libur=g('libur').split(/[,\s]+/).filter(x=>/^\d{4}-\d{2}-\d{2}$/.test(x));
   const reminders=g('rem').split('\n').map(l=>l.trim()).filter(Boolean).map(l=>{const m=l.match(/^(\d{4}-\d{2}-\d{2})\s+(.+)$/);return m?{tanggal:m[1],judul:m[2]}:null}).filter(Boolean);
-  const s=Object.assign({},S.settings,{nama:g('nama'),alamat:g('alamat'),pembuat:g('pembuat'),mengetahui:g('mengetahui'),menyetujui:g('menyetujui'),uangLembur:+g('uangLembur')||0,telatTarif:g('telatTarif')===''?10000:Math.max(0,+g('telatTarif')||0),jamMasuk:/^\d{1,2}[:.]\d{2}$/.test(g('jamMasuk'))?g('jamMasuk').replace('.',':'):'08:00',telatToleransi:Math.max(0,+g('telatToleransi')||0),telatBebasJab:g('telatBebasJab').split(',').map(x=>x.trim().toUpperCase()).filter(Boolean),uangMakan:g('uangMakan')===''?20000:Math.max(0,+g('uangMakan')||0),makanMinJam:g('makanMinJam')===''?4:Math.max(0,+g('makanMinJam')||0),cutiMulaiBulan:+$('#s_cutiMulaiBulan').value||4,shPotong:+g('shPotong')||0,shPotongRendah:+g('shPotongRendah')||0,shBatas:+g('shBatas')||0,kuotaCutiDefault:+g('kuotaCutiDefault')||12,cutiAwalTahun:cutiAwalYear(),potongBulanan:['A','I','S'].filter(c=>$('#s_pb_'+c).checked),cutoff:Math.min(28,Math.max(2,(+$('#s_tutup').value||20)+1)),libur,reminders,jabatanOrder:g('jab').split('\n').map(x=>x.trim().toUpperCase()).filter(Boolean)});
+  const s=Object.assign({},S.settings,{nama:g('nama'),alamat:g('alamat'),pembuat:g('pembuat'),mengetahui:g('mengetahui'),menyetujui:g('menyetujui'),uangLembur:+g('uangLembur')||0,telatTarif:g('telatTarif')===''?10000:Math.max(0,+g('telatTarif')||0),jamMasuk:/^\d{1,2}[:.]\d{2}$/.test(g('jamMasuk'))?g('jamMasuk').replace('.',':'):'08:00',telatToleransi:Math.max(0,+g('telatToleransi')||0),telatToleransiPP:g('telatToleransiPP')===''?'':Math.max(0,+g('telatToleransiPP')||0),spLama:Math.min(36,Math.max(1,+g('spLama')||1)),shiftJam:(()=>{const a=g('shiftJam').split(',').map(x=>x.trim().replace('.',':')).filter(x=>/^\d{1,2}:\d{2}$/.test(x)).map(x=>x.padStart(5,'0'));return a.length?a:shiftJam()})(),shiftRef:(()=>{const r={senin:seninOf(todayISO())};GRUP.forEach(x=>{const el=$('#s_shift_'+x);r[x]=el?el.value:shiftOf(x,r.senin)});return r})(),telatBebasJab:g('telatBebasJab').split(',').map(x=>x.trim().toUpperCase()).filter(Boolean),uangMakan:g('uangMakan')===''?20000:Math.max(0,+g('uangMakan')||0),makanMinJam:g('makanMinJam')===''?4:Math.max(0,+g('makanMinJam')||0),cutiMulaiBulan:+$('#s_cutiMulaiBulan').value||4,shPotong:+g('shPotong')||0,shPotongRendah:+g('shPotongRendah')||0,shBatas:+g('shBatas')||0,kuotaCutiDefault:+g('kuotaCutiDefault')||12,cutiAwalTahun:cutiAwalYear(),potongBulanan:['A','I','S'].filter(c=>$('#s_pb_'+c).checked),cutoff:Math.min(28,Math.max(2,(+$('#s_tutup').value||20)+1)),libur,reminders,jabatanOrder:g('jab').split('\n').map(x=>x.trim().toUpperCase()).filter(Boolean)});
   if(await saveDoc('settings/company',s)){{const ch=Object.keys(s).filter(k=>!/^(logo|ttd)/.test(k)&&JSON.stringify(s[k])!==JSON.stringify((S.settings||{})[k]));if(ch.length){logAct('gaji','Mengubah pengaturan',{ket:'Isian yang berubah: '+ch.join(', ')});histDoc('Ubah pengaturan','gaji','settings/company',S.settings,s,'settings')}}S.settings=s;toast('Pengaturan disimpan.');render(true)}
 }
 
@@ -2536,6 +2622,18 @@ document.addEventListener('click',async ev=>{
   if(a==='mesinFile')return mesinOpen();
   if(a==='mesinIsi')return mesinIsi();
   if(a==='mesinTelat')return mesinTelatIsi();
+  if(a==='telatTab'){S.telatTab=id;render(true);return}
+  if(a==='telatF'){S.telatF=id;render(true);return}
+  if(a==='telatOpen'){if(ev.target.closest('label,input'))return;S.telatOpen=S.telatOpen===id?null:id;render(true);return}
+  if(a==='ckIsi'||a==='ckOk'||a==='ckOkAll'){if(isLocked()){toast('Periode ini sudah dikunci.');return}const key=S.periodKey;
+    const items=a==='ckOkAll'?telatCekList(key).filter(x=>x.k===id).map(x=>[x.e.id,x.d]):[id.split('|')];let m=0;
+    if(a==='ckIsi'){const inp=document.querySelector('[data-ckm="'+id.replace(/"/g,'')+'"]');m=Math.round(+((inp&&inp.value)||0));if(!(m>0)){toast('Ketik dulu berapa menit telatnya.');if(inp)inp.focus();return}}
+    const CK=(S.periods[key]||{}).telatCek||{};const after={telatCek:{}},before={telatCek:{}};
+    items.forEach(([e,d])=>{(after.telatCek[e]=after.telatCek[e]||{})[d]=0;(before.telatCek[e]=before.telatCek[e]||{})[d]=(CK[e]||{})[d]||null});
+    if(a==='ckIsi'){const [e,d]=items[0];after.telat={[e]:{[d]:m}};before.telat={[e]:{[d]:+(((P().telat||{})[e]||{})[d])||0}}}
+    patchPeriod(after);histPer(a==='ckIsi'?'Isi telat '+enm(items[0][0]):'Tandai tidak telat','absen',key,before,after);
+    logAct('absen',a==='ckIsi'?'Mengisi telat dari daftar perlu dicek · '+enm(items[0][0]):'Menandai tidak telat',{ket:a==='ckIsi'?fmtD(items[0][1])+' · '+m+' menit':items.length+' hari'});
+    render(true);toastUndo(a==='ckIsi'?'Telat '+m+' menit dicatat.':items.length+' hari ditandai tidak telat.');return}
   if(a==='mesinSimpan')return mesinSimpan();
   if(a==='mesinXlsx')return mesinXlsx();
   if(a==='logXlsx')return logXlsx();
@@ -2605,6 +2703,12 @@ document.addEventListener('change',ev=>{
   if((t.dataset.ot||t.dataset.telat||t.dataset.reimb||t.dataset.bonus||t.dataset.pot)&&isLocked()){toast('Periode ini sudah dikunci.');render(true);return}
   if(t.dataset.ttd){if(t.files&&t.files[0])ttdLoad(t.files[0],t.dataset.ttd);return}
   if(t.dataset.kuota){const id=t.dataset.kuota,y=S.cutiYear,v=Math.max(0,+t.value||0);const e=S.emps[id];if(!e)return;const pk=kuotaFor(e,y);const e0=clone(e);e.kuotaTahun=Object.assign({},e.kuotaTahun,{[y]:v});queuePatch('employees/'+id,{kuotaTahun:{[y]:v}});if(pk!==v){histDoc('Kuota cuti '+e.nama,'data','employees/'+id,e0,e,'emps',id)}if(pk!==v)logAct('data','Mengubah kuota cuti '+y+'/'+String(y+1).slice(2)+' · '+e.nama,{dari:pk+' hari',ke:v+' hari'});S.dirty=true;return}
+  if(t.dataset.telatket){if(isLocked()){toast('Periode ini sudah dikunci.');render(true);return}const id=t.dataset.telatket,d=t.dataset.d,v=!!t.checked;const pv=!!(((P().telatKet||{})[id]||{})[d]);
+    patchPeriod({telatKet:{[id]:{[d]:v}}});histPer('Keterangan telat '+enm(id)+', '+fmtD(d),'absen',S.periodKey,{telatKet:{[id]:{[d]:pv}}},{telatKet:{[id]:{[d]:v}}});
+    logAct('absen',(v?'Membatalkan':'Menghitung lagi')+' potongan telat · '+enm(id),{ket:fmtD(d)+(v?' · ada keterangan':'')});render(true);toastUndo(v?'Potongan telat '+fmtD(d)+' dibatalkan.':'Potongan telat '+fmtD(d)+' dihitung lagi.');return}
+  if(t.dataset.grup!=null||t.dataset.grupadd!=null){const id=t.dataset.grup!=null?t.dataset.grup:t.value;const g=t.dataset.grup!=null?t.value:t.dataset.grupadd;const e=S.emps[id];if(!e)return;
+    const e0=clone(e);e.grupShift=g;queuePatch('employees/'+id,{grupShift:g});histDoc('Grup shift '+e.nama,'data','employees/'+id,e0,e,'emps',id);
+    logAct('data','Mengubah grup shift · '+e.nama,{dari:e0.grupShift?'Grup '+e0.grupShift:'tidak shift',ke:g?'Grup '+g:'tidak shift'});S.dirty=true;render(true);toastUndo(e.nama+(g?' masuk Grup '+g:' tidak lagi shift')+'.');return}
   if(t.dataset.telat){const v=Math.max(0,Math.round(+t.value||0));const id=t.dataset.telat,d=t.dataset.d;const pv=+(((P().telat||{})[id]||{})[d])||0;if(pv===v)return;
     if(v>240)toast('Cek lagi: '+v+' menit telat ('+Math.ceil(v/60)+' jam). Benar?');if(pv)logAct('absen','Mengubah telat · '+enm(id)+', '+fmtD(d),{dari:pv+' menit',ke:v+' menit'});
     histPer('Telat '+enm(id)+', '+fmtD(d),'absen',S.periodKey,{telat:{[id]:{[d]:pv}}},{telat:{[id]:{[d]:v}}});patchPeriod({telat:{[id]:{[d]:v}}});S.dirty=true;return}
@@ -2633,7 +2737,22 @@ S.tab=lsGet('hrd.tab')||'dash';renderNav();render();window.__runImport=b=>runImp
 // Perubahan data satu kali (dijalankan otomatis oleh akun HRD yang login, lalu ditandai di settings.migrasi supaya tidak terulang).
 // Jabatan yang punya indikator dan target KPI. Karyawan lain tidak dinilai.
 function kpiDinilai(id){const e=S.emps[id];if(!e)return false;const j=normJab(e.jabatan||'');return j==='OPERATOR CNC'||j==='MANAGER CNC'||/PROGRAMMER|\bCAM\b|CUTTING/.test(j)}
-const MIGRATIONS=[{id:'2026-11-23-bebas-telat',run:async db=>{
+const MIGRATIONS=[{id:'2026-11-24-shift',run:async db=>{
+  // Grup shift A/B/C (gilir tiap Senin), toleransi telat 15 menit (peraturan menulis 10), SP berlaku 1 bulan, dan perubahan jabatan.
+  const G={A:['M YOGI IBRAHIM','M RIZKI BAGJA FAISAL','RONI','RISMAN ZIHADLAN','FAHMI DWI PERMANA','SALEH ABDUL WAHID','DANDI TRISNADI','MOCHAMAD NASIHUL ANAM'],
+    B:['EGA BUDIANSYAH','ALIF HAFID F','FAUZAN DZAKHWAN FEBRIANTO','HOLILUL RAHMAN','MUHAMMAD ZIDAN','ARDI ROMADHON','EGI BERLIANDI'],
+    C:['USEP SOPIAN','MUHAMAD RIJAL','AGUS MARTIN','RYHAN NAJIR F','ASEP DWIANA FITRIAWA','RANGGA JANUAR','DIKA RESTU FAHREZA','M DADI BUDIMAN']};
+  const byN=nm=>Object.values(S.emps).find(x=>(x.nama||'').trim().toUpperCase()===nm);const done=[];
+  for(const g of GRUP)for(const nm of G[g]){const e=byN(nm);if(e&&!e.grupShift){await db.doc('employees/'+e.id).update({grupShift:g});e.grupShift=g;done.push(nm.split(' ').slice(0,2).join(' ')+' '+g)}}
+  const JAB={'ARI A S':'QC','EGI BERLIANDI':'SUPERVISOR CNC','INDRIE NOERLIANTI':'HRD'};const jab=[];
+  for(const nm in JAB){const e=byN(nm);if(e&&normJab(e.jabatan)!==normJab(JAB[nm])){const dari=e.jabatan;const up={jabatan:JAB[nm]};if(nm==='ARI A S')up.grupShift='';await db.doc('employees/'+e.id).update(up);Object.assign(e,up);jab.push(e.nama+': '+dari+' → '+JAB[nm]);logAct('data','Mengubah jabatan · '+e.nama,{dari,ke:JAB[nm]})}}
+  {const st=S.settings||{};const up={};if(!st.shiftJam)up.shiftJam=['00:00','08:00','16:00'];if(!st.shiftRef)up.shiftRef={senin:'2026-11-23',A:'08:00',B:'00:00',C:'16:00'};
+   if(!(+st.telatToleransi))up.telatToleransi=15;if(st.telatToleransiPP==null)up.telatToleransiPP=10;if(st.spLama==null)up.spLama=1;
+   if(Object.keys(up).length){await db.doc('settings/company').update(up);Object.assign(S.settings,up)}}
+  if(done.length)logAct('data','Mengatur grup shift',{ket:done.join(', ')});
+  logAct('data','Mengatur aturan telat & shift',{ket:'Toleransi 15 menit (peraturan: 10), jadwal grup minggu 23 Nov: A 08.00, B 00.00, C 16.00, SP berlaku 1 bulan'});
+  return ['grup shift: '+done.length+' karyawan'].concat(jab)}},
+{id:'2026-11-23-bebas-telat',run:async db=>{
   const done=[];for(const nm of ['WAWAN ANJANI','GALANG AJI']){const e=Object.values(S.emps).find(x=>(x.nama||'').trim().toUpperCase()===nm);if(e&&!e.bebasTelat){await db.doc('employees/'+e.id).update({bebasTelat:true});e.bebasTelat=true;done.push(e.nama)}}
   {const st=S.settings||{};const up={};if(st.telatTarif==null)up.telatTarif=10000;if(!st.jamMasuk)up.jamMasuk='08:00';if(st.telatToleransi==null)up.telatToleransi=0;if(st.telatBebasJab==null)up.telatBebasJab=['PROGRAMMER'];
    if(Object.keys(up).length){await db.doc('settings/company').update(up);Object.assign(S.settings,up)}}
