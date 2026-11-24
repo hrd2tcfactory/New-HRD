@@ -3044,7 +3044,14 @@ S.tab=lsGet('hrd.tab')||'dash';renderNav();render();window.__runImport=b=>runImp
 // Perubahan data satu kali (dijalankan otomatis oleh akun HRD yang login, lalu ditandai di settings.migrasi supaya tidak terulang).
 // Jabatan yang punya indikator dan target KPI. Karyawan lain tidak dinilai.
 function kpiDinilai(id){const e=S.emps[id];if(!e)return false;const j=normJab(e.jabatan||'');return j==='OPERATOR CNC'||j==='MANAGER CNC'||/PROGRAMMER|\bCAM\b|CUTTING/.test(j)}
-const MIGRATIONS=[{id:'2026-11-24-jabatan-november',run:async db=>{
+const MIGRATIONS=[{id:'2026-11-24-sop-awal',run:async db=>{
+  // 8 SOP yang sudah berlaku (dokumen lama) dimasukkan sekali. SOP dengan ID yang sama tidak ditimpa.
+  let n=0;while(!S.ready.sop&&n++<400)await new Promise(r=>setTimeout(r,50));if(!S.ready.sop)throw new Error('data SOP belum termuat');
+  const r=await fetch('data/sop-awal.json',{cache:'no-store'});if(!r.ok)throw new Error('file SOP awal tidak ditemukan');const src=(await r.json()).sop||{};const out=[];
+  for(const id in src){if(S.sop[id])continue;const d=Object.assign({},src[id],{diubah:new Date().toISOString()});await db.doc('sop/'+id).set(d);S.sop[id]=d;out.push(d.nomor)}
+  if(out.length)logAct('data','Memasukkan SOP yang sudah berlaku',{ket:out.length+' SOP: '+out.join(', ')});
+  return out.length?[out.length+' SOP dimasukkan']:[]}},
+{id:'2026-11-24-jabatan-november',run:async db=>{
   // Untuk periode November jabatan dikembalikan: Ari A S tetap Supervisor CNC, Egi Berliandi tetap Wakil Supervisor.
   const byN=nm=>Object.values(S.emps).find(x=>(x.nama||'').trim().toUpperCase()===nm);const out=[];
   for(const [nm,jab] of [['ARI A S','SUPERVISOR CNC'],['EGI BERLIANDI','WAKIL SUPERVISIOR']]){const e=byN(nm);if(e&&e.jabatan!==jab){const dari=e.jabatan;await db.doc('employees/'+e.id).update({jabatan:jab});e.jabatan=jab;out.push(e.nama+': '+dari+' → '+jab);logAct('data','Mengubah jabatan · '+e.nama,{dari,ke:jab,ket:'Dikembalikan untuk periode November'})}}

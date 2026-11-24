@@ -1,0 +1,476 @@
+{
+ "sop": {
+  "sop-sop-inv-admr-001": {
+   "nomor": "SOP/INV/ADMR/001",
+   "judul": "SOP Admin Offline dan Reseller",
+   "divisi": "Offline Market & Reseller",
+   "dept": "Inventory",
+   "untuk": "Admin Offline & Reseller",
+   "revisi": "00",
+   "versi": 1,
+   "status": "Berlaku",
+   "berlaku": "2026-04-06",
+   "tujuanJ": "Tujuan & ruang lingkup",
+   "tujuan": "SOP ini menjadi panduan kerja standar bagi Eva Rosdiana selaku penanggung jawab Divisi Offline Market & Reseller dalam menjalankan operasional pelayanan customer offline, pengelolaan reseller, pencatatan pesanan, serta persiapan pengiriman barang secara konsisten dan terstandar.",
+   "bagian": [
+    {
+     "j": "Melayani customer offline via WA & reseller",
+     "isi": "Prosedur Harian:\n- Buka WhatsApp, cek dan balas semua pesan yang masuk dan respon pertanyaan produk, harga, ketersediaan stok, dan informasi pengiriman\n- Sepanjang hari Pantau dan balas pesan masuk dari customer dan reseller maks. dalam 1 jam\n- Pastikan semua pesan sudah dibalas sebelum jam kerja berakhir\nStandar Pelayanan Customer Offline via WA:\n- Sambut customer dengan sapaan ramah: \"Halo Kak, ada yang bisa dibantu?\"\n- Berikan informasi produk secara jelas: nama produk, harga, stok, dan estimasi pengiriman\n- Jika stok tidak tersedia, informasikan estimasi restock atau tawarkan produk alternatif\n- Konfirmasi ulang pesanan sebelum diproses: produk, jumlah, alamat, dan metode pembayaran\n- Simpan bukti transfer/pembayaran dari customer sebelum pesanan disiapkan\nStandar Pelayanan Reseller:\n- Koordinasikan kebutuhan stok reseller dengan tim gudang jika pesanan dalam jumlah besar\n- Pastikan reseller memahami kebijakan retur dan pengembalian barang yang berlaku\nPenanganan Keluhan Customer & Reseller:\n- Dengarkan keluhan dengan sabar dan catat detail masalah yang disampaikan dan berikan respons solusi dalam maks. 1x24 jam\n- Jika keluhan tidak dapat diselesaikan sendiri, eskalasikan ke Manager dengan menyertakan rekap kronologi"
+    },
+    {
+     "j": "Update stok inventori",
+     "isi": "Prosedur:\n1. Bandingkan stok fisik dengan catatan sistem; investigasi jika ditemukan selisih\n2. Perbarui catatan stok setiap kali ada barang masuk (restock) atau barang keluar (pesanan)\n3. Dokumentasikan setiap perubahan stok: tanggal, jumlah masuk/keluar, sisa stok\nKetentuan:\n- Stok di bawah 10 unit wajib segera catat untuk reorder\n- Dilarang menginput atau menjanjikan stok yang melebihi jumlah fisik yang tersedia\n- Stock opname lengkap dilakukan setiap akhir bulan"
+    },
+    {
+     "j": "Menginput pesanan offline",
+     "isi": "Prosedur Input Pesanan:\n1. Terima pesanan dari customer atau reseller melalui WhatsApp\n2. Konfirmasi ulang detail pesanan: nama customer/reseller, produk, jumlah, alamat pengiriman, dan metode pembayaran\n3. Pastikan pembayaran sudah diterima atau sesuai dengan kesepakatan (tempo/COD) sebelum pesanan diinput\n4. Input pesanan ke dalam sistem atau form pencatatan yang telah ditentukan perusahaan\n5. Berikan nomor order atau kode pesanan kepada customer/reseller sebagai referensi\n6. Teruskan data pesanan ke tim gudang untuk proses penyiapan barang\nKetentuan:\n- Pesanan tanpa konfirmasi pembayaran tidak boleh diproses kecuali ada persetujuan Manager"
+    },
+    {
+     "j": "Menyiapkan pesanan",
+     "isi": "Alur Pemrosesan:\n1. Terima data pesanan dari hasil input yang telah diverifikasi\n2. Ambil produk dari gudang sesuai jumlah pesanan\n3. Lakukan pengecekan produk: pastikan kondisi barang baik, tidak cacat, dan sesuai pesanan\n4. Tempelkan label pengiriman: nama penerima, alamat lengkap, nomor HP, dan ekspedisi yang dipilih\n5. Lakukan pengecekan akhir sebelum diserahkan ke kurir: produk, jumlah, kemasan, dan label\nPenanganan Pesanan Bermasalah:\n- Produk tidak tersedia saat akan dikemas → segera hubungi customer/reseller dan tawarkan solusi\n- Alamat pengiriman tidak lengkap atau tidak jelas → konfirmasi ulang ke customer sebelum paket dikirim\n- Paket dikembalikan kurir (gagal kirim) → inventarisasi, hubungi customer, dan laporkan ke Manager dalam 1x24 jam"
+    },
+    {
+     "j": "Order produk",
+     "isi": "- Melakukan order produk yang hampir atau sudah habis di Inventory ke Manager Produksi agar segera di proses\n- Memastikan orderan sesuai dengan kebutuhan dan jumlah yang ditentukan sesuai dengan demand pasar\n- Mengecek progress orderan agar didahulukan untuk barang barang yang out of stock"
+    },
+    {
+     "j": "KPI Divisi Offline Market & Reseller",
+     "isi": "- Tingkat respons WA → semua pesan dibalas maks. 1 jam selama jam kerja\n- Akurasi input pesanan → tidak ada pesanan yang salah input akibat kelalaian\n- Akurasi stok → selisih stok fisik vs catatan di bawah 2% (evaluasi mingguan)\n- Pesanan terkirim tepat waktu → target di atas 95% (evaluasi mingguan)\n- Tingkat keluhan customer/reseller → di bawah 3% dari total transaksi (evaluasi bulanan)\n- Kepuasan reseller aktif → tidak ada reseller yang berhenti akibat pelayanan buruk (evaluasi bulanan)"
+    }
+   ],
+   "penutup": "SOP ini disusun sebagai acuan kerja resmi bagi Eva Rosdiana dalam menjalankan tugas dan tanggung jawab di Divisi Offline Market & Reseller secara konsisten, profesional, dan terstandar.",
+   "ttd": [
+    {
+     "l": "Dibuat oleh",
+     "n": "Putri Ayu Salamah",
+     "j": "HRD"
+    },
+    {
+     "l": "Diperiksa oleh",
+     "n": "Wawan Anjani",
+     "j": "General Manager"
+    },
+    {
+     "l": "Disetujui oleh",
+     "n": "Eep Sopandi",
+     "j": "Owner"
+    }
+   ],
+   "riwayat": [],
+   "sumber": "Impor dari dokumen SOP lama"
+  },
+  "sop-sop-inv-adm-001": {
+   "nomor": "SOP/INV/ADM/001",
+   "judul": "SOP Admin Shopee 2TC Factory dan Pulley",
+   "divisi": "Marketplace",
+   "dept": "Inventory",
+   "untuk": "Admin Market Place",
+   "revisi": "00",
+   "versi": 1,
+   "status": "Berlaku",
+   "berlaku": "2026-04-06",
+   "tujuanJ": "Tujuan & ruang lingkup",
+   "tujuan": "SOP ini menjadi panduan kerja standar bagi tim Divisi Marketplace dalam menjalankan operasional penjualan online melalui platform Shopee & Lazada, mencakup pengelolaan akun, inventori, pemrosesan pesanan, dan layanan pelanggan.",
+   "bagian": [
+    {
+     "j": "Admin Shopee 2 Stroke & TikTok 2 TC Factory",
+     "isi": "Prosedur Harian:\n- Login & cek notifikasi semua akun, pastikan tidak ada suspend atau peringatan\n- Balas chat pembeli, respons maks. 1 jam dengan bahasa sopan dan informatif\n- Review pesanan masuk, konfirmasi ketersediaan stok, koordinasi gudang\n- Update produk jika ada produk baru, perubahan harga, atau koreksi informasi\n- Monitor skor toko, tingkat respons, dan rating produk\n- Laporan harian ke supervisor: rekap penjualan, pesanan, dan kendala\nKetentuan:\n- Password akun tidak boleh dibagikan ke pihak yang tidak berwenang dan Perubahan data akun wajib mendapat persetujuan Manager"
+    },
+    {
+     "j": "Update stok inventori",
+     "isi": "Prosedur:\n1. Staff Gudang menghitung dan mencatat jumlah stok fisik setiap bulan\n2. Admin Marketplace menginput hasil hitungan ke spreadsheet atau sistem inventori\n3. Admin Marketplace menyesuaikan stok di Shopee&Lazada berdasarkan hasil verifikasi\n4. Admin Marketplace mendokumentasikan perubahan: tanggal, stok lama, stok baru\nKetentuan:\n- Stock opname lengkap dilakukan setiap akhir bulan\n- Stok di bawah 10 unit wajib dilaporkan ke divisi Offline Market ( Eva Rosdiana )\n- Jika stok habis, segera nonaktifkan listing agar tidak ada pesanan masuk"
+    },
+    {
+     "j": "Update stok marketplace",
+     "isi": "- Setelah stock opname bulanan: sinkronkan stok fisik ke semua akun Shopee& Lazada Setelah pesanan dikonfirmasi: pastikan stok terpotong otomatis dengan benar\n- Setelah restock/barang masuk: tambahkan stok di Shopee& Lazada sesuai jumlah barang terverifikasi\n- Setelah retur diterima: evaluasi kondisi barang, jika layak jual tambahkan kembali ke stok\n- Stok di bawah 5 unit: notifikasi divisi Offline Market agar segera melakukan order ke Manager produksi"
+    },
+    {
+     "j": "Customer service",
+     "isi": "Standar waktu respons:\n- Pertanyaan produk → respons maks. 1 jam, selesaikan saat itu juga\n- Keluhan pengiriman → respons maks. 2 jam, selesaikan maks. 1x24 jam\n- Permintaan retur / refund → respons maks. 2 jam, selesaikan maks. 3x24 jam\n- Produk rusak / tidak sesuai → respons maks. 1 jam, selesaikan maks. 2x24 jam\nPenanganan chat & pertanyaan:\n- Sambut pembeli dengan sapaan: \"Halo Kak, terima kasih telah menghubungi 2 TC Factory.\"\n- Jawab pertanyaan produk dengan informasi akurat sesuai deskripsi yang ada\n- Jika perlu konfirmasi ke pihak lain, informasikan estimasi waktu jawaban kepada pembeli\n- Selalu tawarkan solusi konkret untuk setiap keluhan, bukan sekadar permintaan maaf\nPengelolaan review:\n- Monitor review toko setiap hari dan laporkan bintang 1–2 ke Manager\n- Balas semua review, baik positif maupun negatif, dengan respons profesional\n- Untuk review negatif, berikan klarifikasi atau solusi secara publik dengan bahasa sopan"
+    },
+    {
+     "j": "KPI Divisi Marketplace",
+     "isi": "- Tingkat respons chat: maks. 1 jam → target di atas 90% (evaluasi harian)\n- Skor performa toko Shopee → target di atas 80% (evaluasi mingguan)\n- Akurasi stok fisik vs sistem → selisih di bawah 2% (evaluasi mingguan)\n- Pesanan terkirim tepat waktu → target di atas 95% (evaluasi mingguan)\n- Rating toko → target di atas 4.7 dari 5.0 (evaluasi bulanan)\n- Tingkat retur dari total pesanan → di bawah 3% (evaluasi bulanan)"
+    }
+   ],
+   "penutup": "SOP ini disusun sebagai acuan kerja resmi bagi seluruh anggota Divisi Marketplace TC Factory dalam menjalankan tugas dan tanggung jawabnya secara konsisten, profesional, dan terstandar.",
+   "ttd": [
+    {
+     "l": "Dibuat oleh",
+     "n": "Putri Ayu Salamah",
+     "j": "HRD"
+    },
+    {
+     "l": "Diperiksa oleh",
+     "n": "Wawan Anjani",
+     "j": "General Manager"
+    },
+    {
+     "l": "Disetujui oleh",
+     "n": "Eep Sopandi",
+     "j": "Owner"
+    }
+   ],
+   "riwayat": [],
+   "sumber": "Impor dari dokumen SOP lama"
+  },
+  "sop-sop-inv-pa-001": {
+   "nomor": "SOP/INV/PA /001",
+   "judul": "SOP Divisi Assembly & Packaging",
+   "divisi": "Assembly & Packaging",
+   "dept": "Inventory",
+   "untuk": "Assembly & Packaging",
+   "revisi": "00",
+   "versi": 1,
+   "status": "Berlaku",
+   "berlaku": "2026-04-08",
+   "tujuanJ": "Tujuan & ruang lingkup",
+   "tujuan": "Memastikan proses packaging dan assembly produk berjalan rapi, higienis, dan terkontrol serta memastikan ketersediaan bahan packaging selalu tersedia. SOP ini berlaku untuk seluruh aktivitas packaging, proses vakum produk, serta pelaporan hasil pekerjaan pada divisi Assembly & Packaging.",
+   "bagian": [
+    {
+     "j": "Prosedur kerja",
+     "isi": "1. Proses Assembly & Packaging Produk\n-- Melakukan proses assembly dan packaging produk sesuai standar yang telah ditetapkan perusahaan.\n-- Memastikan produk yang akan dikemas dalam kondisi bersih, lengkap, dan siap untuk proses pengemasan.\n-- Menggunakan bahan packaging sesuai spesifikasi yang telah ditentukan.\n2. Proses Vakum Produk\n-- Melakukan proses vakum pada produk yang sudah selesai diproduksi menggunakan mesin vakum.\n-- Memastikan hasil vakum rapat, tidak bocor, dan sesuai standar kualitas.\n-- Menyusun produk yang telah divakum secara rapi di area penyimpanan sementara.\n3. Pengendalian Stok Bahan Packaging\n-- Melakukan pengecekan stok bahan baku untuk proses vakum dan packaging secara berkala.\n-- Membuat laporan stok bahan packaging minimal 1 minggu sebelum stok habis kepada atasan atau bagian terkait agar tidak menghambat proses produksi.\n4. Pelaporan Hasil Packaging Harian\n-- Melaporkan jumlah produk yang telah selesai dipackaging setiap hari kepada Manager atau bagian terkait.\n-- Laporan dapat berupa jumlah produk, jenis produk, dan waktu penyelesaian packaging.\n5. Pelaporan Produk Reject\n-- Segera melaporkan kepada Manager Produksi apabila ditemukan produk yang reject, rusak, atau tidak sesuai standar kualitas saat proses packaging.\n-- Memisahkan produk reject dari produk yang lolos quality control untuk menghindari pencampuran."
+    },
+    {
+     "j": "KPI",
+     "isi": "- Target penyelesaian packaging → produk selesai dipackaging sesuai target produksi harian\n- Kualitas hasil vakum → produk vakum tidak bocor atau rusak, tingkat kegagalan di bawah 2%\n- Ketepatan laporan harian → laporan hasil packaging dikirim setiap hari setelah proses selesai\n- Kontrol stok bahan packaging → laporan stok bahan vakum dan packaging dibuat minimal 1 minggu sebelum habis\n- Tingkat produk reject → produk reject terdeteksi dan dilaporkan 100% saat proses packaging\n- Kerapihan dan ketertiban area kerja → area packaging tetap rapi, bersih, dan aman selama operasional produksi"
+    }
+   ],
+   "penutup": "Setiap petugas Packaging & Assembly wajib menjalankan SOP ini dengan disiplin untuk menjaga kualitas produk serta kelancaran proses produksi.",
+   "ttd": [
+    {
+     "l": "Dibuat oleh",
+     "n": "",
+     "j": ""
+    },
+    {
+     "l": "Diperiksa oleh",
+     "n": "",
+     "j": ""
+    },
+    {
+     "l": "Disetujui oleh",
+     "n": "",
+     "j": ""
+    }
+   ],
+   "riwayat": [],
+   "sumber": "Impor dari dokumen SOP lama"
+  },
+  "sop-sop-mkt-cc-001": {
+   "nomor": "SOP/MKT/CC/001",
+   "judul": "SOP Content Creator",
+   "divisi": "Marketing / Content",
+   "dept": "Marketing / Content",
+   "untuk": "Content Creator",
+   "revisi": "00",
+   "versi": 1,
+   "status": "Berlaku",
+   "berlaku": "2026-03-28",
+   "tujuanJ": "Tujuan",
+   "tujuan": "Menetapkan standar kerja Content Creator dalam merencanakan, membuat, dan mempublikasikan konten promosi perusahaan secara konsisten, kreatif, dan sesuai dengan identitas brand.",
+   "bagian": [
+    {
+     "j": "Ruang lingkup",
+     "isi": "SOP ini mencakup seluruh aktivitas pembuatan konten digital perusahaan, termasuk perencanaan konten, produksi konten foto/video, editing, hingga publikasi di media sosial dan marketplace."
+    },
+    {
+     "j": "Tanggung jawab",
+     "isi": "- Content Creator: Membuat dan mengelola konten promosi perusahaan\n- Marketing / GM: Memberikan arahan strategi konten\n- Admin Marketplace: Mendukung publikasi konten pada platform marketplace"
+    },
+    {
+     "j": "Prosedur kerja",
+     "isi": "4.1 Perencanaan Konten\n- Menyusun ide dan konsep konten berdasarkan produk atau kampanye yang sedang berjalan\n- Membuat content plan / content calendar\n- Jenis konten meliputi:\n-- Promosi produk\n-- Edukasi produk\n-- Behind the scene produksi\n-- Branding perusahaan\n- Target perencanaan: minimal 1 minggu sebelum publikasi\n4.2 Produksi Konten\n- Melakukan pengambilan foto atau video produk\n- Memastikan kualitas visual jelas dan menarik\n- Menggunakan peralatan yang tersedia (kamera / smartphone / lighting)\n- Waktu produksi konten: maksimal 1 hari kerja per konten\n4.3 Editing Konten\n- Mengedit foto atau video agar sesuai dengan standar brand\n- Menambahkan elemen pendukung seperti:\n-- Logo perusahaan\n-- Teks informasi produk\n-- Musik atau efek visual (jika diperlukan)\n- Waktu editing: maksimal 1 hari kerja\n4.4 Publikasi Konten\n- Mengupload konten ke platform yang digunakan perusahaan, seperti:\n-- Instagram\n-- TikTok\n-- Marketplace (Shopee, Tokopedia, dll)\n- Menambahkan caption, hashtag, dan informasi produk\n- Frekuensi publikasi: minimal 1 konten per hari\n4.5 Monitoring Performa Konten\n- Memantau performa konten seperti:\n-- Views\n-- Likes\n-- Komentar\n-- Engagement"
+    },
+    {
+     "j": "Keselamatan dan etika kerja",
+     "isi": "- Menggunakan konten yang tidak melanggar hak cipta\n- Tidak mempublikasikan informasi internal perusahaan tanpa izin\n- Menjaga citra dan reputasi perusahaan dalam setiap konten"
+    },
+    {
+     "j": "Dokumen terkait",
+     "isi": "- Content Plan / Content Calendar\n- File foto dan video produk"
+    },
+    {
+     "j": "Indikator kinerja (KPI)",
+     "isi": "- Konsistensi posting konten: ≥ 3–5 konten per minggu\n- Ketepatan waktu publikasi: ≥ 95 %\n- Kepatuhan terhadap SOP: 98 %"
+    },
+    {
+     "j": "Sanksi",
+     "isi": "Setiap pelanggaran terhadap SOP ini akan dikenakan sanksi sesuai dengan peraturan perusahaan yang berlaku"
+    }
+   ],
+   "penutup": "",
+   "ttd": [
+    {
+     "l": "Dibuat oleh",
+     "n": "Putri Ayu Salamah",
+     "j": "HRD"
+    },
+    {
+     "l": "Diperiksa oleh",
+     "n": "Wawan Anjani",
+     "j": "General Manager"
+    },
+    {
+     "l": "Disetujui oleh",
+     "n": "Eep Sopandi",
+     "j": "Owner"
+    }
+   ],
+   "riwayat": [],
+   "sumber": "Impor dari dokumen SOP lama"
+  },
+  "sop-sop-rnd-001": {
+   "nomor": "SOP/RND/001",
+   "judul": "SOP R&D (Research & Development)",
+   "divisi": "R&D & Design",
+   "dept": "R&D & Design",
+   "untuk": "Staff R&D & Design",
+   "revisi": "01",
+   "versi": 2,
+   "status": "Berlaku",
+   "berlaku": "2026-03-28",
+   "tujuanJ": "Tujuan",
+   "tujuan": "Menetapkan standar proses riset dan pengembangan produk sparepart motor berbasis CNC agar menghasilkan produk yang berkualitas, aman, dan siap diproduksi secara massal.",
+   "bagian": [
+    {
+     "j": "Ruang lingkup",
+     "isi": "SOP ini mencakup seluruh proses Research & Development (R&D) mulai dari pengukuran part, desain, prototyping, pengujian produk, hingga persiapan produksi massal."
+    },
+    {
+     "j": "Tanggung jawab",
+     "isi": "Staff R&D & Design:\n- Melaksanakan proses riset, pengukuran, dan pengembangan desain produk.\n- Membuat desain CAD, model 3D, serta melakukan proses prototyping.\n- Melakukan verifikasi terhadap hasil desain dan pengembangan produk.\n- Memberikan arahan teknis sebelum desain diajukan ke tahap berikutnya.\nProduksi:\n- Mendukung proses prototyping, machining, serta pengujian produk.\nCEO / Owner:\n- Memiliki otoritas keputusan akhir terhadap desain produk yang akan diproduksi.\n- Memberikan persetujuan akhir sebelum produk masuk ke tahap mass production.\nCatatan:\nMasukan dari divisi lain seperti produksi atau pabrikasi dapat digunakan sebagai pertimbangan teknis, namun keputusan utama tetap berada pada CEO setelah melalui proses verifikasi R&D."
+    },
+    {
+     "j": "Prosedur kerja",
+     "isi": "4.1 Pengukuran dan Analisis Part\n- Melakukan pengukuran part yang akan dibuat secara akurat.\n- Memastikan dimensi sesuai dengan kebutuhan produk.\n- Waktu proses pengukuran: maksimal 1 (satu) hari kerja.\n4.2 Pembuatan Desain Awal\n- Membuat sketsa teknis produk berdasarkan hasil pengukuran.\n- Mengaplikasikan desain ke dalam software CAD.\n- Memastikan desain memenuhi aspek fungsi, kekuatan, dan kemudahan produksi.\n4.3 Prototyping Awal (3D Print)\n- Melakukan proses pencetakan menggunakan mesin 3D printer.\n- Memastikan bentuk dan ukuran sesuai dengan desain.\n- Waktu proses: maksimal 1 (satu) hari kerja.\n4.4 Validasi Desain dan Modelling\n- Melakukan evaluasi hasil prototype 3D print.\n- Jika ukuran sudah sesuai, dilanjutkan ke proses modelling lanjutan.\n- Membuat minimal 5 (lima) alternatif model desain sebagai opsi pengembangan produk.\n- Model digunakan sebagai bahan evaluasi dan pemilihan desain terbaik.\n4.5 Pemilihan Material\nMenentukan material yang sesuai dengan fungsi produk dengan mempertimbangkan:\n- Kekuatan material\n- Ketahanan terhadap penggunaan\n- Efisiensi biaya produksi\n4.6 Prototyping CNC\n- Melakukan proses prototyping menggunakan mesin CNC.\n- Menggunakan material yang telah ditentukan sebelumnya.\n- Memastikan hasil machining sesuai dengan standar kualitas produk.\n- Waktu proses: 1–3 hari kerja tergantung tingkat kompleksitas.\n4.7 Penanganan Masalah Teknis\n- Mengidentifikasi kendala yang terjadi selama proses prototyping.\n- Melakukan perbaikan desain atau metode machining jika diperlukan.\n- Waktu penyelesaian masalah: maksimal 1 (satu) hari kerja per kendala.\n4.8 Pengujian Produk\n- Melakukan uji coba produk secara langsung pada motor.\n- Pengujian meliputi:\n-- Fungsi produk\n-- Kekuatan material\n-- Keamanan penggunaan\nProduk tidak diperbolehkan lanjut ke tahap produksi apabila belum lolos pengujian.\n4.9 Perancangan Strategi Machining\n- Menentukan metode machining yang paling efisien.\n- Mengoptimalkan waktu produksi dan biaya.\n- Menyusun alur proses produksi untuk tahap mass production.\n4.10 Persetujuan Produk\n- Produk yang sudah lolos uji akan diajukan untuk persetujuan.\n- Desain diverifikasi oleh Supervisor R&D.\n- Keputusan akhir disetujui oleh CEO / Owner.\n- Setelah mendapatkan persetujuan CEO, produk dinyatakan siap untuk produksi massal."
+    },
+    {
+     "j": "Alur kerja R&D produk",
+     "isi": "Alur kerja pengembangan produk adalah sebagai berikut:\n1. Pengukuran Part\n2. Pembuatan Desain Awal (CAD)\n3. Prototyping 3D Print\n4. Validasi Desain & Modelling\n5. Pemilihan Material\n6. Prototyping CNC\n7. Perbaikan Teknis (Jika Ada Kendala)\n8. Pengujian Produk\n9. Perancangan Strategi Machining\n10. Persetujuan Akhir CEO\n11. Produksi Massal\nCatatan:\nMasukan dari divisi lain seperti produksi atau pabrikasi dapat diberikan selama proses berlangsung, namun keputusan desain akhir tetap berada pada CEO."
+    },
+    {
+     "j": "Keselamatan dan kesehatan kerja (K3)",
+     "isi": "- Menggunakan peralatan kerja sesuai standar keselamatan.\n- Berkoordinasi dengan tim produksi saat menggunakan mesin.\n- Menjaga keamanan data desain perusahaan."
+    },
+    {
+     "j": "Dokumen terkait",
+     "isi": "- File CAD & Drawing\n- Hasil 3D Print\n- Data Prototyping CNC\n- Laporan Uji Produk"
+    },
+    {
+     "j": "Indikator kinerja (KPI)",
+     "isi": "- Target output pekerjaan: ≥ 95% sesuai timeline\n- Tingkat maksimal produk cacat: ≤ 0.2% (prototype wajib 0% NG)\n- Tingkat kehadiran: ≥ 98.3%\n- Tingkat kepatuhan terhadap SOP: 100%"
+    },
+    {
+     "j": "Sanksi",
+     "isi": "Setiap pelanggaran terhadap SOP ini akan dikenakan sanksi sesuai dengan peraturan perusahaan yang berlaku."
+    }
+   ],
+   "penutup": "",
+   "ttd": [
+    {
+     "l": "Dibuat oleh",
+     "n": "Putri Ayu Salamah",
+     "j": "HRD"
+    },
+    {
+     "l": "Diperiksa oleh",
+     "n": "Restu Purnomo",
+     "j": "Research and Development"
+    },
+    {
+     "l": "Disetujui oleh",
+     "n": "Eep Sopandi",
+     "j": "Owner"
+    }
+   ],
+   "riwayat": [],
+   "sumber": "Impor dari dokumen SOP lama"
+  },
+  "sop-sop-prod-001": {
+   "nomor": "SOP/PROD/001",
+   "judul": "SOP Operator Produksi",
+   "divisi": "Produksi CNC",
+   "dept": "Produksi",
+   "untuk": "Operator Produksi",
+   "revisi": "01",
+   "versi": 2,
+   "status": "Berlaku",
+   "berlaku": "2026-07-22",
+   "tujuanJ": "Tujuan",
+   "tujuan": "Menetapkan standar prosedur kerja bagi Operator Produksi agar proses produksi berjalan secara aman, efisien, terkontrol, dan memenuhi standar kualitas yang telah ditetapkan perusahaan.",
+   "bagian": [
+    {
+     "j": "Ruang lingkup",
+     "isi": "SOP ini mengatur seluruh aktivitas Operator Produksi, meliputi persiapan kerja, pelaksanaan proses produksi, pengendalian kualitas dasar, hingga penyelesaian dan pelaporan hasil produksi."
+    },
+    {
+     "j": "Tanggung jawab",
+     "isi": "- Supervisor & Wakil Supervisor: Mengawasi pelaksanaan SOP dan memastikan kelancaran proses produksi, melakukan pengawasan produksi dan melakukan proses QC dan penggantian tools\n- Operator Produksi: Melaksanakan seluruh proses kerja sesuai SOP dan bertanggung jawab atas hasil produksi yang dikerjakan"
+    },
+    {
+     "j": "Prosedur kerja",
+     "isi": "4.1 Persiapan Sebelum Produksi\n- Operator wajib hadir sesuai jadwal kerja yang ditetapkan\n- Operator shift berikutnya wajib hadir lebih awal minimal 10 menit dan maksimal 15 menit sebelum pergantian shift untuk proses serah terima pekerjaan (over shift)\n- Proses serah terima wajib mencakup:\n-- Kondisi mesin terakhir\n- Status pekerjaan yang sedang berjalan\n-- Kendala atau masalah yang terjadi\n- Operator wajib menggunakan APD (Alat Pelindung Diri) sesuai ketentuan\n- Melakukan pemeriksaan awal mesin, meliputi:\n-- Kondisi mesin dalam keadaan normal\n-- Area kerja dalam kondisi bersih dan aman\n- Melakukan pemeriksaan bahan baku\n- Mengisi form checklist sebelum proses produksi dimulai\n4.2 Pelaksanaan Proses Produksi\n- Operator wajib mengoperasikan mesin sesuai instruksi kerja yang berlaku\n- Stok ketersediaan bahan baku harus disiapkan oleh shift 2 (siang) supaya proses produksi tetap efektif\n- Operator wajib mengikuti urutan proses produksi yang telah ditetapkan:\n-- 1. Pasang bahan\n-- 2. Siapkan tools yang akan digunakan\n-- 3. Seting tools\n-- 4. Siapkan program sesuai produk yang akan di eksekusi\n- Operator wajib menjaga kecepatan produksi sesuai target yang ditetapkan Perusahaan tanpa adanya kecurangan terkait pembatasan produktifitas produksi (Contoh : Pengakalan target, pembatasan efektifitas waktu produksi)\n- Operator wajib melakukan pemeriksaan terhadap setiap barang yang masuk ke proses (incoming process), dengan ketentuan:\n-- Memastikan seluruh bagian telah melalui proses sebelumnya\n-- Tidak terdapat bagian yang terlewat (contoh: belum melalui proses machining)\n- Apabila ditemukan ketidaksesuaian, operator wajib:\n-- Menghentikan proses sementara\n-- Melaporkan kepada Supervisor atau Wakil Supervisor\n- Operator bertanggung jawab penuh terhadap barang yang sedang dikerjakan selama proses berlangsung\n- Operator wajib memprioritaskan penanganan mesin yang berhenti terlebih dahulu, dengan ketentuan:\n-- Melakukan penggantian tools\n-- Mengembalikan mesin ke kondisi running secepat mungkin\n- Standar waktu kerja (handling time) ditetapkan sebagai berikut:\n-- Waktu pemasangan benda kerja: maksimal 2 (dua) menit per siklus\n-- Waktu setting tools: maksimal 5 (lima) menit per kejadian\n- Operator dilarang meninggalkan mesin dalam kondisi berjalan tanpa izin\n- Operator wajib melakukan pembersihan chip (serpihan material) pada area mesin secara berkala untuk menjaga keamanan dan kualitas produksi\n- Pembersihan chip dilakukan dengan ketentuan:\n- Tidak mengganggu proses produksi\n- Menggunakan alat yang sesuai (kuas, sekop, blower, dll)\n- Chip hasil produksi wajib dikumpulkan pada tempat yang telah ditentukan\n- Area kerja wajib dijaga agar tetap bersih dan tidak licin akibat sisa material atau cairan\n- Operator wajib segera melaporkan apabila terjadi:\n-- Kerusakan mesin\n-- Produk cacat (defect)\n-- Hambatan atau kendala produksi\n- Wajib menjaga serta merawat alat ukur seperti jangka sorong, mikrometer, dial dll\n4.2.1 Ketentuan Pergantian dan Pengambilan Tools\n- Wewenang untuk mengganti tools dan mengambil tools baru hanya dimiliki oleh Supervisor (SPV) dari masing-masing shift\n- Operator dilarang mengganti atau mengambil tools baru tanpa sepengetahuan dan persetujuan SPV shift yang bersangkutan\n- Setiap proses pergantian tools wajib didokumentasikan dengan foto kondisi sebelum dan sesudah penggantian, beserta bukti pelaksanaannya\n- Fitur tanggal dan waktu pada kamera handphone yang digunakan untuk dokumentasi wajib diaktifkan\n- Hasil dokumentasi (foto) wajib dilaporkan melalui grup resmi yang telah ditentukan oleh Perusahaan. Pelaporan hanya diperbolehkan melalui grup tersebut dan tidak diperkenankan melalui grup atau media lain\n- Apabila ditemukan kejanggalan terkait proses pergantian atau pengambilan tools, SPV shift yang bersangkutan bertanggung jawab sepenuhnya atas kejadian tersebut\n- Segala bentuk kecurangan atau tindak pencurian terkait tools akan ditindak tegas sesuai dengan ketentuan perusahaan yang berlaku\n4.3 Proses Cutting (Pemotongan Material)\n- Memastikan material telah diukur sesuai drawing sebelum dipotong\n- Memastikan posisi material stabil sebelum proses cutting\n- Waktu handling pemasangan material: maksimal 2 (dua) menit\n- Melakukan pemotongan sesuai ukuran dan standar kerja\n- Toleransi penyimpangan ukuran: maksimal ± 3 mm\n- Hasil cutting wajib diperiksa sebelum lanjut ke proses berikutnya\n4.4 Proses Machining / Pulley (CNC)\n- Memastikan program machining sesuai dengan part yang dikerjakan\n- Memasang benda kerja dengan presisi dan aman\n- Melakukan monitoring proses secara berkala\n- Wajib melakukan cleaning chip sebelum jam pulang dan wajib membersihkan area kerja sebelum pulang\n- Memastikan hasil machining sesuai standar dimensi dan kualitas\n4.5 Pengendalian Kualitas (Basic by Operator)\n- Supervisor dan wakilnya wajib melakukan pengecekan visual terhadap hasil produksi secara berkala\n- Produk yang tidak sesuai standar wajib dipisahkan dari produk OK\n- Produk cacat wajib diberi penandaan (NG / Not Good)\n- Wajib mengisi form QC sesuai ketentuan yang berlaku\n4.6 Penyelesaian Setelah Produksi\n- Operator wajib mematikan mesin sesuai prosedur yang berlaku\n- Operator wajib membersihkan area kerja setelah proses produksi selesai\n- Operator wajib melakukan perhitungan hasil produksi, meliputi:\n-- Total produksi:\n-- Produk OK:\n-- Produk cacat:\n- Operator wajib mengisi laporan harian produksi secara lengkap dan akurat\n4.7 Penanganan Barang Reject (NG / Not Good)\n- Operator wajib memisahkan barang reject dari barang OK segera setelah ditemukan\n- Barang reject wajib diberi identifikasi:\n-- Label “NG” atau penandaan khusus\n- Operator dilarang mencampur barang reject dengan barang OK dalam kondisi apapun\n- Operator wajib melaporkan barang reject kepada Supervisor\n- Barang reject wajib ditempatkan di area khusus yang telah ditentukan\n- Operator dilarang memperbaiki barang reject tanpa instruksi dari Supervisor\n- Setiap kejadian reject wajib dicatat dalam form atau log produksi"
+    },
+    {
+     "j": "Keselamatan dan kesehatan kerja (K3)",
+     "isi": "- Operator wajib menggunakan APD setiap saat selama bekerja\n- Operator dilarang mengoperasikan mesin tanpa pelatihan atau wewenang\n- Operator dilarang melakukan tindakan yang dapat membahayakan keselamatan kerja\n- Setiap kecelakaan kerja wajib segera dilaporkan kepada atasan\n- Operator wajib mengikuti prosedur keadaan darurat yang berlaku"
+    },
+    {
+     "j": "Dokumen terkait",
+     "isi": "- Form Checklist Mesin\n- Form Laporan Produksi Harian\n- Form Quality Control (QC)"
+    },
+    {
+     "j": "Sanksi",
+     "isi": "Setiap pelanggaran terhadap SOP ini akan dikenakan sanksi sesuai dengan peraturan perusahaan yang berlaku."
+    }
+   ],
+   "penutup": "",
+   "ttd": [
+    {
+     "l": "Dibuat oleh",
+     "n": "Putri Ayu Salamah",
+     "j": "HRD"
+    },
+    {
+     "l": "Diperiksa oleh",
+     "n": "Gustiar",
+     "j": "Manager Produksi"
+    },
+    {
+     "l": "Disetujui oleh",
+     "n": "Eep Sopandi",
+     "j": "Owner"
+    }
+   ],
+   "riwayat": [],
+   "sumber": "Impor dari dokumen SOP lama"
+  },
+  "sop-sop-prd-wel-001": {
+   "nomor": "SOP/PRD/WEL/001",
+   "judul": "SOP Operator Welding",
+   "divisi": "Welding & Assembly",
+   "dept": "Produksi",
+   "untuk": "Operator Welding",
+   "revisi": "00",
+   "versi": 1,
+   "status": "Berlaku",
+   "berlaku": "2026-03-25",
+   "tujuanJ": "Tujuan",
+   "tujuan": "Menetapkan prosedur kerja operator welding agar proses pengelasan menghasilkan sambungan yang kuat, rapi, dan sesuai standar kualitas perusahaan.",
+   "bagian": [
+    {
+     "j": "Ruang lingkup",
+     "isi": "SOP ini berlaku untuk seluruh kegiatan pengelasan mulai dari persiapan material, proses welding, hingga finishing hasil kerja."
+    },
+    {
+     "j": "Tanggung jawab",
+     "isi": "- Operator Welding: Melaksanakan proses pengelasan sesuai SOP\n- Supervisor: Mengawasi dan memastikan proses berjalan sesuai standar\n- QC: Memastikan kualitas hasil pengelasan"
+    },
+    {
+     "j": "Prosedur kerja",
+     "isi": "4.1 Persiapan Sebelum Welding\n- Datang tepat waktu sesuai jadwal shift\n- Menggunakan APD lengkap:\n-- Helm las dan Kacamata anti radiasi\n-- Sarung tangan\n-- Sepatu safety\n- Melakukan pengecekan mesin welding:\n-- Mesin dalam kondisi normal\n-- Kabel dan arus aman\n- Membersihkan permukaan material sebelum dilas\n- Waktu persiapan: maksimal 10 (sepuluh) menit\n4.2 Proses Welding\n- Menentukan parameter welding sesuai jenis material\n- Melakukan pengelasan sesuai titik dan pola kerja\n- Menjaga kestabilan tangan dan posisi las\n- Tidak diperbolehkan meninggalkan pekerjaan saat proses berlangsung\n- Waktu pengerjaan mengikuti standar per part\n4.3 Pengendalian Kualitas (Basic by Operator)\n- Melakukan pengecekan visual hasil las\n- Memastikan tidak ada:\n-- Retak\n-- Porositas\n-- Sambungan lemah\n- Memisahkan hasil NG dan memberi tanda\n- Waktu pengecekan: maksimal 10 menit per part\n4.4 Finishing\n- Membersihkan slag hasil pengelasan\n- Merapikan hasil las\n- Menyiapkan produk ke proses berikutnya\n4.5 Setelah Pekerjaan\n- Mematikan mesin sesuai prosedur\n- Membersihkan area kerja\n- Mengumpulkan sisa material"
+    },
+    {
+     "j": "Keselamatan kerja (K3)",
+     "isi": "- Wajib menggunakan APD setiap saat\n- Dilarang melakukan pengelasan tanpa pelindung mata\n- Waspada terhadap percikan api\n- Segera laporkan jika terjadi kecelakaan"
+    },
+    {
+     "j": "Dokumen terkait",
+     "isi": "- Drawing kerja\n- Form QC\n- Laporan produksi"
+    },
+    {
+     "j": "Indikator kinerja (KPI)",
+     "isi": "- Target output: ≥ ___ %\n- Tingkat cacat las: ≤ ___ %\n- Kepatuhan SOP: 100%\n- Kehadiran: ≥ ___ %"
+    },
+    {
+     "j": "Sanksi",
+     "isi": "Setiap pelanggaran terhadap SOP akan dikenakan sanksi sesuai peraturan perusahaan"
+    }
+   ],
+   "penutup": "",
+   "ttd": [
+    {
+     "l": "Dibuat oleh",
+     "n": "Putri Ayu Salamah",
+     "j": "HRD"
+    },
+    {
+     "l": "Diperiksa oleh",
+     "n": "Wawan Anjani",
+     "j": "General Manager"
+    },
+    {
+     "l": "Disetujui oleh",
+     "n": "Eep Sopandi",
+     "j": "Owner"
+    }
+   ],
+   "riwayat": [],
+   "sumber": "Impor dari dokumen SOP lama"
+  },
+  "sop-sop-ga-csv-001": {
+   "nomor": "SOP/GA/CSV/001",
+   "judul": "SOP Cleaning Service Area Produksi",
+   "divisi": "General Affair",
+   "dept": "General Affair",
+   "untuk": "Cleaning Service Produksi",
+   "revisi": "00",
+   "versi": 1,
+   "status": "Berlaku",
+   "berlaku": "2026-04-06",
+   "tujuanJ": "Tujuan",
+   "tujuan": "Menjaga kebersihan, kerapihan, dan keamanan area produksi agar lingkungan kerja tetap nyaman, higienis, serta mengurangi risiko kecelakaan kerja akibat kotoran, chip mesin, maupun oli di lantai produksi.",
+   "bagian": [
+    {
+     "j": "Ruang lingkup",
+     "isi": "SOP ini berlaku untuk seluruh kegiatan kebersihan yang dilakukan oleh Cleaning Service di area berikut:\n- Area produksi"
+    },
+    {
+     "j": "Tugas dan tanggung jawab cleaning service",
+     "isi": "Cleaning Service bertanggung jawab menjaga kebersihan seluruh area produksi dengan melakukan kegiatan berikut:\n- Menyapu dan mengepel lantai area produksi apabila terdapat chip mesin, oli, debu, atau kotoran lainnya agar area tetap bersih dan tidak licin.\n- Membersihkan chip di area mesin produksi secara rutin setiap hari pada pukul 10.00 dan 14.00.\n- Mengelap bagian luar mesin dari debu dan bekas oli menggunakan majun bersih minimal 1 kali setiap hari.\n- Membersihkan sarang laba-laba yang terdapat pada atap maupun dinding area produksi secara berkala.\n- Membersihkan area tangga produksi dengan cara menyapu dan mengelap dari debu atau kotoran.\n- Melakukan pengelapan kaca di area kantor dan produksi (bagian dalam dan luar) minimal 2–3 kali dalam seminggu menggunakan cairan pembersih kaca dan wiper.\n- Memungut sampah seperti plastik, majun bekas, atau kotoran lainnya yang terdapat di area produksi dan membuangnya ke tempat sampah yang telah disediakan.\n- Membersihkan serta merawat dispenser area produksi dengan cara mengelap dari debu dan kotoran serta memastikan kondisi tetap bersih.\n- Melakukan pengecekan ulang area produksi untuk memastikan tidak terdapat chip, oli, atau kotoran yang tertinggal di lantai."
+    },
+    {
+     "j": "Peralatan kerja",
+     "isi": "Peralatan yang digunakan untuk kegiatan kebersihan meliputi:\n- Sapu\n- Pengki\n- Pel busa\n- Wiper kaca\n- Sabun pel\n- Cairan pembersih kaca\n- Lap microfiber\n- Majun"
+    },
+    {
+     "j": "Keselamatan dan kesehatan kerja (K3)",
+     "isi": "- Berhati-hati pada area licin"
+    },
+    {
+     "j": "Dokumen terkait",
+     "isi": "- Checklist Kebersihan Harian"
+    },
+    {
+     "j": "Indikator kinerja (KPI)",
+     "isi": "- Tingkat kebersihan area: ≥ 90%\n- Ketepatan waktu kerja: ≥ 95 %\n- Kepatuhan SOP: ≥ 95 %"
+    },
+    {
+     "j": "Sanksi",
+     "isi": "Setiap pelanggaran terhadap SOP ini akan dikenakan sanksi sesuai peraturan perusahaan yang berlaku."
+    }
+   ],
+   "penutup": "",
+   "ttd": [
+    {
+     "l": "Dibuat oleh",
+     "n": "Putri Ayu Salamah",
+     "j": "HRD"
+    },
+    {
+     "l": "Diperiksa oleh",
+     "n": "Wawan Anjani",
+     "j": "General Manager"
+    },
+    {
+     "l": "Disetujui oleh",
+     "n": "Eep Sopandi",
+     "j": "Owner"
+    }
+   ],
+   "riwayat": [],
+   "sumber": "Impor dari dokumen SOP lama"
+  }
+ }
+}
