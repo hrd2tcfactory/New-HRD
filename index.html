@@ -299,7 +299,10 @@ tr.tdet>td{background:var(--surface-2);padding:0!important}table.dtab{width:100%
 #sopPrev{padding:16px;position:sticky;top:10px;background:#fff;color:#141d2b}
 .sopdoc{font-size:12px;line-height:1.5}.sd-h{display:flex;gap:10px;align-items:center;border-bottom:2px solid #141d2b;padding-bottom:8px}.sd-h img{height:36px}.sd-h b{display:block;font-size:13px}.sd-h span{font-size:10px;letter-spacing:.08em}
 .sd-t{width:100%;border-collapse:collapse;margin:8px 0}.sd-t td{border:1px solid #c9ced8;padding:4px 6px}.sd-t td:nth-child(odd){color:#5b6677;width:62px}
-.sd-b p{margin:2px 0 8px}.sd-b ol{margin:2px 0 8px;padding-left:18px}.sd-sign{display:grid;grid-template-columns:1fr 1fr;text-align:center;margin-top:12px}.sd-sign span{color:#5b6677}
+.sd-b p{margin:2px 0 8px}.sd-b ol{margin:2px 0 8px;padding-left:18px}.sd-title{text-align:center;font-weight:800;font-size:14px;text-decoration:underline;margin:10px 0 2px}.sd-sec{margin-top:8px}.sd-sec>b{display:block}.sd-sub{font-weight:600;margin:4px 0 0}.sd-b ul{margin:2px 0 6px;padding-left:18px}.sd-b ul.sd-l2{margin:0;list-style:circle}.sd-b p{margin:2px 0 6px}
+.sd-sign{width:100%;border-collapse:collapse;margin-top:14px}.sd-sign th,.sd-sign td{border:1px solid #9aa3b0;padding:5px 6px;text-align:left}.sd-sign td{height:30px}.sd-sign th{text-align:center}
+.sbag{display:flex;flex-direction:column;gap:6px;padding:8px 0;border-bottom:1px dashed var(--line)}.sbag .n{font-weight:700;color:var(--muted);min-width:22px}.sbag input{flex:1;font:inherit;font-weight:600}.sbag textarea{font:inherit;min-height:70px}
+.sttd{display:grid;grid-template-columns:110px minmax(0,1fr) minmax(0,1fr);gap:6px;align-items:center;margin-top:6px}.sttd input{font:inherit}
 .tgx{display:inline-block;font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;border-radius:4px;padding:0 5px;margin-right:2px;vertical-align:1px}.tgx.nw{background:var(--ok-soft,#dcf2e4);color:var(--ok,#1d7a46)}.tgx.ch{background:var(--warn-soft,#fdeccd);color:var(--warn,#9a5700)}
 .dotn{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--ok,#1d7a46);margin-left:4px;vertical-align:1px}
 .ppw{display:grid;grid-template-columns:240px minmax(0,1fr);gap:14px;align-items:start}.toc{padding:8px;display:flex;flex-direction:column;gap:1px;position:sticky;top:10px}
@@ -1781,85 +1784,105 @@ function mesinTelatIsi(){const M=S.mesin;if(!M)return;const D=mesinDiff();if(isL
   toastUndo(late.length+' hari telat dicatat'+(cek.length?', '+cek.length+' perlu dicek':'')+'.')}
 
 // ===== Dokumen: SOP per divisi, Peraturan Perusahaan, Struktur Organisasi =====
-const SOP_DIV=['Produksi CNC','Engineering (CAM, Programmer, PPIC, Design)','Cutting','Welding & Assembly','Laser Marking','QC','Gudang, Packing & Driver','Admin & Finance','HRD','Umum (OB, Content Creator)'];
-const SOP_KODE={'Produksi CNC':'CNC','Engineering (CAM, Programmer, PPIC, Design)':'ENG','Cutting':'CUT','Welding & Assembly':'WLD','Laser Marking':'LSR','QC':'QC','Gudang, Packing & Driver':'GDG','Admin & Finance':'ADM','HRD':'HRD','Umum (OB, Content Creator)':'UMM'};
-const sopKode=d=>SOP_KODE[d]||String(d).toUpperCase().replace(/[^A-Z]/g,'').slice(0,3)||'SOP';
+// Isi SOP disusun per bagian: 1. Tujuan & ruang lingkup, lalu bagian-bagian bebas (judul + isi), lalu Penutup.
+// Isi bagian ditulis satu baris satu poin: "- " = poin, "1. " = langkah bernomor, baris yang diakhiri ":" = subjudul.
+const SOP_DIV=['Produksi CNC','R&D & Design','Cutting','Welding & Assembly','Laser Marking','QC','Assembly & Packaging','Gudang & Driver','Offline Market & Reseller','Marketplace','Marketing / Content','General Affair','Admin & Finance','HRD'];
+function sopDivs(){const a=(S.settings||{}).sopDivisi;return Array.isArray(a)&&a.length?a:SOP_DIV}
 function sopStatus(x){if(x.status!=='Berlaku')return 'Draf';if(x.berlaku&&daysBetween(x.berlaku,todayISO())>365)return 'Tinjau';return 'Berlaku'}
 const SOP_PILL={Berlaku:['p-ok','Berlaku'],Draf:['p-mute','Draf'],Tinjau:['p-warn','Perlu ditinjau']};
-const SOP_CONTOH={judul:'Pengoperasian mesin CNC',divisi:'Produksi CNC',tujuan:'Memastikan mesin CNC dioperasikan dengan aman, hasil potong sesuai gambar kerja, dan mesin terawat.',untuk:'Operator CNC, Wakil Supervisor, Supervisor CNC (grup A, B, C)',
-  langkah:['Cek kondisi mesin sebelum mulai: oli, angin kompresor, kebersihan meja, alat potong. Catat di checklist perawatan.','Baca gambar kerja dan program dari Programmer. Pastikan nomor program sama dengan nomor order.','Pasang material, kencangkan klem, lalu set titik nol (zero point) sesuai gambar.','Jalankan potongan pertama dengan kecepatan rendah, minta Supervisor atau QC mengecek ukurannya.','Jika ukuran sesuai, lanjutkan produksi. Jika tidak, hentikan dan laporkan ke Supervisor.','Selama mesin berjalan, jangan tinggalkan area mesin. Tekan emergency stop bila ada bunyi atau getaran tidak normal.','Setelah selesai, bersihkan mesin dan area kerja, kembalikan alat ke tempatnya.','Isi laporan harian produksi dan serahkan kondisi mesin ke shift berikutnya (form serah terima).'],
-  k3:'Wajib kacamata pelindung dan sepatu safety. Jangan membuka pintu mesin saat spindle berputar. Tombol emergency stop harus bisa dijangkau.',terkait:'Form laporan harian produksi, checklist perawatan mesin, form serah terima shift'};
-const SOP_KOSONG={tujuan:'',untuk:'',langkah:['Persiapan: …','Pelaksanaan: …','Pemeriksaan hasil: …','Pelaporan: …'],k3:'',terkait:''};
+const SOP_TTD=['Dibuat oleh','Diperiksa oleh','Disetujui oleh'];
+const SOP_CONTOH={judul:'Pengoperasian mesin CNC',divisi:'Produksi CNC',dept:'Produksi',untuk:'Operator CNC, Wakil Supervisor, Supervisor CNC',tujuan:'Memastikan mesin CNC dioperasikan dengan aman, hasil potong sesuai gambar kerja, dan mesin terawat.',
+  bagian:[{j:'Langkah kerja',isi:'1. Cek kondisi mesin sebelum mulai: oli, angin kompresor, kebersihan meja, alat potong. Catat di checklist perawatan.\n2. Baca gambar kerja dan program dari Programmer. Pastikan nomor program sama dengan nomor order.\n3. Pasang material, kencangkan klem, lalu set titik nol (zero point) sesuai gambar.\n4. Jalankan potongan pertama dengan kecepatan rendah, minta Supervisor atau QC mengecek ukurannya.\n5. Jika ukuran sesuai, lanjutkan produksi. Jika tidak, hentikan dan laporkan ke Supervisor.\n6. Selama mesin berjalan, jangan tinggalkan area mesin. Tekan emergency stop bila ada bunyi atau getaran tidak normal.\n7. Setelah selesai, bersihkan mesin dan area kerja, kembalikan alat ke tempatnya.\n8. Isi laporan harian produksi dan serahkan kondisi mesin ke shift berikutnya (form serah terima).'},
+    {j:'Keselamatan kerja (K3)',isi:'- Wajib kacamata pelindung dan sepatu safety.\n- Jangan membuka pintu mesin saat spindle berputar.\n- Tombol emergency stop harus bisa dijangkau.'}],penutup:''};
+const SOP_KOSONG={tujuan:'',untuk:'',dept:'',bagian:[{j:'Prosedur kerja',isi:'Prosedur harian:\n- …\nKetentuan:\n- …'},{j:'KPI',isi:'- …'}],penutup:''};
 function sopList(){return Object.entries(S.sop||{}).map(([id,x])=>Object.assign({id},x))}
-function sopNomor(div,skip){const k=sopKode(div);let n=0;sopList().forEach(x=>{if(x.id===skip)return;const m=new RegExp('^SOP-'+k+'-(\\d+)$').exec(x.nomor||'');if(m)n=Math.max(n,+m[1])});return 'SOP-'+k+'-'+String(n+1).padStart(3,'0')}
-const nmJab=e=>e?e.nama+' · '+e.jabatan:'';
+function sopNomor(div,skip){const k=String(div).toUpperCase().replace(/[^A-Z]/g,'').slice(0,3)||'SOP';let n=0;sopList().forEach(x=>{if(x.id===skip)return;const m=new RegExp('^SOP-'+k+'-(\\d+)$').exec(x.nomor||'');if(m)n=Math.max(n,+m[1])});return 'SOP-'+k+'-'+String(n+1).padStart(3,'0')}
+// Bentuk lama (langkah[], k3, terkait, disusun/disetujui = ID karyawan) diubah ke bentuk bagian + tanda tangan teks.
+function sopNorm(x0){const x=clone(x0);if(!Array.isArray(x.bagian)){x.bagian=[];if((x.langkah||[]).length)x.bagian.push({j:'Langkah kerja',isi:x.langkah.map((s,i)=>(i+1)+'. '+s).join('\n')});if(x.k3)x.bagian.push({j:'Keselamatan kerja (K3)',isi:x.k3});if(x.terkait)x.bagian.push({j:'Dokumen / formulir terkait',isi:x.terkait})}
+  if(!Array.isArray(x.ttd)){const p=id=>id==='DIR'?{n:(S.settings||{}).direktur||'',j:'Direktur'}:S.emps[id]?{n:S.emps[id].nama,j:S.emps[id].jabatan}:{n:'',j:''};x.ttd=[Object.assign({l:SOP_TTD[0]},p(x.disusun)),{l:SOP_TTD[1],n:'',j:''},Object.assign({l:SOP_TTD[2]},p(x.disetujui))]}
+  while(x.ttd.length<3)x.ttd.push({l:SOP_TTD[x.ttd.length],n:'',j:''});delete x.langkah;delete x.k3;delete x.terkait;delete x.disusun;delete x.disetujui;return x}
+const sopRev=x=>String(x.revisi!=null&&x.revisi!==''?x.revisi:Math.max(0,(+x.versi||1)-1)).padStart(2,'0');
+function sopLines(t){return String(t||'').split('\n').map(s=>s.replace(/\s+$/,'')).filter(s=>s.trim()).map(s=>{let m;
+  if((m=/^\s*(?:--|[-•*]\s*[-•*o])\s+(.*)$/.exec(s)))return {k:'li2',t:m[1]};if((m=/^\s*[-•*]\s*(.*)$/.exec(s)))return {k:'li',t:m[1]};if(/^\s*\d+(\.\d+)+\.?\s+\S/.test(s))return {k:'sub',t:s.trim()};if((m=/^\s*(\d+)[.)]\s+(.*)$/.exec(s)))return {k:'ol',n:+m[1],t:m[2]};if(/:\s*$/.test(s))return {k:'sub',t:s.trim()};return {k:'p',t:s.trim()}})}
+function sopLinesHtml(t){let h='',open='',sub=false;const close=()=>{if(sub){h+='</ul>';sub=false}if(open){h+='</'+open+'>';open=''}};
+  sopLines(t).forEach(l=>{if(l.k==='li2'){if(!open){h+='<ul>';open='ul'}if(!sub){h+='<ul class="sd-l2">';sub=true}h+='<li>'+esc(l.t)+'</li>';return}if(sub){h+='</ul>';sub=false}
+    if(l.k==='li'||l.k==='ol'){const tag=l.k==='li'?'ul':'ol';if(open!==tag){close();h+='<'+tag+(tag==='ol'?' start="'+l.n+'"':'')+'>';open=tag}h+='<li>'+esc(l.t)+'</li>'}else{close();h+=l.k==='sub'?'<div class="sd-sub">'+esc(l.t)+'</div>':'<p>'+esc(l.t)+'</p>'}});close();return h}
+function sopSections(x){const s=[{j:x.tujuanJ||'Tujuan & ruang lingkup',isi:x.tujuan||''}].concat((x.bagian||[]).filter(b=>String(b.j||'').trim()||String(b.isi||'').trim()));if(String(x.penutup||'').trim())s.push({j:'Penutup',isi:x.penutup});return s}
 function vSop(){if(S.sopEdit&&(S.sopDraft||(S.sop||{})[S.sopEdit]))return vSopEdit();
   const all=sopList();const q=(S.q||'').toLowerCase();const fl=S.sopF||'';const st=x=>sopStatus(x);
   const nB=all.filter(x=>st(x)!=='Draf').length,nT=all.filter(x=>st(x)==='Tinjau').length,nD=all.filter(x=>st(x)==='Draf').length;const divs=sopDivs();const tanpa=divs.filter(d=>!all.some(x=>x.divisi===d&&st(x)!=='Draf'));
-  return topbar('SOP per divisi',false,S.readonly?'':'<button class="btn primary" data-act="sopNew">+ Buat SOP</button>')+
+  return topbar('SOP per divisi',false,S.readonly?'':'<button class="btn" data-act="sopImpor">Impor SOP (file)</button><button class="btn primary" data-act="sopNew">+ Buat SOP</button>')+
   '<p class="note" style="margin:0">Standar kerja tiap divisi. Bisa diunduh Word atau dicetak (PDF) untuk ditempel di area kerja. SOP berlaku lebih dari 1 tahun ditandai perlu ditinjau.</p>'+
   '<div class="kpis"><div class="kpi"><span class="k">SOP berlaku</span><span class="v">'+nB+'</span><span class="s">di '+new Set(all.filter(x=>st(x)!=='Draf').map(x=>x.divisi)).size+' divisi</span></div><div class="kpi'+(nT?' kwarn':'')+'"><span class="k">Perlu ditinjau</span><span class="v">'+nT+'</span><span class="s">berlaku lebih dari 1 tahun</span></div><div class="kpi"><span class="k">Draf</span><span class="v">'+nD+'</span><span class="s">belum berlaku</span></div><div class="kpi"><span class="k">Divisi tanpa SOP berlaku</span><span class="v">'+tanpa.length+'</span><span class="s">'+esc(tanpa.slice(0,3).join(', ')+(tanpa.length>3?', …':''))+'</span></div></div>'+
   '<div class="row"><input id="q" class="search" type="search" placeholder="Cari judul atau nomor SOP…" value="'+esc(S.q)+'"><div class="seg2">'+[['','Semua'],['Berlaku','Berlaku'],['Draf','Draf'],['Tinjau','Perlu ditinjau']].map(([k,l])=>'<button data-act="sopF" data-id="'+k+'" aria-pressed="'+(fl===k)+'">'+l+'</button>').join('')+'</div></div>'+
   divs.concat([...new Set(all.map(x=>x.divisi).filter(d=>d&&!divs.includes(d)))]).map(d=>{const it=all.filter(x=>x.divisi===d).sort((a,b)=>String(a.nomor).localeCompare(String(b.nomor)));const r=it.filter(x=>(!fl||st(x)===fl)&&(!q||((x.nomor||'')+' '+(x.judul||'')).toLowerCase().includes(q)));if((fl||q)&&!r.length)return '';
     return '<div class="panel" style="padding:0"><div class="gph"><b>'+esc(d)+'</b><span class="sub">'+(it.length?it.length+' SOP':'<span class="pill p-bad">belum ada SOP</span>')+'</span></div>'+
-    (r.length?r.map(x=>{const p=SOP_PILL[st(x)];return '<div class="sopr" data-act="sopOpen" data-id="'+esc(x.id)+'" role="button" tabindex="0"><span class="mono sub">'+esc(x.nomor||'')+'</span><span>'+esc(x.judul||'(tanpa judul)')+'</span><span class="sub hide-s">v'+(+x.versi||1)+(x.berlaku?' · '+esc(fmtD(x.berlaku)):'')+'</span><span class="pill '+p[0]+'">'+p[1]+'</span></div>'}).join(''):
+    (r.length?r.map(x=>{const p=SOP_PILL[st(x)];return '<div class="sopr" data-act="sopOpen" data-id="'+esc(x.id)+'" role="button" tabindex="0"><span class="mono sub">'+esc(x.nomor||'')+'</span><span>'+esc(x.judul||'(tanpa judul)')+'</span><span class="sub hide-s">rev '+sopRev(x)+(x.berlaku?' · '+esc(fmtD(x.berlaku)):'')+'</span><span class="pill '+p[0]+'">'+p[1]+'</span></div>'}).join(''):
      (S.readonly?'':'<div class="sopr" data-act="sopNew" data-id="'+esc(d)+'" role="button" tabindex="0"><span class="sub">—</span><span class="sub">Mulai SOP '+esc(d)+'</span><span></span><span class="pill p-mute">+ Buat</span></div>'))+'</div>'}).join('')}
-function sopDivs(){const a=(S.settings||{}).sopDivisi;return Array.isArray(a)&&a.length?a:SOP_DIV}
 function sopNewModal(div){openModal('<h3>Buat SOP</h3><div class="form"><label class="full">Divisi<select id="sn_div">'+sopDivs().map(d=>'<option'+(d===div?' selected':'')+'>'+esc(d)+'</option>').join('')+'</select></label>'+
-  '<label class="full">Judul SOP<input id="sn_judul" type="text" placeholder="Contoh: Pemeriksaan barang pertama"></label>'+
-  '<label class="full">Mulai dari<select id="sn_tpl"><option value="kosong">Kerangka kosong (persiapan, pelaksanaan, pemeriksaan, pelaporan)</option><option value="cnc">Contoh: SOP pengoperasian mesin CNC</option></select></label></div>'+
+  '<label class="full">Judul SOP<input id="sn_judul" type="text" placeholder="Contoh: SOP Admin Gudang"></label>'+
+  '<label class="full">Mulai dari<select id="sn_tpl"><option value="kosong">Kerangka kosong (tujuan, prosedur kerja, KPI, penutup)</option><option value="cnc">Contoh: SOP pengoperasian mesin CNC</option></select></label></div>'+
   '<div class="row"><button class="btn" data-act="closeModal">Batal</button><button class="btn primary" data-act="sopCreate">Buat draf</button></div>')}
-function sopCreate(){const div=$('#sn_div').value,tpl=$('#sn_tpl').value;const base=tpl==='cnc'?SOP_CONTOH:SOP_KOSONG;const judul=$('#sn_judul').value.trim()||(tpl==='cnc'?SOP_CONTOH.judul:'');
+function sopCreate(){const div=$('#sn_div').value,tpl=$('#sn_tpl').value;const base=clone(tpl==='cnc'?SOP_CONTOH:SOP_KOSONG);const judul=$('#sn_judul').value.trim()||(tpl==='cnc'?SOP_CONTOH.judul:'');
   if(!judul){toast('Isi judul SOP dulu.');$('#sn_judul').focus();return}
-  const id='SOP'+Date.now().toString(36);const gm=empList().find(e=>normJab(e.jabatan).includes('GENERAL MANAGER'));
-  S.sopDraft={nomor:sopNomor(div),judul,divisi:div,versi:1,status:'Draf',berlaku:'',disusun:'',disetujui:gm?gm.id:'',tujuan:base.tujuan,untuk:base.untuk,langkah:base.langkah.slice(),k3:base.k3,terkait:base.terkait,riwayat:[]};
-  S.sopEdit=id;S.sopNew=true;closeModal();render(true)}
-function sopIsi(x){return JSON.stringify([x.judul,x.divisi,x.tujuan,x.untuk,x.langkah,x.k3,x.terkait,x.disusun,x.disetujui,x.berlaku])}
-function sopPreview(x){const st=S.settings||{};const ps=S.emps[x.disusun],pt=S.emps[x.disetujui];const dir=(st.direktur||'').trim();
+  const st=S.settings||{};const me=empList().find(e=>/\bHRD\b/.test(normJab(e.jabatan))&&e.tampilBagan!==false);const gm=empList().find(e=>normJab(e.jabatan).includes('GENERAL MANAGER'));
+  S.sopDraft={nomor:sopNomor(div),judul,divisi:div,dept:base.dept||'',untuk:base.untuk||'',versi:1,revisi:'00',status:'Draf',berlaku:'',tujuan:base.tujuan,bagian:base.bagian,penutup:base.penutup||'',
+    ttd:[{l:SOP_TTD[0],n:me?me.nama:'',j:me?me.jabatan:''},{l:SOP_TTD[1],n:gm?gm.nama:'',j:gm?gm.jabatan:''},{l:SOP_TTD[2],n:st.direktur||'',j:st.direktur?'Direktur':''}],riwayat:[]};
+  S.sopEdit='SOP'+Date.now().toString(36);S.sopNew=true;closeModal();render(true)}
+function sopIsi(x){return JSON.stringify([x.judul,x.divisi,x.dept,x.untuk,x.nomor,x.revisi,x.tujuanJ||'',x.tujuan,x.bagian,x.penutup,x.ttd,x.berlaku])}
+function sopPreview(x){const st=S.settings||{};const secs=sopSections(x);const ttd=(x.ttd||[]).filter(t=>t.n||t.j);
   return '<div class="sopdoc"><div class="sd-h"><img src="'+esc(st.logo||SRT_LOGO)+'" alt=""><div><b>'+esc(String(st.nama||'CV. SOPANDI TEKNO UTAMA').toUpperCase())+'</b><span>STANDAR OPERASIONAL PROSEDUR</span></div></div>'+
-  '<table class="sd-t"><tr><td>Nomor</td><td>'+esc(x.nomor||'')+'</td><td>Revisi</td><td>'+String(+x.versi||1).padStart(2,'0')+'</td></tr><tr><td>Judul</td><td colspan="3"><b>'+esc(x.judul||'')+'</b></td></tr><tr><td>Divisi</td><td>'+esc(x.divisi||'')+'</td><td>Berlaku</td><td>'+(x.berlaku?esc(fmtD(x.berlaku)):'—')+'</td></tr></table>'+
-  '<div class="sd-b"><b>1. Tujuan</b><p>'+esc(x.tujuan||'—')+'</p><b>2. Berlaku untuk</b><p>'+esc(x.untuk||'—')+'</p><b>3. Langkah kerja</b><ol>'+(x.langkah||[]).filter(s=>String(s).trim()).map(s=>'<li>'+esc(s)+'</li>').join('')+'</ol>'+
-  (x.k3?'<b>4. Keselamatan kerja (K3)</b><p>'+esc(x.k3)+'</p>':'')+(x.terkait?'<b>'+(x.k3?5:4)+'. Dokumen / formulir terkait</b><p>'+esc(x.terkait)+'</p>':'')+'</div>'+
-  '<div class="sd-sign"><div>Disusun oleh<br><br><br><b>'+esc(ps?ps.nama:'')+'</b><br><span>'+esc(ps?ps.jabatan:'')+'</span></div><div>Disetujui oleh<br><br><br><b>'+esc(x.disetujui==='DIR'?dir:(pt?pt.nama:''))+'</b><br><span>'+esc(x.disetujui==='DIR'?'Direktur':(pt?pt.jabatan:''))+'</span></div></div></div>'}
-function vSopEdit(){const id=S.sopEdit;if(!S.sopDraft)S.sopDraft=clone(S.sop[id]);const x=S.sopDraft;const orig=(S.sop||{})[id];const ro=S.readonly;const emps=empList();const st=S.settings||{};
-  const opt=(v,list)=>'<option value="">—</option>'+list.map(([k,l])=>'<option value="'+esc(k)+'"'+(k===v?' selected':'')+'>'+esc(l)+'</option>').join('');
-  const pe=emps.map(e=>[e.id,nmJab(e)]);const changed=!orig||sopIsi(orig)!==sopIsi(x);const p=SOP_PILL[sopStatus(x)];
+  '<div class="sd-title">'+esc(String(x.judul||'').toUpperCase())+'</div>'+
+  '<table class="sd-t"><tr><td>Nomor</td><td>'+esc(x.nomor||'')+'</td><td>Revisi</td><td>'+sopRev(x)+'</td></tr><tr><td>Departemen</td><td>'+esc(x.dept||'—')+'</td><td>Berlaku</td><td>'+(x.berlaku?esc(fmtD(x.berlaku)):'—')+'</td></tr><tr><td>Jabatan</td><td colspan="3">'+esc(x.untuk||'—')+'</td></tr></table>'+
+  '<div class="sd-b">'+secs.map((b,i)=>'<div class="sd-sec"><b>'+(i+1)+'. '+esc(String(b.j||'').toUpperCase())+'</b>'+sopLinesHtml(b.isi)+'</div>').join('')+'</div>'+
+  (ttd.length?'<table class="sd-sign"><tr><th>Disposisi</th><th>Nama</th><th>Jabatan</th><th>Tanda tangan</th></tr>'+ttd.map(t=>'<tr><td>'+esc(t.l)+'</td><td>'+esc(t.n)+'</td><td>'+esc(t.j)+'</td><td></td></tr>').join('')+'</table>':'')+'</div>'}
+function vSopEdit(){const id=S.sopEdit;if(!S.sopDraft)S.sopDraft=sopNorm(S.sop[id]);const x=S.sopDraft;const orig=(S.sop||{})[id];const ro=S.readonly;const st=S.settings||{};
+  const changed=!orig||sopIsi(sopNorm(orig))!==sopIsi(x);const p=SOP_PILL[sopStatus(x)];const divs=sopDivs().includes(x.divisi)?sopDivs():[x.divisi].concat(sopDivs());
   return topbar((x.nomor||'SOP')+' · '+(x.judul||''),false,'<button class="btn" data-act="sopBack">← Daftar SOP</button>')+
-  '<div class="row"><span class="pill '+p[0]+'">'+p[1]+'</span><span class="sub">versi '+(+x.versi||1)+(orig&&orig.diubah?' · disimpan '+esc(fmtD(orig.diubah.slice(0,10))):' · belum disimpan')+'</span><span style="flex:1"></span>'+
+  '<div class="row"><span class="pill '+p[0]+'">'+p[1]+'</span><span class="sub">revisi '+sopRev(x)+(orig&&orig.diubah?' · disimpan '+esc(fmtD(orig.diubah.slice(0,10))):' · belum disimpan')+'</span><span style="flex:1"></span>'+
   '<button class="btn" data-act="sopWord">Unduh Word</button><button class="btn" data-act="sopPrint">Cetak / PDF</button>'+(ro?'':'<button class="btn" data-act="sopSave"'+(changed?'':' disabled')+'>Simpan draf</button><button class="btn primary" data-act="sopBerlaku">'+(x.status==='Berlaku'&&!changed?'Sudah berlaku':'Simpan &amp; tandai berlaku')+'</button>')+'</div>'+
-  (x.status==='Berlaku'&&changed?'<div class="rule"><span>SOP ini sedang berlaku. Perubahan disimpan sebagai <b>versi '+((+x.versi||1)+1)+'</b> (draf); versi '+(+x.versi||1)+' tetap tercatat di riwayat.</span></div>':'')+
+  (orig&&orig.status==='Berlaku'?'<div class="rule"><span>SOP ini sedang berlaku. Kalau isinya diubah, perubahan disimpan sebagai <b>revisi '+String((+x.versi||1)).padStart(2,'0')+'</b>; revisi sebelumnya tetap tercatat di riwayat.</span></div>':'')+
   '<div class="sopwrap"><div class="panel"><div class="form">'+
-   '<label class="full">Judul<input id="so_judul" data-so="judul" type="text" value="'+esc(x.judul||'')+'"></label>'+
-   '<label>Divisi<select id="so_divisi" data-so="divisi">'+sopDivs().map(d=>'<option'+(d===x.divisi?' selected':'')+'>'+esc(d)+'</option>').join('')+'</select></label>'+
-   '<label>Nomor<input type="text" value="'+esc(x.nomor||'')+'" readonly><span class="hint">Dibuat otomatis</span></label>'+
+   '<label class="full">Judul<input data-so="judul" type="text" value="'+esc(x.judul||'')+'"></label>'+
+   '<label>Divisi<select data-so="divisi">'+divs.map(d=>'<option'+(d===x.divisi?' selected':'')+'>'+esc(d)+'</option>').join('')+'</select></label>'+
+   '<label>Departemen<input data-so="dept" type="text" value="'+esc(x.dept||'')+'" placeholder="Contoh: Inventory"></label>'+
+   '<label>Nomor dokumen<input data-so="nomor" type="text" value="'+esc(x.nomor||'')+'"></label>'+
    '<label>Berlaku mulai<input data-so="berlaku" type="date" value="'+esc(x.berlaku||'')+'"></label>'+
-   '<label>Disusun oleh<select data-so="disusun">'+opt(x.disusun,pe)+'</select></label>'+
-   '<label class="full">Disetujui oleh<select data-so="disetujui">'+opt(x.disetujui,[['DIR',((st.direktur||'Direktur')+' · Direktur')]].concat(pe))+'</select></label>'+
-   '<label class="full">Tujuan<textarea data-so="tujuan" rows="2">'+esc(x.tujuan||'')+'</textarea></label>'+
-   '<label class="full">Berlaku untuk<input data-so="untuk" type="text" value="'+esc(x.untuk||'')+'" placeholder="Contoh: Operator CNC grup A, B, C"></label></div>'+
-   '<div class="steps-ed"><div class="row" style="justify-content:space-between"><b>Langkah kerja</b><span class="sub">Satu kotak satu langkah</span></div>'+
-   (x.langkah||[]).map((s,i)=>'<div class="stp"><span class="n">'+(i+1)+'.</span><textarea data-sost="'+i+'" rows="2" aria-label="Langkah '+(i+1)+'">'+esc(s)+'</textarea><span class="stpb"><button class="btn ghost icon" data-act="sopUp" data-id="'+i+'" aria-label="Naikkan"'+(i?'':' disabled')+'>↑</button><button class="btn ghost icon" data-act="sopDel" data-id="'+i+'" aria-label="Hapus langkah '+(i+1)+'">✕</button></span></div>').join('')+
-   '<button class="btn" data-act="sopAdd">+ Tambah langkah</button></div>'+
-   '<div class="form"><label class="full">Keselamatan kerja (K3)<textarea data-so="k3" rows="2">'+esc(x.k3||'')+'</textarea></label><label class="full">Dokumen / formulir terkait<input data-so="terkait" type="text" value="'+esc(x.terkait||'')+'"></label></div>'+
-   (orig&&!ro?'<div class="row" style="padding:0 16px 14px"><button class="btn ghost" data-act="sopHapus" style="color:var(--bad)">Hapus SOP</button></div>':'')+'</div>'+
+   '<label class="full">Jabatan / berlaku untuk<input data-so="untuk" type="text" value="'+esc(x.untuk||'')+'" placeholder="Contoh: Admin Offline &amp; Reseller"></label>'+
+   '<label class="full">Judul bagian 1<input data-so="tujuanJ" type="text" value="'+esc(x.tujuanJ||'Tujuan & ruang lingkup')+'"></label><label class="full">Isi bagian 1<textarea data-so="tujuan" rows="3">'+esc(x.tujuan||'')+'</textarea></label></div>'+
+   '<div class="steps-ed"><div class="row" style="justify-content:space-between"><b>Bagian SOP</b><span class="sub">Satu baris satu poin: <code>- </code> poin, <code>-- </code> sub-poin, <code>1. </code> langkah bernomor, <code>4.1 …</code> atau akhiri <code>:</code> untuk subjudul</span></div>'+
+   (x.bagian||[]).map((b,i)=>'<div class="sbag"><div class="row" style="flex-wrap:nowrap"><span class="n">'+(i+2)+'.</span><input data-sobj="'+i+'" type="text" value="'+esc(b.j||'')+'" placeholder="Judul bagian" aria-label="Judul bagian '+(i+2)+'"><button class="btn ghost icon" data-act="sopUp" data-id="'+i+'" aria-label="Naikkan"'+(i?'':' disabled')+'>↑</button><button class="btn ghost icon" data-act="sopDel" data-id="'+i+'" aria-label="Hapus bagian '+(i+2)+'">✕</button></div><textarea data-sobi="'+i+'" rows="'+Math.min(14,Math.max(3,String(b.isi||'').split('\n').length+1))+'" aria-label="Isi bagian '+(i+2)+'">'+esc(b.isi||'')+'</textarea></div>').join('')+
+   '<button class="btn" data-act="sopAdd">+ Tambah bagian</button></div>'+
+   '<div class="form"><label class="full">Penutup<textarea data-so="penutup" rows="2">'+esc(x.penutup||'')+'</textarea></label></div>'+
+   '<div class="steps-ed"><b>Tanda tangan</b><datalist id="sopEmp">'+empList(true).map(e=>'<option value="'+esc(tCase(e.nama))+'">'+esc(e.jabatan)+'</option>').join('')+(st.direktur?'<option value="'+esc(st.direktur)+'">Direktur</option>':'')+'</datalist>'+
+   (x.ttd||[]).map((t,i)=>'<div class="sttd"><span class="sub">'+esc(t.l)+'</span><input data-sottd="'+i+'" data-f="n" type="text" list="sopEmp" value="'+esc(t.n||'')+'" placeholder="Nama" aria-label="Nama '+esc(t.l)+'"><input data-sottd="'+i+'" data-f="j" type="text" value="'+esc(t.j||'')+'" placeholder="Jabatan" aria-label="Jabatan '+esc(t.l)+'"></div>').join('')+'</div>'+
+   (orig&&!ro?'<div class="row" style="padding:12px 16px"><button class="btn ghost" data-act="sopHapus" style="color:var(--bad)">Hapus SOP</button></div>':'')+'</div>'+
   '<div class="panel print-area" id="sopPrev">'+sopPreview(x)+'<p class="sub noprint" style="text-align:center;margin:6px 0 0">Pratinjau hasil cetak · berubah saat Anda mengetik</p></div></div>'+
-  ((x.riwayat||[]).length?'<div class="panel"><h2>Riwayat versi</h2><div class="list">'+x.riwayat.slice().reverse().map(r=>'<div class="li"><div class="t"><div class="name">Versi '+(+r.versi||1)+(r.berlaku?' · berlaku '+esc(fmtD(r.berlaku)):'')+'</div><div class="sub">diganti '+esc(fmtD(String(r.diganti||'').slice(0,10)))+'</div></div></div>').join('')+'</div></div>':'')}
+  ((x.riwayat||[]).length?'<div class="panel"><h2>Riwayat revisi</h2><div class="list">'+x.riwayat.slice().reverse().map(r=>'<div class="li"><div class="t"><div class="name">Revisi '+String(r.revisi!=null?r.revisi:Math.max(0,(+r.versi||1)-1)).padStart(2,'0')+(r.berlaku?' · berlaku '+esc(fmtD(r.berlaku)):'')+'</div><div class="sub">diganti '+esc(fmtD(String(r.diganti||'').slice(0,10)))+'</div></div></div>').join('')+'</div></div>':'')}
 function sopRefresh(){const el=$('#sopPrev');if(el&&S.sopDraft)el.innerHTML=sopPreview(S.sopDraft)+'<p class="sub noprint" style="text-align:center;margin:6px 0 0">Pratinjau hasil cetak · berubah saat Anda mengetik</p>';
-  const orig=(S.sop||{})[S.sopEdit];const same=!!orig&&sopIsi(orig)===sopIsi(S.sopDraft);const b=document.querySelector('[data-act=sopSave]');if(b)b.disabled=same;const c=document.querySelector('[data-act=sopBerlaku]');if(c)c.textContent=S.sopDraft.status==='Berlaku'&&same?'Sudah berlaku':'Simpan & tandai berlaku'}
+  const orig=(S.sop||{})[S.sopEdit];const same=!!orig&&sopIsi(sopNorm(orig))===sopIsi(S.sopDraft);const b=document.querySelector('[data-act=sopSave]');if(b)b.disabled=same;const c=document.querySelector('[data-act=sopBerlaku]');if(c)c.textContent=S.sopDraft.status==='Berlaku'&&same?'Sudah berlaku':'Simpan & tandai berlaku'}
 async function sopSimpan(berlaku){const id=S.sopEdit;const x=S.sopDraft;if(!x)return;if(!String(x.judul||'').trim()){toast('Judul SOP masih kosong.');return}
-  const orig=(S.sop||{})[id];const d=clone(x);d.langkah=(d.langkah||[]).map(s=>String(s).trim()).filter(Boolean);
-  if(orig&&orig.status==='Berlaku'&&sopIsi(orig)!==sopIsi(x)){d.riwayat=(orig.riwayat||[]).concat([{versi:+orig.versi||1,berlaku:orig.berlaku||'',disetujui:orig.disetujui||'',diganti:new Date().toISOString(),isi:{judul:orig.judul,tujuan:orig.tujuan,untuk:orig.untuk,langkah:orig.langkah,k3:orig.k3,terkait:orig.terkait}}]).slice(-10);d.versi=(+orig.versi||1)+1;d.status='Draf';if(!berlaku)d.berlaku=''}
-  if(berlaku){d.status='Berlaku';if(!d.berlaku||d.berlaku<todayISO()&&orig&&orig.status==='Berlaku'&&d.versi!==orig.versi)d.berlaku=todayISO()}
-  if(orig&&orig.divisi!==d.divisi)d.nomor=sopNomor(d.divisi,id);d.diubah=new Date().toISOString();
-  if(await saveDoc('sop/'+id,d)){S.sop[id]=d;S.sopDraft=clone(d);S.sopNew=false;logAct('data',(orig?'Mengubah':'Membuat')+' SOP · '+d.nomor+' '+d.judul,{ket:(berlaku?'berlaku':'draf')+' · versi '+d.versi});toast(berlaku?'SOP disimpan dan berlaku.':'Draf SOP disimpan.');render(true)}}
+  const orig=(S.sop||{})[id];const o=orig?sopNorm(orig):null;const d=clone(x);d.bagian=(d.bagian||[]).map(b=>({j:String(b.j||'').trim(),isi:String(b.isi||'').replace(/\s+$/,'')})).filter(b=>b.j||b.isi);
+  if(o&&orig.status==='Berlaku'&&sopIsi(o)!==sopIsi(x)){d.riwayat=(orig.riwayat||[]).concat([{versi:+orig.versi||1,revisi:sopRev(orig),berlaku:orig.berlaku||'',diganti:new Date().toISOString(),isi:{judul:o.judul,tujuan:o.tujuan,bagian:o.bagian,penutup:o.penutup,ttd:o.ttd}}]).slice(-10);d.versi=(+orig.versi||1)+1;d.revisi=String((+sopRev(orig))+1).padStart(2,'0');d.status='Draf';if(!berlaku)d.berlaku=''}
+  if(berlaku){d.status='Berlaku';if(!d.berlaku)d.berlaku=todayISO()}
+  d.diubah=new Date().toISOString();
+  if(await saveDoc('sop/'+id,d)){S.sop[id]=d;S.sopDraft=sopNorm(d);S.sopNew=false;logAct('data',(orig?'Mengubah':'Membuat')+' SOP · '+d.nomor+' '+d.judul,{ket:(berlaku?'berlaku':'draf')+' · revisi '+sopRev(d)});toast(berlaku?'SOP disimpan dan berlaku.':'Draf SOP disimpan.');render(true)}}
+function sopImporModal(){openModal('<h3>Impor SOP</h3><p class="note" style="margin:0">Pilih file SOP (.json) yang disiapkan dari dokumen SOP lama. SOP dengan nomor yang sama akan diganti; data lain tidak disentuh.</p><label>File SOP<input id="sopFile" type="file" accept=".json,application/json"></label><div class="row"><button class="btn" data-act="closeModal">Batal</button></div>')}
+async function sopImpor(file){try{const j=JSON.parse(await file.text());const src=j&&j.sop?j.sop:j;const items=Array.isArray(src)?src.map(x=>[x.id,x]):Object.entries(src||{});
+  const ok=items.filter(([id,x])=>id&&x&&x.judul);if(!ok.length)throw new Error('tidak ada SOP di file ini');let n=0;
+  for(const [id,x] of ok){const d=Object.assign({},x);delete d.id;d.diubah=new Date().toISOString();if(await saveDoc('sop/'+id,d)){S.sop[id]=d;n++}}
+  logAct('data','Mengimpor SOP',{ket:n+' SOP: '+ok.map(([i,x])=>x.nomor||x.judul).join(', ')});closeModal();render(true);toast(n+' SOP diimpor.')}
+  catch(e){console.error(e);toast('File SOP tidak bisa dibaca: '+e.message)}}
 function docBlocksToDocx(title,blocks,sign){const D=docx;const fn='Arial';const tw=mm=>Math.round(mm*56.6929);
   const R=(t,o)=>new D.TextRun(Object.assign({text:String(t==null?'':t),font:fn,size:21},o||{}));const P=(ch,o)=>new D.Paragraph(Object.assign({children:Array.isArray(ch)?ch:[ch],spacing:{after:80,line:276}},o||{}));
+  const NB1={style:D.BorderStyle.SINGLE,size:4,color:'999999'};const bd={top:NB1,bottom:NB1,left:NB1,right:NB1,insideHorizontal:NB1,insideVertical:NB1};
   const kids=[P(R(title,{bold:true,size:28}),{alignment:D.AlignmentType.CENTER,spacing:{after:200}})];
-  blocks.forEach(b=>{if(b.h)kids.push(P(R(b.h,{bold:true,size:23}),{spacing:{before:200,after:80},keepNext:true}));if(b.p)kids.push(P(R(b.p)));
-    if(b.kv){const NB={style:D.BorderStyle.SINGLE,size:4,color:'999999'};const bd={top:NB,bottom:NB,left:NB,right:NB,insideHorizontal:NB,insideVertical:NB};
-      kids.push(new D.Table({width:{size:tw(168),type:D.WidthType.DXA},borders:bd,rows:b.kv.map(([k,v])=>new D.TableRow({children:[new D.TableCell({width:{size:tw(40),type:D.WidthType.DXA},children:[P(R(k,{color:'555555'}),{spacing:{after:0}})]}),new D.TableCell({width:{size:tw(128),type:D.WidthType.DXA},children:[P(R(v,{bold:true}),{spacing:{after:0}})]})]}))}));kids.push(P([]))}
-    (b.ol||[]).forEach((s,i)=>kids.push(P([R((i+1)+'.'),new D.TextRun({children:[new D.Tab()]}),R(s)],{indent:{left:tw(8),hanging:tw(6)},tabStops:[{type:D.TabStopType.LEFT,position:tw(8)}]})));
-    (b.ul||[]).forEach(s=>kids.push(P([R('•'),new D.TextRun({children:[new D.Tab()]}),R(s)],{indent:{left:tw(8),hanging:tw(5)},tabStops:[{type:D.TabStopType.LEFT,position:tw(8)}]})))});
+  blocks.forEach(b=>{if(b.h)kids.push(P(R(b.h,{bold:true,size:23}),{spacing:{before:200,after:80},keepNext:true}));if(b.sub)kids.push(P(R(b.sub,{bold:true}),{keepNext:true}));if(b.p)kids.push(P(R(b.p)));
+    if(b.kv){kids.push(new D.Table({width:{size:tw(168),type:D.WidthType.DXA},borders:bd,rows:b.kv.map(([k,v])=>new D.TableRow({children:[new D.TableCell({width:{size:tw(40),type:D.WidthType.DXA},children:[P(R(k,{color:'555555'}),{spacing:{after:0}})]}),new D.TableCell({width:{size:tw(128),type:D.WidthType.DXA},children:[P(R(v,{bold:true}),{spacing:{after:0}})]})]}))}));kids.push(P([]))}
+    (b.ol||[]).forEach((s,i)=>kids.push(P([R(((b.start||1)+i)+'.'),new D.TextRun({children:[new D.Tab()]}),R(s)],{indent:{left:tw(8),hanging:tw(6)},tabStops:[{type:D.TabStopType.LEFT,position:tw(8)}]})));
+    (b.ul2||[]).forEach(s=>kids.push(P([R('◦'),new D.TextRun({children:[new D.Tab()]}),R(s)],{indent:{left:tw(14),hanging:tw(5)},tabStops:[{type:D.TabStopType.LEFT,position:tw(14)}]})));
+    (b.ul||[]).forEach(s=>kids.push(P([R('•'),new D.TextRun({children:[new D.Tab()]}),R(s)],{indent:{left:tw(8),hanging:tw(5)},tabStops:[{type:D.TabStopType.LEFT,position:tw(8)}]})));
+    if(b.table){kids.push(P([],{spacing:{before:240}}));kids.push(new D.Table({width:{size:tw(168),type:D.WidthType.DXA},borders:bd,rows:b.table.map((r,ri)=>new D.TableRow({cantSplit:true,children:r.map((c,ci)=>new D.TableCell({width:{size:tw([34,50,46,38][ci]||40),type:D.WidthType.DXA},children:[P(R(c,{bold:ri===0}),{spacing:{before:ri?160:40,after:ri?160:40},alignment:ri===0?D.AlignmentType.CENTER:undefined})]}))}))}))}});
   if(sign&&sign.length){const NB={style:D.BorderStyle.NONE,size:0,color:'FFFFFF'};const noB={top:NB,bottom:NB,left:NB,right:NB,insideHorizontal:NB,insideVertical:NB};const w=Math.floor(168/sign.length);
     kids.push(P([],{spacing:{before:300}}));kids.push(new D.Table({width:{size:tw(168),type:D.WidthType.DXA},borders:noB,rows:[new D.TableRow({cantSplit:true,children:sign.map(([l,n,j])=>new D.TableCell({width:{size:tw(w),type:D.WidthType.DXA},borders:noB,children:[P(R(l),{alignment:D.AlignmentType.CENTER}),P([],{spacing:{before:900}}),P(R(n||'',{bold:true,underline:{}}),{alignment:D.AlignmentType.CENTER,spacing:{after:0}}),P(R(j||''),{alignment:D.AlignmentType.CENTER})]}))})]}))}
   const st=S.settings||{};const head=new D.Header({children:[P(R(String(st.nama||'CV. SOPANDI TEKNO UTAMA').toUpperCase(),{bold:true,size:24}),{alignment:D.AlignmentType.CENTER,spacing:{after:0}}),P(R(KOP_ALAMAT.join(' · '),{size:16,color:'555555'}),{alignment:D.AlignmentType.CENTER,border:{bottom:{style:D.BorderStyle.SINGLE,size:8,color:'000000',space:2}}})]});
@@ -1867,10 +1890,11 @@ function docBlocksToDocx(title,blocks,sign){const D=docx;const fn='Arial';const 
   return D.Packer.toBlob(doc)}
 async function docWord(fname,title,blocks,sign){try{toast('Menyiapkan file Word…');await loadDocx();const blob=await docBlocksToDocx(title,blocks,sign);await S.dl.save({filename:fname,data:blob})}catch(e){if(e&&e.code==='declined')return;console.error(e);toast('Gagal membuat file Word. Periksa koneksi internet lalu coba lagi, atau pakai Cetak / PDF.')}}
 function printArea(land){document.body.classList.add('print-sel');if(land)document.body.classList.add('print-land');const done=()=>{document.body.classList.remove('print-sel','print-land');window.removeEventListener('afterprint',done)};window.addEventListener('afterprint',done);window.print();setTimeout(done,1500)}
-function sopWord(){const x=S.sopDraft;const st=S.settings||{};const ps=S.emps[x.disusun],pt=S.emps[x.disetujui];
-  const b=[{kv:[['Nomor',x.nomor||''],['Judul',x.judul||''],['Divisi',x.divisi||''],['Revisi',String(+x.versi||1).padStart(2,'0')],['Berlaku',x.berlaku?fmtD(x.berlaku):'—']]},{h:'1. Tujuan'},{p:x.tujuan||'—'},{h:'2. Berlaku untuk'},{p:x.untuk||'—'},{h:'3. Langkah kerja',ol:(x.langkah||[]).filter(s=>String(s).trim())}];
-  if(x.k3)b.push({h:'4. Keselamatan kerja (K3)'},{p:x.k3});if(x.terkait)b.push({h:(x.k3?5:4)+'. Dokumen / formulir terkait'},{p:x.terkait});
-  docWord((x.nomor||'SOP')+' '+(x.judul||'')+'.docx','STANDAR OPERASIONAL PROSEDUR',b,[['Disusun oleh',ps?ps.nama:'',ps?ps.jabatan:''],['Disetujui oleh',x.disetujui==='DIR'?(st.direktur||''):(pt?pt.nama:''),x.disetujui==='DIR'?'Direktur':(pt?pt.jabatan:'')]])}
+function sopWord(){const x=S.sopDraft;const b=[{kv:[['Nomor dokumen',x.nomor||''],['Revisi',sopRev(x)],['Departemen',x.dept||'—'],['Jabatan',x.untuk||'—'],['Tanggal berlaku',x.berlaku?fmtD(x.berlaku):'—']]}];
+  sopSections(x).forEach((s,i)=>{b.push({h:(i+1)+'. '+String(s.j||'').toUpperCase()});let ul=null,ol=null;const flush=()=>{if(ul){b.push({ul});ul=null}if(ol){b.push(ol);ol=null}};
+    sopLines(s.isi).forEach(l=>{if(l.k==='li2'){flush();b.push({ul2:[l.t]})}else if(l.k==='li'){if(ol)flush();(ul=ul||[]).push(l.t)}else if(l.k==='ol'){if(ul)flush();if(!ol)ol={ol:[],start:l.n};ol.ol.push(l.t)}else{flush();b.push(l.k==='sub'?{sub:l.t}:{p:l.t})}});flush()});
+  const ttd=(x.ttd||[]).filter(t=>t.n||t.j);if(ttd.length)b.push({table:[['Disposisi','Nama','Jabatan','Tanda tangan']].concat(ttd.map(t=>[t.l,t.n,t.j,'']))});
+  docWord((x.nomor||'SOP').replace(/[\/\\:]/g,'-')+' '+(x.judul||'')+'.docx',String(x.judul||'SOP').toUpperCase(),b)}
 
 // --- Peraturan Perusahaan ---
 // Teks bisa memakai {toleransi}, {tarifTelat}, {kuotaCuti}, {spLama}: diganti otomatis dari Pengaturan supaya sama dengan hitungan payroll.
@@ -2876,10 +2900,11 @@ document.addEventListener('click',async ev=>{
   if(a==='sopNew')return sopNewModal(id);
   if(a==='sopCreate')return sopCreate();
   if(a==='sopOpen'){S.sopEdit=id;S.sopDraft=null;S.sopNew=false;render(true);window.scrollTo(0,0);return}
-  if(a==='sopBack'){const orig=(S.sop||{})[S.sopEdit];if(S.sopDraft&&(!orig||sopIsi(orig)!==sopIsi(S.sopDraft))&&!confirm('Perubahan SOP belum disimpan. Tetap keluar?'))return;S.sopEdit=null;S.sopDraft=null;render(true);return}
-  if(a==='sopAdd'){S.sopDraft.langkah.push('');render(true);const t=document.querySelectorAll('[data-sost]');if(t.length)t[t.length-1].focus();return}
-  if(a==='sopDel'){S.sopDraft.langkah.splice(+id,1);render(true);return}
-  if(a==='sopUp'){const L=S.sopDraft.langkah,i=+id;if(i>0){[L[i-1],L[i]]=[L[i],L[i-1]]}render(true);return}
+  if(a==='sopBack'){const orig=(S.sop||{})[S.sopEdit];if(S.sopDraft&&(!orig||sopIsi(sopNorm(orig))!==sopIsi(S.sopDraft))&&!confirm('Perubahan SOP belum disimpan. Tetap keluar?'))return;S.sopEdit=null;S.sopDraft=null;render(true);return}
+  if(a==='sopImpor')return sopImporModal();
+  if(a==='sopAdd'){S.sopDraft.bagian.push({j:'',isi:''});render(true);const t=document.querySelectorAll('[data-sobj]');if(t.length)t[t.length-1].focus();return}
+  if(a==='sopDel'){const b=S.sopDraft.bagian[+id];if((b.j||b.isi)&&!confirm('Hapus bagian "'+(b.j||'')+'"?'))return;S.sopDraft.bagian.splice(+id,1);render(true);return}
+  if(a==='sopUp'){const L=S.sopDraft.bagian,i=+id;if(i>0){[L[i-1],L[i]]=[L[i],L[i-1]]}render(true);return}
   if(a==='sopSave')return sopSimpan(false);
   if(a==='sopBerlaku')return sopSimpan(true);
   if(a==='sopWord')return sopWord();
@@ -2943,7 +2968,9 @@ document.addEventListener('click',async ev=>{
 document.addEventListener('input',ev=>{
   const t=ev.target;
   if(t.dataset&&t.dataset.so&&S.sopDraft){S.sopDraft[t.dataset.so]=t.value;sopRefresh();return}
-  if(t.dataset&&t.dataset.sost!=null&&S.sopDraft){S.sopDraft.langkah[+t.dataset.sost]=t.value;sopRefresh();return}
+  if(t.dataset&&t.dataset.sobj!=null&&S.sopDraft){S.sopDraft.bagian[+t.dataset.sobj].j=t.value;sopRefresh();return}
+  if(t.dataset&&t.dataset.sobi!=null&&S.sopDraft){S.sopDraft.bagian[+t.dataset.sobi].isi=t.value;sopRefresh();return}
+  if(t.dataset&&t.dataset.sottd!=null&&S.sopDraft){const r=S.sopDraft.ttd[+t.dataset.sottd];r[t.dataset.f]=t.value;if(t.dataset.f==='n'&&!r.j){const e=empList(true).find(x=>tCase(x.nama)===t.value);if(e){r.j=tCase(e.jabatan);const jj=document.querySelector('[data-sottd="'+t.dataset.sottd+'"][data-f=j]');if(jj)jj.value=r.j}}sopRefresh();return}
   if(t.dataset&&S.ppDraft&&(t.dataset.ppj!=null||t.dataset.pps!=null||t.dataset.ppt!=null)){const d=S.ppDraft;const p=d.poin[Math.min(S.ppCur||0,d.poin.length-1)];if(t.dataset.ppj!=null)p.j=t.value;else if(t.dataset.pps!=null)p.i[+t.dataset.pps][1]=t.value;else p.i[+t.dataset.ppt][0]=t.value;return}
   if(t.dataset&&t.dataset.srt!=null&&S.srt){clearTimeout(S.srtT);S.srtT=setTimeout(()=>{srtRead();srtPreview()},700);return}
   if(t.dataset.kn!=null){kpiLive();return}
@@ -2955,6 +2982,7 @@ document.addEventListener('input',ev=>{
   if(t.id==='q'){S.q=t.value;clearTimeout(S.qt);S.qt=setTimeout(()=>{const pos=t.selectionStart;render(true);const n=$('#q');if(n){n.focus();try{n.setSelectionRange(pos,pos)}catch(e){}}},200);return}
 });
 function bigWarn(id,v,lbl){const e=S.emps[id];const gp=e&&+e.gajiPokok||0;if(gp&&v>gp*0.5)toast('Cek lagi: '+lbl+' '+e.nama+' Rp '+rp(v)+', lebih dari setengah gaji pokok.')}
+document.addEventListener('change',ev=>{if(ev.target.id==='sopFile'&&ev.target.files&&ev.target.files[0])sopImpor(ev.target.files[0])});
 document.addEventListener('change',ev=>{
   if(ev.target.id==='srt_emp'&&S.srt){const id=ev.target.value;S.srt={j:S.srt.j,empId:id,f:srtDefaults(S.srt.j,S.emps[id]),recId:''};srtForm();return}
   if(ev.target.dataset&&ev.target.dataset.srt==='alasanPhk'&&S.srt){srtRead();srtForm();return}
