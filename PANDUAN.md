@@ -103,3 +103,18 @@ Tanpa langkah ini, email pengingat hanya terkirim saat aplikasi dibuka. Dengan l
    - `GMAIL_USER` dan `GMAIL_APP_PASSWORD` sudah ada dari fitur kirim slip.
 3. Vercel → **Deployments** → titik tiga di deployment teratas → **Redeploy**.
 4. Untuk mencoba: Vercel → **Settings → Cron Jobs** → **Run**. Setelah itu halaman Pengingat email menampilkan "Otomatis dari server aktif".
+
+## Untuk HRD baru: mulai dari sini
+
+Panduan lengkap ada di dalam aplikasi: menu **Lainnya → Panduan**. Bacalah bagian 1 (rutinitas bulanan), 4 (telat & shift) dan 6 (kalender HRD) dulu. Di setiap halaman, tombol **?** di samping judul berisi petunjuk singkat.
+
+Ringkasan rutinitas tiap tanggal tutup absen:
+
+1. **Absensi** dan **Lembur** dilengkapi.
+2. **Telat & Shift → Unggah file mesin absen** → Catat → selesaikan tab **Perlu dicek** → centang *izin / tugas atasan* di tab Rekap untuk telat yang ada keterangannya.
+3. **Payroll**: isi reimburse / bonus / potongan lain, perbaiki semua tanda di panel Cek payroll.
+4. Bayar gaji, lalu **Kunci payroll**.
+5. **Kirim slip via email…** (pilih semua, yang belum terkirim, atau orang tertentu; yang sudah pernah dikirim otomatis sebagai REVISI).
+6. Unduh **Laporan** bulanan dan **cadangan data** (Pengaturan → Cadangan data).
+
+Aturan telat, jam shift, jadwal grup minggu ini, masa berlaku SP, dan nama Direktur diatur di **Pengaturan**. SOP, Peraturan Perusahaan, dan Struktur Organisasi ada di kelompok menu **Dokumen**.

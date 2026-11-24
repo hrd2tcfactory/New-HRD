@@ -2355,17 +2355,20 @@ function vHelp(){
   const ul=a=>'<ul style="margin:6px 0 0 18px;padding:0">'+a.map(x=>'<li style="margin:4px 0">'+x+'</li>').join('')+'</ul>';
   const st=(S.settings||{});const c=cutoff();
   return topbar('Panduan penggunaan',false)+
-  '<p class="note" style="margin:0">Panduan ini untuk siapa pun yang memegang HRD. Mulailah dari “Rutinitas bulanan”. Di setiap halaman, tombol <b>?</b> di samping judul menampilkan petunjuk singkat halaman itu.</p>'+
+  '<p class="note" style="margin:0">Panduan ini untuk siapa pun yang memegang HRD. HRD baru: baca bagian 1 (rutinitas bulanan), 4 (telat &amp; shift) dan 6 (kalender HRD) dulu. Di setiap halaman, tombol <b>?</b> di samping judul menampilkan petunjuk singkat halaman itu.</p>'+
   sec('1. Rutinitas bulanan (urutan kerja)',ol([
    '<b>Absensi</b>: pilih periode dengan tombol ‹ ›, pilih kode di atas (H, SH, I, S, C, A, L, LM, LTM), lalu klik sel tanggal. Klik judul tanggal untuk mengisi satu kolom. Tombol “Isi H semua hari kerja kosong” mempercepat. Perhatikan panel <b>Cek absensi</b> di atas tabel.',
    '<b>Lembur</b>: ketik jam lembur per tanggal, atau pakai <b>Impor laporan lembur</b>. Lembur hari Minggu / tanggal merah diisi di Absensi dengan kode LM / LTM.',
+   '<b>Telat &amp; Shift</b> (setelah tanggal tutup absen): ambil file Excel dari mesin absen, lalu <b>Unggah file mesin absen</b> → periksa hasilnya → <b>Catat … hari telat</b>. Buka tab <b>Perlu dicek</b> dan selesaikan semuanya (Isi telat / Tidak telat). Di tab <b>Rekap telat</b>, centang <b>izin / tugas atasan</b> untuk telat yang ada keterangannya. Lihat bagian 4.',
    '<b>Kasbon</b>: catat kasbon baru di halaman Kasbon. Cicilan dipotong otomatis di payroll.',
    '<b>Payroll</b>: isi kolom Reimburse, Bonus, dan Potongan lain bila ada. Baca panel <b>Cek payroll</b> dan perbaiki semua tanda “Salah” dan “Cek”.',
    '<b>Kunci payroll</b> setelah gaji dibayar (tombol “Kunci payroll” → klik lagi untuk konfirmasi). Setelah dikunci, angka tidak berubah lagi dan potongan kasbon tercatat permanen.',
-   '<b>Unduh</b>: Excel payroll, file transfer BCA, dan slip gaji (PDF / email / WhatsApp).',
+   '<b>Unduh</b>: Excel payroll, file transfer BCA, dan slip gaji (PDF / WhatsApp).',
+   '<b>Kirim slip via email</b>: Payroll → <b>Kirim slip via email…</b> → pilih semua, yang belum terkirim, atau orang tertentu. Yang sudah pernah dikirimi slip periode itu otomatis dikirim sebagai REVISI. Karyawan tanpa email: isi emailnya dulu di data karyawan.',
    '<b>Laporan bulanan</b>: buka menu Laporan, unduh Excel atau cetak ke PDF untuk pimpinan.',
    '<b>KPI</b>: isi atau impor nilai KPI bulan itu.',
-   '<b>Cadangan</b>: Pengaturan → Unduh cadangan. Simpan filenya.']),true)+
+   '<b>Cadangan</b>: Pengaturan → Unduh cadangan. Simpan filenya.',
+   '<b>Dasbor</b>: pastikan semua langkah di Checklist bercentang dan baca daftar “Perlu perhatian” (kontrak habis, SP berakhir, cuti habis).']),true)+
   sec('2. Periode dan cut-off','<p style="margin:0">Satu periode gaji berjalan dari tanggal <b>'+c+'</b> bulan sebelumnya sampai tanggal <b>'+(c-1)+'</b>. Contoh: periode Oktober = 21 September s/d 20 Oktober. Tanggal cut-off bisa diubah di Pengaturan (“Tanggal tutup absen”). Tanggal merah / libur nasional diisi di Pengaturan supaya kolomnya berwarna merah.</p>')+
   sec('3. Kode absensi dan rumus gaji',ul([
    '<b>H</b> hadir, <b>SH</b> setengah hari, <b>I</b> izin, <b>S</b> sakit, <b>C</b> cuti, <b>A</b> alpha, <b>L</b> libur, <b>LM</b> lembur Minggu, <b>LTM</b> lembur tanggal merah.',
@@ -2374,9 +2377,19 @@ function vHelp(){
    '<b>Gaji per hari</b> = gaji pokok ÷ pembagi (24 bila tidak diubah).',
    '<b>Lembur Minggu</b> = gaji/hari × LM × 2. <b>Lembur tanggal merah</b> = gaji/hari × LTM × pengali karyawan. <b>Lembur per jam</b> = jam × tarif (umum, gaji/hari ÷ 8, atau nominal khusus per karyawan).',
    '<b>Setengah hari (SH)</b> dipotong nominal tetap yang diatur di Pengaturan. Karyawan TETAP tidak dipotong.',
-   '<b>Telat tanpa keterangan</b>: jam telat × tarif (Pengaturan), per jam yang dimulai: 1–60 menit = 1 jam.',
+   '<b>Telat tanpa keterangan</b>: jam telat × tarif (Pengaturan, Rp '+rp(telatCfg().tarif)+'), per jam yang dimulai: sampai 60 menit = 1 jam, 61–120 menit = 2 jam. Telat sampai batas toleransi ('+telatCfg().tol+' menit) tidak dipotong. Hari Minggu (lembur) dan telat yang dicentang izin / tugas atasan tidak dipotong. Jabatan Programmer dan karyawan bertanda “Tidak dipotong telat” tidak dipotong.',
    '<b>THP</b> = gaji + lembur + uang makan lembur + reimburse + bonus − potongan setengah hari − potongan absen − potongan telat − kasbon − potongan lain.']))+
-  sec('4. Fungsi tiap menu',ul([
+  sec('4. Telat &amp; shift',ul([
+   '<b>Grup shift</b>: Operator, Supervisor dan Wakil Supervisor CNC dibagi grup A, B, C. Jadwal berganti otomatis tiap Senin dengan urutan 00.00 → 08.00 → 16.00. Lihat di Telat &amp; Shift → <b>Jadwal shift</b>. Karyawan lain (kantor) masuk 08.00.',
+   '<b>Karyawan baru di produksi</b>: masukkan ke grupnya lewat Jadwal shift → <b>+ Tambah anggota</b>, atau di form karyawan (Grup shift). Tanpa grup, telatnya dihitung dari jam 08.00.',
+   '<b>Pindah grup</b>: ganti pilihan grup di samping nama (Jadwal shift). Berlaku untuk hitungan berikutnya.',
+   '<b>Jadwal pabrik berubah</b> (bukan gilir biasa): Pengaturan → <b>Jadwal grup minggu ini</b>, pilih jam tiap grup, Simpan. Minggu berikutnya digilir dari situ.',
+   '<b>Cara website membaca mesin</b>: scan masuk = scan pertama antara 2 jam sebelum sampai 4 jam sesudah jam masuk shift. Scan pulang dan longshift (lanjut 8 jam) tidak terbaca telat. Hanya hari berkode H, Senin–Sabtu.',
+   '<b>Perlu dicek</b>: “Lupa scan masuk” (ada scan hari itu tapi bukan di jam masuk) dan “Hadir tanpa scan”. Tanyakan ke karyawan / atasannya, lalu pilih Isi telat (ketik menit) atau Tidak telat. Tidak ada yang dipotong sebelum Anda memilih.',
+   '<b>Nama di mesin berbeda</b>: saat unggah, buka bagian “Pasangan nama mesin ↔ website”, pasangkan yang belum cocok, lalu <b>Simpan pasangan nama</b> supaya bulan depan langsung cocok.',
+   '<b>Isi manual</b>: tab Isi manual untuk mengetik menit telat langsung per tanggal (misalnya bila mesin rusak).',
+   'Semua langkah bisa diurungkan dengan ↶ selama payroll belum dikunci.']))+
+  sec('5. Fungsi tiap menu',ul([
    '<b>Dasbor</b>: <b>Checklist</b> langkah bulanan (✓ muncul otomatis; tombol Buka menuju halamannya), ringkasan, dan daftar “Perlu perhatian” (kontrak habis, SP berakhir, cuti habis, payroll belum dikunci, cadangan lama).',
    '<b>Karyawan</b>: data karyawan, gaji, skema, identitas. Tanda merah “SP 1 s/d …” muncul di samping nama karyawan yang sedang punya SP berlaku. Tombol “Buat surat” menyiapkan PKWT, SP, skorsing, keterangan kerja, penawaran kerja, paklaring, dan pemberhentian kerja (PHK) dengan templat per alasan. Surat diunduh sebagai <b>Word (.docx)</b> supaya bisa diedit sebelum dicetak; versi PDF juga tersedia.',
    '<b>Absensi, Lembur, Payroll, Slip Gaji</b>: lihat Rutinitas bulanan.',
@@ -2390,29 +2403,46 @@ function vHelp(){
    '<b>Pengaturan</b>: data perusahaan, aturan gaji, urutan jabatan, pengingat email, dan cadangan data.',
    '<b>Urungkan / ulangi</b>: tombol ↶ ↷ di kanan atas setiap halaman, atau Ctrl+Z / Ctrl+Y. Berlaku untuk absensi, lembur, reimburse, bonus, potongan, data karyawan, kasbon, SP, kuota cuti, dan pengaturan, selama halaman belum dimuat ulang. Kunci/buka kunci payroll tidak bisa diurungkan dengan cara ini.',
    '<b>Karyawan keluar</b>: Karyawan → pilih orangnya → Proses keluar / resign. Data tetap tersimpan di tab Keluar; ia masih dibayar di periode terakhirnya lalu tidak masuk payroll lagi. Gaji karyawan bulanan di periode terakhir dihitung prorata: gaji pokok × hari kerja (Senin–Sabtu, di luar tanggal merah) sampai hari terakhir ÷ hari kerja satu periode. Paklaring dibuat dari tab Keluar → Buat surat. Hapus permanen hanya untuk data salah masuk yang belum punya absensi atau gaji.',
-   '<b>Riwayat</b>: catatan otomatis siapa mengubah apa dan kapan (gaji, absensi, data karyawan, penghapusan, kunci payroll).']))+
-  sec('5. Cadangan dan pemulihan',ol([
+   '<b>Riwayat</b>: catatan otomatis siapa mengubah apa dan kapan (gaji, absensi, data karyawan, penghapusan, kunci payroll).',
+   '<b>Slip Gaji</b>: tombol “Kirim via email (revisi)” hanya muncul bila slip orang itu sudah pernah dikirim di periode tersebut (ada label hijau Terkirim). Pakai untuk mengirim ulang slip yang angkanya dibetulkan.',
+   '<b>Payroll yang dikunci</b> menyimpan salinan data karyawan (jabatan, gaji, rekening). Mengubah data karyawan setelah dikunci tidak mengubah slip periode itu; untuk itu buka kunci lalu kunci lagi (angka ikut dihitung ulang dari data terbaru). Kotak cuti di slip selalu memakai data cuti terbaru.',
+   '<b>SOP</b> (Dokumen): standar kerja per divisi. + Buat SOP → isi langkah kerja (pratinjau cetak di kanan) → <b>Simpan &amp; tandai berlaku</b>. Mengubah SOP yang berlaku membuat versi baru; versi lama tercatat di riwayat. Unduh Word atau Cetak / PDF untuk ditempel di area kerja. SOP lebih dari 1 tahun ditandai Perlu ditinjau.',
+   '<b>Peraturan Perusahaan</b> (Dokumen): dibaca per poin. <b>Ubah</b> untuk menambah / mengubah / menghapus aturan; tandai “baru” atau “diubah”. Teks biru (toleransi telat, potongan telat, kuota cuti, masa SP) diambil dari Pengaturan. Tulis <code>{toleransi}</code>, <code>{tarifTelat}</code>, <code>{kuotaCuti}</code>, <code>{spLama}</code> untuk memakainya. Tahapan di atas (draf → masukan wakil karyawan → Disnaker → sah) diklik sesuai kemajuan.',
+   '<b>Struktur Organisasi</b> (Dokumen): bagan otomatis dari jabatan di data karyawan. Bila seseorang masuk kotak “Lainnya”, rapikan teks jabatannya. Untuk menyembunyikan seseorang dari bagan, hilangkan centang “Tampil di bagan perusahaan” di form karyawan. Nama Direktur diatur di Pengaturan. Cetak / PDF untuk disahkan.']))+
+  sec('6. Kalender HRD',ul([
+   '<b>Tiap hari</b>: isi absensi; cek Dasbor bila ada pengingat.',
+   '<b>Tiap tanggal tutup absen ('+c+')</b>: lengkapi absensi &amp; lembur, unggah file mesin absen, selesaikan Perlu dicek, periksa payroll, bayar gaji, <b>kunci payroll</b>, kirim slip, unduh laporan dan cadangan.',
+   '<b>Awal bulan</b>: cek kontrak yang akan habis (Kontrak &amp; PKL) dan SP yang berakhir (Dasbor).',
+   '<b>Ada karyawan baru / keluar / pindah jabatan</b>: perbarui data karyawan hari itu juga (grup shift, email, rekening); untuk keluar pakai Proses keluar / resign lalu buat paklaring.',
+   '<b>Tiap tahun cuti (1 '+esc(MONTHS[cutiStartMonth()-1])+')</b>: saldo cuti kembali penuh otomatis; cek kuota khusus di halaman Cuti.',
+   '<b>Tiap tahun</b>: tinjau SOP yang ditandai Perlu ditinjau; Peraturan Perusahaan wajib diperbarui sebelum masa 2 tahunnya habis.',
+   '<b>Tiap 30 hari</b>: unduh cadangan data (Dasbor mengingatkan).']))+
+  sec('7. Cadangan dan pemulihan',ol([
    'Buka <b>Pengaturan → Cadangan data → Unduh cadangan (JSON)</b>. Dasbor akan mengingatkan bila cadangan terakhir lebih dari 30 hari.',
    'Simpan file di tempat aman (mis. flashdisk atau Google Drive perusahaan). File ini berisi gaji dan data pribadi.',
    'Untuk memulihkan: <b>Pulihkan dari cadangan</b> → klik lagi → pilih file. Data dengan ID yang sama akan ditimpa.']))+
-  sec('6. Menambah pengguna HRD baru',ol([
+  sec('8. Menambah pengguna HRD baru',ol([
    'Firebase (console.firebase.google.com) → proyek <b>hrd-sistem</b> → Authentication → Users → <b>Add user</b> (email + kata sandi).',
    'Firebase → Firestore Database → <b>Rules</b>: tambahkan email itu di daftar <code>request.auth.token.email in [ … ]</code>, pisahkan dengan koma, lalu <b>Publish</b>.',
    'Vercel → project → Settings → Environment Variables → <code>ALLOWED_EMAILS</code>: tambahkan email yang sama (supaya bisa mengirim slip via email), lalu <b>Redeploy</b>.',
    'Untuk mencabut akses: hapus user di Authentication dan hapus emailnya dari dua daftar di atas.']))+
-  sec('7. Akun dan pengaturan penting (serah terima)',ul([
+  sec('9. Akun dan pengaturan penting (serah terima)',ul([
    '<b>Google / Firebase</b>: database dan login. Proyek: hrd-sistem.',
    '<b>GitHub</b>: menyimpan kode aplikasi (repo New-HRD). <b>Vercel</b>: menayangkan situs.',
    '<b>Kirim slip via email</b>: memakai <code>GMAIL_USER</code> dan <code>GMAIL_APP_PASSWORD</code> (Sandi Aplikasi Google 16 huruf) di Vercel → Environment Variables. Bila akun pengirim ganti sandi atau 2 langkah, buat Sandi Aplikasi baru dan perbarui di sana.',
    'Catat siapa yang memegang kata sandi akun di atas, dan pastikan nomor HP / email pemulihan akun Google adalah milik perusahaan.',
    'Mengubah tampilan atau fitur aplikasi dilakukan lewat Claude Code pada repo New-HRD; setiap perubahan yang di-push ke GitHub tayang otomatis di Vercel dalam ±1 menit.']))+
-  sec('8. Masalah yang sering muncul',ul([
+  sec('10. Masalah yang sering muncul',ul([
    '<b>“Akun ini belum diberi akses”</b>: email belum ada di Firestore Rules.',
    '<b>“auth/unauthorized-domain”</b>: domain situs belum ada di Firebase → Authentication → Settings → Authorized domains.',
    '<b>Tidak bisa masuk</b>: tekan “Lupa kata sandi” atau reset di Firebase → Authentication → Users.',
    '<b>Perubahan tidak muncul</b>: tekan Ctrl+F5.',
    '<b>“Perubahan tidak tersimpan”</b>: akun hanya punya akses lihat, atau koneksi terputus. Periksa Rules dan internet.',
-   '<b>Angka payroll berubah sendiri</b>: payroll belum dikunci. Kunci setelah gaji dibayar.']))+
+   '<b>Angka payroll berubah sendiri</b>: payroll belum dikunci. Kunci setelah gaji dibayar.',
+   '<b>Jabatan / nama di slip tidak berubah</b>: payroll periode itu sudah dikunci (lihat bagian 5, Payroll yang dikunci).',
+   '<b>Telat seseorang tidak muncul dari mesin</b>: absensinya bukan H, namanya belum dipasangkan dengan ID mesin, jabatannya tidak dipotong telat, atau telatnya masih dalam toleransi.',
+   '<b>Banyak “lupa scan masuk” untuk satu grup</b>: kemungkinan jadwal grup minggu itu berbeda dari biasanya. Periksa Pengaturan → Jadwal grup minggu ini.',
+   '<b>Seseorang tidak tampil / salah kotak di bagan</b>: periksa teks jabatannya dan centang “Tampil di bagan perusahaan” di form karyawan.']))+
   '<p class="note">Panduan ini ditulis dari fitur aplikasi per '+esc(fmtD(todayISO()))+'.</p>';
 }
 
