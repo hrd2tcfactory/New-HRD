@@ -2986,7 +2986,12 @@ S.tab=lsGet('hrd.tab')||'dash';renderNav();render();window.__runImport=b=>runImp
 // Perubahan data satu kali (dijalankan otomatis oleh akun HRD yang login, lalu ditandai di settings.migrasi supaya tidak terulang).
 // Jabatan yang punya indikator dan target KPI. Karyawan lain tidak dinilai.
 function kpiDinilai(id){const e=S.emps[id];if(!e)return false;const j=normJab(e.jabatan||'');return j==='OPERATOR CNC'||j==='MANAGER CNC'||/PROGRAMMER|\bCAM\b|CUTTING/.test(j)}
-const MIGRATIONS=[{id:'2026-11-24-dokumen',run:async db=>{
+const MIGRATIONS=[{id:'2026-11-24-jabatan-november',run:async db=>{
+  // Untuk periode November jabatan dikembalikan: Ari A S tetap Supervisor CNC, Egi Berliandi tetap Wakil Supervisor.
+  const byN=nm=>Object.values(S.emps).find(x=>(x.nama||'').trim().toUpperCase()===nm);const out=[];
+  for(const [nm,jab] of [['ARI A S','SUPERVISOR CNC'],['EGI BERLIANDI','WAKIL SUPERVISIOR']]){const e=byN(nm);if(e&&e.jabatan!==jab){const dari=e.jabatan;await db.doc('employees/'+e.id).update({jabatan:jab});e.jabatan=jab;out.push(e.nama+': '+dari+' → '+jab);logAct('data','Mengubah jabatan · '+e.nama,{dari,ke:jab,ket:'Dikembalikan untuk periode November'})}}
+  return out}},
+{id:'2026-11-24-dokumen',run:async db=>{
   // Nama Direktur untuk bagan & peraturan; Putri Ayu Salamah (akan resign) tidak ditampilkan di bagan.
   const out=[];const st=S.settings||{};if(!st.direktur){await db.doc('settings/company').update({direktur:'Eep Sopandi'});S.settings.direktur='Eep Sopandi';out.push('nama Direktur: Eep Sopandi')}
   const e=Object.values(S.emps).find(x=>(x.nama||'').trim().toUpperCase()==='PUTRI AYU SALAMAH');if(e&&e.tampilBagan!==false){await db.doc('employees/'+e.id).update({tampilBagan:false});e.tampilBagan=false;out.push('Putri Ayu Salamah tidak tampil di bagan');logAct('data','Menyembunyikan dari bagan · '+e.nama)}
@@ -2998,8 +3003,7 @@ const MIGRATIONS=[{id:'2026-11-24-dokumen',run:async db=>{
     C:['USEP SOPIAN','MUHAMAD RIJAL','AGUS MARTIN','RYHAN NAJIR F','ASEP DWIANA FITRIAWA','RANGGA JANUAR','DIKA RESTU FAHREZA','M DADI BUDIMAN']};
   const byN=nm=>Object.values(S.emps).find(x=>(x.nama||'').trim().toUpperCase()===nm);const done=[];
   for(const g of GRUP)for(const nm of G[g]){const e=byN(nm);if(e&&!e.grupShift){await db.doc('employees/'+e.id).update({grupShift:g});e.grupShift=g;done.push(nm.split(' ').slice(0,2).join(' ')+' '+g)}}
-  const JAB={'ARI A S':'QC','EGI BERLIANDI':'SUPERVISOR CNC','INDRIE NOERLIANTI':'HRD'};const jab=[];
-  for(const nm in JAB){const e=byN(nm);if(e&&normJab(e.jabatan)!==normJab(JAB[nm])){const dari=e.jabatan;const up={jabatan:JAB[nm]};if(nm==='ARI A S')up.grupShift='';await db.doc('employees/'+e.id).update(up);Object.assign(e,up);jab.push(e.nama+': '+dari+' → '+JAB[nm]);logAct('data','Mengubah jabatan · '+e.nama,{dari,ke:JAB[nm]})}}
+  const jab=[];
   {const st=S.settings||{};const up={};if(!st.shiftJam)up.shiftJam=['00:00','08:00','16:00'];if(!st.shiftRef)up.shiftRef={senin:'2026-11-23',A:'08:00',B:'00:00',C:'16:00'};
    if(!(+st.telatToleransi))up.telatToleransi=15;if(st.telatToleransiPP==null)up.telatToleransiPP=10;if(st.spLama==null)up.spLama=1;
    if(Object.keys(up).length){await db.doc('settings/company').update(up);Object.assign(S.settings,up)}}
