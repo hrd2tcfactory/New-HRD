@@ -786,7 +786,7 @@ function vPay(){
     '<td class="num"><input class="cellin" type="number" min="0" step="1000" data-pot="'+esc(e.id)+'" value="'+(r.pot||'')+'" placeholder="0" aria-label="Potongan lain '+esc(e.nama)+'"'+dis+'></td>'+
     '<td class="num"><b>'+rp(r.thp)+'</b></td><td><button class="btn ghost" data-act="toSlip" data-id="'+esc(e.id)+'">Slip</button></td></tr>'}).join('');
   const lockBtn=locked?'<button class="btn" data-act="unlockPay">'+(S.armed==='unlockPay'?'Klik lagi untuk buka kunci':'Buka kunci')+'</button>':'<button class="btn primary" data-act="lockPay" style="white-space:normal;text-align:left">'+(S.armed==='lockPay'?(nSerius?'Ada '+nSerius+' peringatan. Klik lagi untuk tetap kunci':'Klik lagi untuk mengunci'):'Kunci payroll '+periodLabel(key))+'</button>';
-  return topbar('Payroll',true,'<button class="btn" data-act="bcaFile">File transfer BCA</button><button class="btn" data-act="exportPay">Unduh Excel</button><button class="btn" data-act="allSlips">Unduh semua slip (PDF)</button><button class="btn" data-act="mailAllRev">Kirim ulang sebagai revisi</button><button class="btn primary" data-act="mailAll">Kirim semua slip via email</button>')+lockBanner()+
+  return topbar('Payroll',true,'<button class="btn" data-act="bcaFile">File transfer BCA</button><button class="btn" data-act="exportPay">Unduh Excel</button><button class="btn" data-act="allSlips">Unduh semua slip (PDF)</button><button class="btn primary" data-act="mailPick">Kirim slip via email…</button>')+lockBanner()+
   '<div class="kpis"><div class="kpi"><span class="k">Total take home pay</span><span class="v">Rp '+rp(T.thp)+'</span><span class="s">'+emps.length+' karyawan'+(locked?' · angka final':' · masih bisa berubah')+'</span></div>'+
   '<div class="kpi"><span class="k">Total lembur</span><span class="v">Rp '+rp(T.lm+T.ltm+T.lj)+'</span><span class="s">Minggu '+rp(T.lm)+' · Tgl merah '+rp(T.ltm)+' · Per jam '+rp(T.lj)+'</span></div>'+
   '<div class="kpi"><span class="k">Potongan kasbon</span><span class="v">Rp '+rp(T.kas)+'</span><span class="s">'+(locked?'Sudah dicatat ke saldo kasbon':'Dicatat ke saldo kasbon saat payroll dikunci')+'</span></div>'+
@@ -923,7 +923,7 @@ function vSlip(){
   const ln=a=>'<div class="ln"><span>'+esc(a[0])+'</span><span>'+rp(a[1])+'</span></div>';
   return topbar('Slip gaji',true)+
   '<div class="row"><select id="slipSel" aria-label="Pilih karyawan">'+emps.map(x=>'<option value="'+esc(x.id)+'"'+(x.id===e.id?' selected':'')+'>'+esc(x.id+' — '+x.nama)+'</option>').join('')+'</select>'+
-  '<button class="btn primary" data-act="mailSlip">Kirim via email</button><button class="btn" data-act="mailSlipRev">Kirim via email (revisi)</button><button class="btn" data-act="waPdf">Kirim PDF via WhatsApp</button><button class="btn" data-act="slipPdf">Unduh PDF</button><button class="btn ghost" data-act="copyWa">Salin rincian (teks)</button>'+(e.wa?'<span class="sub">WA: +'+esc(e.wa)+'</span>':'<span class="sub">No WhatsApp belum diisi</span>')+(((S.emps[e.id]||{}).email)?'<span class="sub">Email: '+esc(S.emps[e.id].email)+'</span>':'<span class="sub">Email belum diisi</span>')+'</div>'+
+  '<button class="btn primary" data-act="mailSlip">Kirim via email</button>'+(((P().slipKirim||{})[e.id])?'<button class="btn" data-act="mailSlipRev">Kirim via email (revisi)</button>':'')+'<button class="btn" data-act="mailPick">Kirim ke banyak orang…</button><button class="btn" data-act="waPdf">Kirim PDF via WhatsApp</button><button class="btn" data-act="slipPdf">Unduh PDF</button><button class="btn ghost" data-act="copyWa">Salin rincian (teks)</button>'+(e.wa?'<span class="sub">WA: +'+esc(e.wa)+'</span>':'<span class="sub">No WhatsApp belum diisi</span>')+(((S.emps[e.id]||{}).email)?'<span class="sub">Email: '+esc(S.emps[e.id].email)+'</span>':'<span class="sub">Email belum diisi</span>')+(((P().slipKirim||{})[e.id])?'<span class="pill p-ok">Terkirim '+esc(fmtD(String(P().slipKirim[e.id]).slice(0,10)))+'</span>':'')+'</div>'+
   '<div class="slip"><div class="hd"><div style="display:flex;align-items:center;gap:10px">'+(st.logo?'<img src="'+esc(st.logo)+'" alt="" style="max-height:40px;max-width:80px">':'')+'<div><b>'+esc(st.nama)+'</b><div class="sub">'+esc(st.alamat)+' · Slip gaji karyawan</div></div></div><div style="text-align:right"><div class="name">'+periodLabel(S.periodKey)+'</div><div class="sub">'+periodSub(S.periodKey)+'</div></div></div>'+
   '<div class="meta"><div><span>Nama</span>'+esc(e.nama)+'</div><div><span>ID · Jabatan</span>'+esc(e.id)+' · '+esc(e.jabatan)+'</div><div><span>Status</span>'+esc(e.status)+'</div><div><span>Rekening</span>'+esc(e.rekening||'—')+'</div></div>'+
   slipAttHtml(r)+slipCutiHtml(e)+
@@ -1022,7 +1022,7 @@ async function mailSlips(ids,revisi){
   const token=await S.getToken();
   for(let i=0;i<ids.length;i++){
     toast('Mengirim '+(i+1)+' dari '+ids.length+'…');
-    const e=payEmp(ids[i],key);const r=await mailOne(ids[i],token,revisi);
+    const e=payEmp(ids[i],key);const r=await mailOne(ids[i],token,revisi&&typeof revisi==='object'?!!revisi[ids[i]]:!!revisi);
     if(r.ok)sent[key+'|'+ids[i]]=1;res.push(Object.assign({id:ids[i],nama:e.nama},r));
     await new Promise(z=>setTimeout(z,600));
   }
@@ -1034,6 +1034,18 @@ async function mailSlips(ids,revisi){
    (bad.length?'<div class="tablewrap"><table><thead><tr><th>Karyawan</th><th>Alasan</th></tr></thead><tbody>'+bad.map(x=>'<tr><td>'+esc(x.id+' '+x.nama)+'</td><td class="sub">'+esc(x.err)+'</td></tr>').join('')+'</tbody></table></div>':'')+
    '<div class="row"><button class="btn" data-act="closeModal">Tutup</button></div>');
 }
+// Pilih penerima slip: semua, yang belum terkirim, atau orang tertentu. Yang sudah pernah dikirimi slip periode ini otomatis dikirim sebagai REVISI.
+function mailPick(){const key=S.periodKey;const sk=(S.periods[key]||{}).slipKirim||{};const emps=payEmps();
+  if(!S.mailSel||S.mailSel.key!==key)S.mailSel={key,ids:{}};const sel=S.mailSel.ids;const em=id=>((S.emps[id]||{}).email||'').trim();
+  const n=emps.filter(e=>sel[e.id]&&em(e.id)).length,nr=emps.filter(e=>sel[e.id]&&em(e.id)&&sk[e.id]).length;
+  openModal('<h3>Kirim slip via email · '+esc(periodLabel(key))+'</h3><p class="note" style="margin:0">Centang penerima. Yang sudah pernah dikirimi slip periode ini otomatis dikirim sebagai <b>REVISI</b>.'+(isLocked()?'':' Payroll periode ini <b>belum dikunci</b>: angka bisa masih berubah.')+'</p>'+
+   '<div class="row"><button class="btn" data-act="mailPickSet" data-id="all">Pilih semua</button><button class="btn" data-act="mailPickSet" data-id="belum">Pilih yang belum terkirim</button><button class="btn ghost" data-act="mailPickSet" data-id="none">Kosongkan</button></div>'+
+   '<div class="tablewrap" style="max-height:52vh"><table><thead><tr><th style="width:34px"></th><th>Karyawan</th><th>Email</th><th>Status</th></tr></thead><tbody>'+
+   emps.map(e=>{const m=em(e.id);return '<tr><td><input type="checkbox" data-mailpick="'+esc(e.id)+'"'+(sel[e.id]&&m?' checked':'')+(m?'':' disabled')+' aria-label="Kirim ke '+esc(e.nama)+'"></td><td><div class="name">'+esc(e.nama)+'</div><div class="sub">'+esc(e.id)+' · '+esc(e.jabatan)+'</div></td><td class="sub">'+(m?esc(m):'belum diisi')+'</td><td>'+(sk[e.id]?'<span class="pill p-ok">Terkirim '+esc(fmtD(String(sk[e.id]).slice(0,10)))+'</span>':'<span class="pill p-mute">Belum</span>')+'</td></tr>'}).join('')+'</tbody></table></div>'+
+   '<div class="row"><button class="btn primary" data-act="mailPickGo"'+(n?'':' disabled')+' id="mailPickBtn">'+mailPickLbl(n,nr)+'</button><button class="btn" data-act="closeModal">Batal</button></div>')}
+function mailPickLbl(n,nr){return n?'Kirim ke '+n+' orang'+(nr?' ('+nr+' sebagai revisi)':''):'Belum ada yang dipilih'}
+function mailPickCount(){const key=S.periodKey;const sk=(S.periods[key]||{}).slipKirim||{};const sel=(S.mailSel||{}).ids||{};const ids=Object.keys(sel).filter(id=>sel[id]&&((S.emps[id]||{}).email||'').trim());
+  const b=document.getElementById('mailPickBtn');if(b){b.disabled=!ids.length;b.textContent=mailPickLbl(ids.length,ids.filter(id=>sk[id]).length)}return ids}
 function mailAll(revisi){
   const ids=payEmps().map(e=>e.id);const noMail=ids.filter(id=>!((S.emps[id]||{}).email));
   const sent=S.mailSent||{};const done=ids.filter(id=>sent[S.periodKey+'|'+id]).length;
@@ -2788,6 +2800,9 @@ document.addEventListener('click',async ev=>{
   if(a==='mailSlip')return mailSlips([S.slipEmp]);
   if(a==='mailSlipRev')return mailSlips([S.slipEmp],true);
   if(a==='mailAll')return mailAll();
+  if(a==='mailPick')return mailPick();
+  if(a==='mailPickSet'){const key=S.periodKey;const sk=(S.periods[key]||{}).slipKirim||{};const ids={};if(id!=='none')payEmps().forEach(e=>{if(((S.emps[e.id]||{}).email||'').trim()&&(id==='all'||!sk[e.id]))ids[e.id]=true});S.mailSel={key,ids};return mailPick()}
+  if(a==='mailPickGo'){const ids=mailPickCount();if(!ids.length)return;const sk=(S.periods[S.periodKey]||{}).slipKirim||{};const rv={};ids.forEach(x=>{if(sk[x])rv[x]=true});closeModal();S.mailSel=null;return mailSlips(payEmps().map(e=>e.id).filter(x=>ids.includes(x)),rv)}
   if(a==='impEmail')return impEmail();
   if(a==='srtOpen')return srtOpen(id);
   if(a==='srtNew')return srtOpen('','ol');
@@ -2936,6 +2951,7 @@ document.addEventListener('change',ev=>{
   if((t.dataset.ot||t.dataset.telat||t.dataset.reimb||t.dataset.bonus||t.dataset.pot)&&isLocked()){toast('Periode ini sudah dikunci.');render(true);return}
   if(t.dataset.ttd){if(t.files&&t.files[0])ttdLoad(t.files[0],t.dataset.ttd);return}
   if(t.dataset.kuota){const id=t.dataset.kuota,y=S.cutiYear,v=Math.max(0,+t.value||0);const e=S.emps[id];if(!e)return;const pk=kuotaFor(e,y);const e0=clone(e);e.kuotaTahun=Object.assign({},e.kuotaTahun,{[y]:v});queuePatch('employees/'+id,{kuotaTahun:{[y]:v}});if(pk!==v){histDoc('Kuota cuti '+e.nama,'data','employees/'+id,e0,e,'emps',id)}if(pk!==v)logAct('data','Mengubah kuota cuti '+y+'/'+String(y+1).slice(2)+' · '+e.nama,{dari:pk+' hari',ke:v+' hari'});S.dirty=true;return}
+  if(t.dataset.mailpick){const sel=(S.mailSel=S.mailSel&&S.mailSel.key===S.periodKey?S.mailSel:{key:S.periodKey,ids:{}}).ids;sel[t.dataset.mailpick]=t.checked;mailPickCount();return}
   if(t.dataset.telatket){if(isLocked()){toast('Periode ini sudah dikunci.');render(true);return}const id=t.dataset.telatket,d=t.dataset.d,v=!!t.checked;const pv=!!(((P().telatKet||{})[id]||{})[d]);
     patchPeriod({telatKet:{[id]:{[d]:v}}});histPer('Keterangan telat '+enm(id)+', '+fmtD(d),'absen',S.periodKey,{telatKet:{[id]:{[d]:pv}}},{telatKet:{[id]:{[d]:v}}});
     logAct('absen',(v?'Membatalkan':'Menghitung lagi')+' potongan telat · '+enm(id),{ket:fmtD(d)+(v?' · ada keterangan':'')});render(true);toastUndo(v?'Potongan telat '+fmtD(d)+' dibatalkan.':'Potongan telat '+fmtD(d)+' dihitung lagi.');return}
