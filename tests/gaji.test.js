@@ -180,6 +180,22 @@ test('slip gaji ikut tanggal atur ulang cuti, sama dengan halaman Cuti', () => {
   assert.equal(nums[2], app.cutiSisa(S.emps.K1, 2026));
 });
 
+test('cek payroll: kasbon dobel dan rekening sama ditandai Salah, bisa ditandai benar', () => {
+  const loans = { L1: { empId: 'K1', tanggal: '2026-10-05', jumlah: 500000, cicilan: 100000, potongan: {} }, L2: { empId: 'K1', tanggal: '2026-10-06', jumlah: 500000, cicilan: 100000, potongan: {} } };
+  setup({ emps: [emp({ gajiPokok: 4800000, rekening: '1234567890' }), emp({ id: 'K2', nama: 'B', gajiPokok: 4800000, rekening: '1234567890' })], loans, periods: { [OKT]: per({}) } });
+  const bad = app.payChecks(OKT).filter((c) => c.lvl === 'bad').map((c) => c.s);
+  assert.equal(bad.length, 2);
+  assert.ok(bad.some((s) => /DOBEL/.test(s)) && bad.some((s) => /rekening/i.test(s)));
+  const kas = app.payChecks(OKT).find((c) => /DOBEL/.test(c.s)).k;
+  S.periods[OKT].cekOk = { [kas]: { at: 'x' } };
+  assert.equal(app.payChecks(OKT).filter((c) => c.lvl === 'bad').length, 1, 'yang ditandai benar tidak lagi memblokir');
+});
+
+test('cek payroll: lembur di hari alpha jadi peringatan', () => {
+  setup({ emps: [emp({ gajiPokok: 4800000 })], periods: { [OKT]: per({ absensi: { K1: { '2026-10-05': 'A' } }, lembur: { K1: { '2026-10-05': 3 } } }) } });
+  assert.ok(app.payChecks(OKT).some((c) => c.lvl === 'warn' && /absensinya A/.test(c.s)));
+});
+
 test('telat tanpa keterangan: per jam yang dimulai × Rp 10.000', () => {
   const telat = { '2026-10-01': 5, '2026-10-02': 60, '2026-10-05': 61, '2026-10-06': 0, '2026-09-01': 30 };
   setup({ emps: [emp({ gajiPokok: 4800000, jabatan: 'OPERATOR CNC' })], periods: { [OKT]: per({ telat: { K1: telat } }) } });

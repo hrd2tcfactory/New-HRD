@@ -478,25 +478,46 @@ function payChecks(key){
   key=key||S.periodKey;const per=S.periods[key]||{};const Lm=per.lembur||{};const out=[];
   const prev=lockOf(shiftKey(key,-1));const ac=attChecks(key).filter(c=>/belum diisi/.test(c.s)).length;
   if(ac)out.push({lvl:'warn',id:'',t:'Absensi belum lengkap',s:ac+' karyawan masih punya hari kerja kosong. Lengkapi di halaman Absensi agar gaji tidak salah'});
-  periodEmps(key).forEach(e=>{const r=liveCalc(e,key);const gp=+e.gajiPokok||0;const add=(lvl,s)=>out.push({lvl,id:e.id,t:e.nama,s});
-    if(!gp)add('bad','Gaji pokok kosong / 0. Isi di halaman Karyawan');
-    if(r.thp<0)add('bad','THP minus (Rp '+rp(r.thp)+'): potongan lebih besar dari pendapatan');
+  periodEmps(key).forEach(e=>{const r=liveCalc(e,key);const gp=+e.gajiPokok||0;const add=(lvl,s,code)=>out.push({lvl,id:e.id,t:e.nama,s,k:code?code+'|'+e.id:''});
+    if(!gp)add('bad','Gaji pokok kosong / 0. Isi di halaman Karyawan','gp0');
+    if(r.thp<0)add('bad','THP minus (Rp '+rp(r.thp)+'): potongan lebih besar dari pendapatan','thpmin');
     else if(r.thp===0&&gp)add('warn','THP Rp 0');
     if(e.metode==='HARIAN'&&gp&&!(r.c.H+(r.c.SH||0)+r.c.C))add('warn','Karyawan harian tanpa hari hadir: gaji dibayar Rp 0');
     if(gp&&r.reimb>gp*0.5)add('warn','Reimburse Rp '+rp(r.reimb)+' lebih dari setengah gaji pokok. Cek jumlah nol');
     if(gp&&r.bonus>gp*0.5)add('warn','Bonus Rp '+rp(r.bonus)+' lebih dari setengah gaji pokok. Cek jumlah nol');
     if(gp&&r.pot>gp*0.5)add('warn','Potongan lain Rp '+rp(r.pot)+' lebih dari setengah gaji pokok. Cek jumlah nol');
     if((r.reimb%100)||((r.bonus||0)%100)||(r.pot%100))add('info','Reimburse, bonus, atau potongan lain bukan kelipatan 100. Mungkin salah ketik');
-    Object.entries(Lm[e.id]||{}).forEach(([d,h])=>{if(+h>12)add('bad','Lembur '+h+' jam dalam sehari ('+fmtD(d)+'). Mungkin salah ketik')});
+    Object.entries(Lm[e.id]||{}).forEach(([d,h])=>{if(+h>12)add('bad','Lembur '+h+' jam dalam sehari ('+fmtD(d)+'). Mungkin salah ketik','ot12-'+d)});
     if(r.jam>60)add('warn','Total lembur '+r.jam+' jam dalam satu periode');
     if(gp&&r.thp>gp*2)add('warn','THP Rp '+rp(r.thp)+' lebih dari 2× gaji pokok');
     const pr=prev&&prev.rows[e.id];const pt=pr&&+pr.r.thp;
     if(pt>0&&r.thp>=0&&Math.abs(r.thp-pt)/pt>0.3)add('info','THP '+(r.thp>pt?'naik':'turun')+' '+Math.round(Math.abs(r.thp-pt)/pt*100)+'% dari bulan lalu (Rp '+rp(pt)+' → Rp '+rp(r.thp)+')');
     if(!String(e.rekening||'').trim())add('info','Nomor rekening belum diisi');
+    // absensi & lembur yang tidak masuk akal
+    const A=(per.absensi||{})[e.id]||{};const {start:ps,end:pe}=periodRange(key);const f0=iso(ps),f1=iso(pe);
+    Object.entries(Lm[e.id]||{}).forEach(([d,h])=>{const c=A[d]||'';if(+h>0&&d>=f0&&d<=f1&&['A','I','S','C'].includes(c))add('warn','Lembur '+h+' jam tanggal '+fmtD(d)+', padahal absensinya '+c+'. Salah satu mungkin salah isi','otabs-'+d)});
+    const luar=Object.keys(A).filter(d=>d>=f0&&d<=f1&&A[d]&&A[d]!=='L'&&((e.tglKeluar&&d>e.tglKeluar)||(e.tglBergabung&&d<e.tglBergabung)));
+    if(luar.length)add('warn','Ada '+luar.length+' hari absensi terisi di luar masa kerja ('+fmtD(luar[0])+(luar.length>1?', …':'')+'). Cek tanggal bergabung / keluar','absluar');
+    // kasbon
+    const ln=Object.entries(S.loans).filter(([,l])=>l.empId===e.id);
+    ln.forEach(([id,l],i)=>{const sisa=(+l.jumlah||0)-loanPaidBefore(l,key);if(sisa<=0)return;
+      ln.slice(i+1).forEach(([id2,l2])=>{const sisa2=(+l2.jumlah||0)-loanPaidBefore(l2,key);if(sisa2>0&&+l2.jumlah===+l.jumlah&&l.tanggal&&l2.tanggal&&Math.abs(daysBetween(l.tanggal,l2.tanggal))<=7)add('bad','Kasbon kemungkinan DOBEL: Rp '+rp(l.jumlah)+' tanggal '+fmtD(l.tanggal)+' dan '+fmtD(l2.tanggal)+'. Hapus salah satu di halaman Kasbon kalau memang dobel','kasdobel-'+[id,id2].sort().join('-'))});
+      if(!(+l.cicilan>0))add('warn','Kasbon Rp '+rp(l.jumlah)+' ('+fmtD(l.tanggal)+') cicilannya Rp 0, jadi tidak pernah dipotong','kascic0-'+id);
+      else if(+l.cicilan>+l.jumlah)add('warn','Cicilan kasbon (Rp '+rp(l.cicilan)+') lebih besar dari jumlah kasbonnya (Rp '+rp(l.jumlah)+')','kascic-'+id)});
+    if(r.kas&&gp&&r.kas>gp*0.5)add('warn','Potongan kasbon Rp '+rp(r.kas)+' lebih dari setengah gaji pokok','kasbesar');
     if(r.pro)add('info','Gaji pokok prorata '+r.pro.dj+'/'+r.pro.wd+' hari kerja ('+(r.pro.from>iso(periodRange(key).start)?'masuk '+fmtD(r.pro.from):'')+(r.pro.from>iso(periodRange(key).start)&&r.pro.to<iso(periodRange(key).end)?', ':'')+(r.pro.to<iso(periodRange(key).end)?'keluar '+fmtD(r.pro.to):'')+'). Pastikan tanggalnya benar');
   });
+  // data karyawan dobel (nama, rekening, NIK): transfer gaji bisa salah
+  const ems=periodEmps(key);const dup=(f,lbl,code)=>{const g={};ems.forEach(e=>{const v=f(e);if(v)(g[v]=g[v]||[]).push(e)});Object.values(g).filter(a=>a.length>1).forEach(a=>out.push({lvl:'bad',id:a[0].id,t:a.map(x=>x.nama+' ('+x.id+')').join(' & '),s:lbl+' sama. Kemungkinan data dobel atau salah ketik',k:code+'|'+a.map(x=>x.id).sort().join('-')}))};
+  dup(e=>String(e.nama||'').trim().toUpperCase().replace(/\s+/g,' '),'Nama','dupnama');dup(e=>String(e.rekening||'').replace(/\D/g,'').length>=6?String(e.rekening).replace(/\D/g,''):'','Nomor rekening','duprek');dup(e=>String(e.nik||'').replace(/\D/g,'').length>=8?String(e.nik).replace(/\D/g,''):'','NIK','dupnik');
+  // telat yang belum diputuskan
+  const nCek=Object.values(per.telatCek||{}).reduce((a,o)=>a+Object.values(o||{}).filter(x=>x&&typeof x==='object').length,0);
+  if(nCek)out.push({lvl:'warn',id:'',t:'Telat & Shift: '+nCek+' hal belum dicek',s:'Selesaikan tab Perlu dicek (Isi telat / Tidak telat) supaya potongan telat benar',k:'telatcek'});
+  // kesalahan yang sudah diperiksa dan memang benar
+  const ok=per.cekOk||{};out.forEach(c=>{if(c.k&&ok[c.k]){c.lvl='info';c.s+=' · sudah diperiksa, ditandai benar'}});
+  const rk={bad:0,warn:1,info:2};out.sort((a,b)=>rk[a.lvl]-rk[b.lvl]);
   return out}
-function chkList(chk,title){return '<details class="panel"'+(chk.length?' open':'')+'><summary style="cursor:pointer;font-family:var(--f-display);font-weight:700">'+title+': '+(chk.length?chk.length+' hal perlu dicek':'tidak ada masalah')+'</summary>'+(chk.length?'<div class="list" style="margin-top:8px">'+chk.slice(0,40).map(c=>'<div class="li"><span class="pill '+(c.lvl==='bad'?'p-bad':c.lvl==='info'?'p-mute':'p-warn')+'">'+(c.lvl==='bad'?'Salah':c.lvl==='info'?'Info':'Cek')+'</span><div class="t"><div class="name">'+esc(c.t)+'</div><div class="sub">'+esc(c.s)+'</div></div></div>').join('')+(chk.length>40?'<div class="sub">…dan '+(chk.length-40)+' lainnya</div>':'')+'</div>':'')+'</details>'}
+function chkList(chk,title){return '<details class="panel"'+(chk.length?' open':'')+'><summary style="cursor:pointer;font-family:var(--f-display);font-weight:700">'+title+': '+(chk.length?chk.length+' hal perlu dicek':'tidak ada masalah')+'</summary>'+(chk.length?'<div class="list" style="margin-top:8px">'+chk.slice(0,40).map(c=>'<div class="li"><span class="pill '+(c.lvl==='bad'?'p-bad':c.lvl==='info'?'p-mute':'p-warn')+'">'+(c.lvl==='bad'?'Salah':c.lvl==='info'?'Info':'Cek')+'</span><div class="t"><div class="name">'+esc(c.t)+'</div><div class="sub">'+esc(c.s)+'</div></div>'+(c.lvl==='bad'&&c.k&&!isLocked()?'<button class="btn ghost" data-act="cekOk" data-id="'+esc(c.k)+'" title="Tandai bahwa data ini memang benar">Memang benar</button>':'')+'</div>').join('')+(chk.length>40?'<div class="sub">…dan '+(chk.length-40)+' lainnya</div>':'')+'</div>':'')+'</details>'}
 function otHours(empId,key){const l=((S.periods[key]||{}).lembur||{})[empId]||{};let t=0;for(const d in l)t+=(+l[d]||0);return t}
 function loanPaidBefore(loan,key){let t=0;const p=loan.potongan||{};for(const k in p)if(k!==key)t+=(+p[k]||0);return t}
 function loanDeduction(loan,key){
@@ -778,7 +799,7 @@ function vPay(){
   const T={base:0,lm:0,ltm:0,lj:0,um:0,reimb:0,bonus:0,potSH:0,potTelat:0,kas:0,pot:0,potAbsen:0,thp:0};
   const showAbs=locked?emps.some(e=>calc(e,key).potAbsen):((S.settings&&S.settings.potongBulanan)||[]).length>0;
   const dis=locked?' disabled':'';
-  const chk=locked?[]:payChecks(key);const flag={};chk.forEach(c=>{if(c.id&&c.lvl!=='info')flag[c.id]=flag[c.id]==='bad'?'bad':c.lvl});const nSerius=chk.filter(c=>c.lvl!=='info').length;
+  const chk=locked?[]:payChecks(key);const flag={};chk.forEach(c=>{if(c.id&&c.lvl!=='info')flag[c.id]=flag[c.id]==='bad'?'bad':c.lvl});const nSerius=chk.filter(c=>c.lvl!=='info').length;const nBad=chk.filter(c=>c.lvl==='bad').length;
   const rows=emps.map(e=>{const r=calc(e,key);for(const k in T)T[k]+=(r[k]||0);return '<tr><td class="sub">'+esc(e.id)+'</td><td><div class="name">'+esc(e.nama)+keluarPill(S.emps[e.id]||e)+spPill(e.id)+(flag[e.id]?' <span class="pill '+(flag[e.id]==='bad'?'p-bad':'p-warn')+'">'+(flag[e.id]==='bad'?'Salah':'Cek')+'</span>':'')+'</div><div class="sub">'+esc(e.jabatan)+'</div></td><td class="sub">'+(e.metode==='HARIAN'?'Harian':'Bulanan')+' ÷'+(e.pembagi||24)+'</td><td class="num">'+rp(e.gajiPokok)+'</td><td class="num">'+rp(r.harian)+'</td><td class="num">'+(r.c.H+(r.c.SH||0)+r.c.C)+'</td><td class="num">'+rp(r.base)+(r.pro?'<div class="sub">prorata '+r.pro.dj+'/'+r.pro.wd+' hr kerja</div>':'')+'</td><td class="num">'+(r.lm?rp(r.lm):'–')+'</td><td class="num">'+(r.ltm?rp(r.ltm):'–')+'</td><td class="num">'+(r.lj?rp(r.lj):'–')+'</td><td class="num">'+(r.um?rp(r.um)+'<div class="sub">'+r.hariUM+' hari</div>':'–')+'</td>'+
     '<td class="num"><input class="cellin" type="number" min="0" step="1000" data-reimb="'+esc(e.id)+'" value="'+(r.reimb||'')+'" placeholder="0" aria-label="Reimburse '+esc(e.nama)+'"'+dis+'></td>'+
     '<td class="num"><input class="cellin" type="number" min="0" step="1000" data-bonus="'+esc(e.id)+'" value="'+(r.bonus||'')+'" placeholder="0" aria-label="Bonus '+esc(e.nama)+'"'+dis+'></td>'+
@@ -788,7 +809,7 @@ function vPay(){
     '<td class="num">'+(r.kas?'−'+rp(r.kas):'–')+'</td>'+
     '<td class="num"><input class="cellin" type="number" min="0" step="1000" data-pot="'+esc(e.id)+'" value="'+(r.pot||'')+'" placeholder="0" aria-label="Potongan lain '+esc(e.nama)+'"'+dis+'></td>'+
     '<td class="num"><b>'+rp(r.thp)+'</b></td><td><button class="btn ghost" data-act="toSlip" data-id="'+esc(e.id)+'">Slip</button></td></tr>'}).join('');
-  const lockBtn=locked?'<button class="btn" data-act="unlockPay">'+(S.armed==='unlockPay'?'Klik lagi untuk buka kunci':'Buka kunci')+'</button>':'<button class="btn primary" data-act="lockPay" style="white-space:normal;text-align:left">'+(S.armed==='lockPay'?(nSerius?'Ada '+nSerius+' peringatan. Klik lagi untuk tetap kunci':'Klik lagi untuk mengunci'):'Kunci payroll '+periodLabel(key))+'</button>';
+  const lockBtn=locked?'<button class="btn" data-act="unlockPay">'+(S.armed==='unlockPay'?'Klik lagi untuk buka kunci':'Buka kunci')+'</button>':nBad?'<button class="btn" data-act="lockBlocked" style="white-space:normal;text-align:left;border-color:var(--bad);color:var(--bad)">🔒 Perbaiki '+nBad+' kesalahan dulu</button>':'<button class="btn primary" data-act="lockPay" style="white-space:normal;text-align:left">'+(S.armed==='lockPay'?(nSerius?'Ada '+nSerius+' peringatan. Sudah dicek semua? Klik lagi untuk kunci':'Klik lagi untuk mengunci'):'Kunci payroll '+periodLabel(key))+'</button>';
   return topbar('Payroll',true,'<button class="btn" data-act="bcaFile">File transfer BCA</button><button class="btn" data-act="exportPay">Unduh Excel</button><button class="btn" data-act="allSlips">Unduh semua slip (PDF)</button><button class="btn primary" data-act="mailPick">Kirim slip via email…</button>')+lockBanner()+
   '<div class="kpis"><div class="kpi"><span class="k">Total take home pay</span><span class="v">Rp '+rp(T.thp)+'</span><span class="s">'+emps.length+' karyawan'+(locked?' · angka final':' · masih bisa berubah')+'</span></div>'+
   '<div class="kpi"><span class="k">Total lembur</span><span class="v">Rp '+rp(T.lm+T.ltm+T.lj)+'</span><span class="s">Minggu '+rp(T.lm)+' · Tgl merah '+rp(T.ltm)+' · Per jam '+rp(T.lj)+'</span></div>'+
@@ -893,6 +914,7 @@ function restoreLoans(key){
   return n}
 function lockPay(){
   const key=S.periodKey;if(isLocked(key))return;
+  const nBad=payChecks(key).filter(c=>c.lvl==='bad').length;if(nBad){toast('Payroll belum bisa dikunci: masih ada '+nBad+' kesalahan di panel Cek payroll.');render(true);return}
   postLoans(key);
   const rows={};
   periodEmps(key).forEach(e=>{const r=liveCalc(e,key);
@@ -2386,7 +2408,7 @@ function vHelp(){
    '<b>Telat &amp; Shift</b> (setelah tanggal tutup absen): ambil file Excel dari mesin absen, lalu <b>Unggah file mesin absen</b> → periksa hasilnya → <b>Catat … hari telat</b>. Buka tab <b>Perlu dicek</b> dan selesaikan semuanya (Isi telat / Tidak telat). Di tab <b>Rekap telat</b>, centang <b>izin / tugas atasan</b> untuk telat yang ada keterangannya. Lihat bagian 4.',
    '<b>Kasbon</b>: catat kasbon baru di halaman Kasbon. Cicilan dipotong otomatis di payroll.',
    '<b>Payroll</b>: isi kolom Reimburse, Bonus, dan Potongan lain bila ada. Baca panel <b>Cek payroll</b> dan perbaiki semua tanda “Salah” dan “Cek”.',
-   '<b>Kunci payroll</b> setelah gaji dibayar (tombol “Kunci payroll” → klik lagi untuk konfirmasi). Setelah dikunci, angka tidak berubah lagi dan potongan kasbon tercatat permanen.',
+   '<b>Kunci payroll</b> setelah gaji dibayar (tombol “Kunci payroll” → klik lagi untuk konfirmasi). Selama panel Cek payroll masih punya tanda <b>Salah</b> (mis. kasbon dobel, rekening / NIK / nama sama, THP minus, gaji pokok 0, lembur &gt; 12 jam), tombol berubah jadi “Perbaiki … kesalahan dulu” dan payroll tidak bisa dikunci. Perbaiki datanya, atau klik <b>Memang benar</b> bila datanya memang benar (tercatat di Riwayat). Setelah dikunci, angka tidak berubah lagi dan potongan kasbon tercatat permanen.',
    '<b>Unduh</b>: Excel payroll, file transfer BCA, dan slip gaji (PDF / WhatsApp).',
    '<b>Kirim slip via email</b>: Payroll → <b>Kirim slip via email…</b> → pilih semua, yang belum terkirim, atau orang tertentu. Yang sudah pernah dikirimi slip periode itu otomatis dikirim sebagai REVISI. Karyawan tanpa email: isi emailnya dulu di data karyawan.',
    '<b>Laporan bulanan</b>: buka menu Laporan, unduh Excel atau cetak ke PDF untuk pimpinan.',
@@ -2874,6 +2896,9 @@ document.addEventListener('click',async ev=>{
   if(a==='waPdf')return waPdf(S.slipEmp);
   if(a==='copyWa'){const e=payEmp(S.slipEmp,S.periodKey);const txt=waText(e,calc(e));try{await navigator.clipboard.writeText(txt);toast('Pesan slip disalin. Tempel di WhatsApp.')}catch(err){openModal('<h3>Salin pesan ini</h3><textarea rows="14" style="width:100%" readonly>'+esc(txt)+'</textarea><div class="row"><button class="btn" data-act="closeModal">Tutup</button></div>');const ta=$('#modalRoot textarea');ta.focus();ta.select()}return}
   if(a==='lockPay'){if(armed('lockPay'))lockPay();return}
+  if(a==='lockBlocked'){const d=document.querySelector('#main details.panel');if(d){d.open=true;d.scrollIntoView({behavior:'smooth',block:'start'})}toast('Payroll belum bisa dikunci. Perbaiki yang bertanda Salah, atau klik Memang benar kalau datanya memang benar.');return}
+  if(a==='cekOk'){if(isLocked()){toast('Periode ini sudah dikunci.');return}const c=payChecks(S.periodKey).find(x=>x.k===id);if(!confirm('Tandai benar: '+(c?c.t+' — '+c.s:id)+'?\n\nPakai hanya kalau datanya memang benar (bukan salah input).'))return;
+    const v={at:new Date().toISOString(),oleh:(S.backend&&S.backend.email)||''};patchPeriod({cekOk:{[id]:v}});histPer('Tandai benar','gaji',S.periodKey,{cekOk:{[id]:null}},{cekOk:{[id]:v}});logAct('gaji','Menandai pemeriksaan payroll benar',{ket:(c?c.t+': '+c.s:id)+' · '+periodLabel(S.periodKey)});render(true);toastUndo('Ditandai benar.');return}
   if(a==='unlockPay'){if(armed('unlockPay'))unlockPay();return}
   if(a==='cyPrev'||a==='cyNext'){S.cutiYear+=(a==='cyPrev'?-1:1);render(true);return}
   if(a==='impWarn'){$('#impWarnFile').click();return}
