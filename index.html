@@ -479,7 +479,7 @@ function payChecks(key){
   const prev=lockOf(shiftKey(key,-1));const ac=attChecks(key).filter(c=>/belum diisi/.test(c.s)).length;
   if(ac)out.push({lvl:'warn',id:'',t:'Absensi belum lengkap',s:ac+' karyawan masih punya hari kerja kosong. Lengkapi di halaman Absensi agar gaji tidak salah'});
   periodEmps(key).forEach(e=>{const r=liveCalc(e,key);const gp=+e.gajiPokok||0;const add=(lvl,s,code)=>out.push({lvl,id:e.id,t:e.nama,s,k:code?code+'|'+e.id:''});
-    if(!gp)add('bad','Gaji pokok kosong / 0. Isi di halaman Karyawan','gp0');
+    if(!gp){if(normJab(e.jabatan).includes('PENASEHAT'))add('info','Gaji pokok 0 (Penasehat): tidak dibayar lewat payroll','gp0');else add('bad','Gaji pokok kosong / 0. Isi di halaman Karyawan','gp0')}
     if(r.thp<0)add('bad','THP minus (Rp '+rp(r.thp)+'): potongan lebih besar dari pendapatan','thpmin');
     else if(r.thp===0&&gp)add('warn','THP Rp 0');
     if(e.metode==='HARIAN'&&gp&&!(r.c.H+(r.c.SH||0)+r.c.C))add('warn','Karyawan harian tanpa hari hadir: gaji dibayar Rp 0');

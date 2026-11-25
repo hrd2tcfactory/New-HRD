@@ -191,6 +191,11 @@ test('cek payroll: kasbon dobel dan rekening sama ditandai Salah, bisa ditandai 
   assert.equal(app.payChecks(OKT).filter((c) => c.lvl === 'bad').length, 1, 'yang ditandai benar tidak lagi memblokir');
 });
 
+test('cek payroll: penasehat dengan gaji 0 tidak memblokir kunci', () => {
+  setup({ emps: [emp({ gajiPokok: 0, jabatan: 'PENASEHAT' })], periods: { [OKT]: per({}) } });
+  assert.equal(app.payChecks(OKT).filter((c) => c.lvl === 'bad').length, 0);
+});
+
 test('cek payroll: lembur di hari alpha jadi peringatan', () => {
   setup({ emps: [emp({ gajiPokok: 4800000 })], periods: { [OKT]: per({ absensi: { K1: { '2026-10-05': 'A' } }, lembur: { K1: { '2026-10-05': 3 } } }) } });
   assert.ok(app.payChecks(OKT).some((c) => c.lvl === 'warn' && /absensinya A/.test(c.s)));
