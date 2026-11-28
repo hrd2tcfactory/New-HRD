@@ -2121,9 +2121,17 @@ function mesinTxt(bytes){const t=mesinTxtDecode(bytes);if(!t)throw new Error('Is
     const id=String(f[2]||'').trim();if(!id)return;const io=parseInt(f[dtI-1],10)||0;if(!people[id])people[id]={id,nama:String(f[3]||'').trim()};
     if(!from||date<from)from=date;if(!to||date>to)to=date;const a=absMin(date,min);if(!last||a>last.a)last={a,d:date,m:min};(scans[id]=scans[id]||[]).push(a);(log[id]=log[id]||[]).push([a,io,date,min])});
   if(!Object.keys(people).length)throw new Error('Tidak ada data scan di file ini.');
-  const jam={};for(const id in log){log[id].sort((x,y)=>x[0]-y[0]);jam[id]=mesinJam(log[id]);
-    pres[id]={};for(const d in jam[id]){const [i,o]=jam[id][d];pres[id][d]={first:i!=null?i:o,last:o!=null?o:i,n:(i!=null)+(o!=null)}}}
-  return {people,pres,scans,jam,from,to,sumber:'log USB',akhir:last}}
+  for(const id in log)log[id].sort((x,y)=>x[0]-y[0]);
+  return {people,pres,scans,log,jam:{},from,to,sumber:'log USB',akhir:last}}
+// Jam masuk–pulang tiap ID mesin sesuai karyawannya. Grup shift: pakai tombol masuk/pulang (shift malam, longshift).
+// Non-shift: tombol diabaikan (ada yang sering salah tekan), scan pertama = masuk, terakhir = pulang; sebelum 04.00 milik hari sebelumnya.
+function mesinJamHari(list){const dd={};list.forEach(([t,io,d,m])=>{let day=d,mm=m;if(m<MESIN_SHIFT){const x=parse(d);x.setDate(x.getDate()-1);day=iso(x);mm=m+1440}
+    const r=dd[day]||(dd[day]={a:mm,z:mm});r.a=Math.min(r.a,mm);r.z=Math.max(r.z,mm)});
+  const o={};for(const d in dd){const r=dd[d];o[d]=[r.a,r.z-r.a>=30?r.z:null]}return o}
+function mesinSusun(M){if(!M.log)return M;M.jam={};M.pres={};
+  for(const mid in M.log){const o=(M.map||{})[mid];const e=o&&o.id?S.emps[o.id]:null;const j=e&&!e.grupShift?mesinJamHari(M.log[mid]):mesinJam(M.log[mid]);M.jam[mid]=j;
+    const pr=M.pres[mid]={};for(const d in j){const [i,x]=j[d];pr[d]={first:i!=null?i:x,last:x!=null?x:i,n:(i!=null)+(x!=null)}}}
+  return M}
 // Pasangkan scan jadi jam masuk–pulang per hari kerja. Masuk mulai 21.00 = shift 00.00 hari berikutnya.
 // Pulang yang langsung disusul lembur masuk (≤ 1 jam) disambung (longshift). Menit relatif terhadap 00.00 hari kerja.
 function mesinJam(list){const sess=[];let cur=null,closed=null;
@@ -2141,7 +2149,7 @@ function mesinJam(list){const sess=[];let cur=null,closed=null;
 // jam masuk–pulang dari file Excel (tanpa kode masuk/pulang): scan pertama & terakhir per hari
 function mesinJamDariPres(pres){const jam={};for(const id in pres){jam[id]={};for(const d in pres[id]){const p=pres[id][d];jam[id][d]=[p.first,p.n>1?p.last:null]}}return jam}
 // Simpan jam scan ke periode (hanya untuk dilihat: tidak mengubah kode absensi, lembur atau gaji, jadi boleh juga untuk periode terkunci)
-function mesinJamSimpan(){const M=S.mesin;if(!M)return;const key=M.key;const {start,end}=periodRange(key);const s0=iso(start),s1=iso(end);const jam=M.jam||mesinJamDariPres(M.pres);
+function mesinJamSimpan(){const M=S.mesin;if(!M)return;const key=M.key;const {start,end}=periodRange(key);const s0=iso(start),s1=iso(end);const jam=M.log?M.jam:mesinJamDariPres(M.pres);
   const out={};let n=0;for(const mid in M.map){const id=M.map[mid].id;if(!id||!jam[mid])continue;for(const d in jam[mid]){if(d<s0||d>s1)continue;(out[id]=out[id]||{})[d]=jam[mid][d];n++}}
   if(!n){toast('Tidak ada jam scan karyawan yang cocok untuk periode ini.');return}
   const lo=M.from>s0?M.from:s0,hi=M.to<s1?M.to:s1;const ak=M.akhir&&M.akhir.d<=s1?{d:M.akhir.d,m:M.akhir.m}:null;
@@ -2198,7 +2206,7 @@ function mesinView(){
   const scTxt=sc=>'scan '+hhmm(sc.first)+(sc.n>1?'–'+hhmm(sc.last):'');
   const grp=(arr,fn)=>{const g={};arr.forEach(r=>{(g[r.e.id]=g[r.e.id]||{e:r.e,l:[]}).l.push(r)});return Object.values(g).sort((a,b)=>byRank(a.e,b.e)).map(x=>li(esc(x.e.nama),x.l.map(fn).join(' · '),'<span class="pill p-mute">'+x.l.length+' hari</span>')).join('')};
   return '<div class="mesinwrap"><h3>Cocokkan dengan mesin absen</h3>'+
-  '<p class="note" style="margin:0">File <b>'+esc(M.file)+'</b> ('+(M.jam?'log USB':'sheet '+esc(M.sumber))+'): '+esc(fmtD(M.from))+' – '+esc(fmtD(M.to))+'. Dibandingkan dengan absensi periode <b>'+esc(periodLabel(D.key))+'</b>, tanggal '+esc(fmtD(D.lo))+' – '+esc(fmtD(D.hi))+'. '+(M.jam?'Jam masuk dan pulang dibaca dari kode scan mesin; masuk mulai pukul 21.00 dihitung untuk shift 00.00 hari berikutnya.':'Scan sebelum pukul 04.00 dihitung untuk hari sebelumnya.')+'</p>'+
+  '<p class="note" style="margin:0">File <b>'+esc(M.file)+'</b> ('+(M.log?'log USB':'sheet '+esc(M.sumber))+'): '+esc(fmtD(M.from))+' – '+esc(fmtD(M.to))+'. Dibandingkan dengan absensi periode <b>'+esc(periodLabel(D.key))+'</b>, tanggal '+esc(fmtD(D.lo))+' – '+esc(fmtD(D.hi))+'. '+(M.log?'Karyawan grup shift: jam masuk dan pulang dibaca dari tombol masuk/pulang di mesin; masuk mulai pukul 21.00 dihitung untuk shift 00.00 hari berikutnya. Karyawan non-shift: scan pertama = masuk, terakhir = pulang.':'Scan sebelum pukul 04.00 dihitung untuk hari sebelumnya.')+'</p>'+
   '<div class="panel" style="margin:0"><h2>Jam masuk &amp; pulang</h2><p class="note" style="margin:0 0 8px">Simpan jam scan ke periode '+esc(periodLabel(D.key))+' untuk dilihat di Absensi → Jam scan. Kode absensi, lembur dan gaji tidak berubah, jadi bisa juga untuk periode yang sudah dikunci.'+(((S.periods[D.key]||{}).jamScanInfo)?' Jam scan periode ini sudah pernah disimpan; tanggal yang sama akan ditimpa.':'')+'</p><div class="row"><button class="btn primary" data-act="mesinJam">Simpan jam scan</button></div></div>'+
   '<div class="kpis"><div class="kpi"><span class="k">Di mesin, tidak ada di website</span><span class="v">'+D.unmapped.length+'</span></div><div class="kpi"><span class="k">Di website, tidak ada scan</span><span class="v">'+D.noScan.length+'</span></div><div class="kpi"><span class="k">Ada scan, absensi kosong / bukan hadir</span><span class="v">'+(kosong.length+beda.length)+'</span></div><div class="kpi"><span class="k">Tercatat hadir, tidak ada scan</span><span class="v">'+tanpa.length+'</span></div></div>'+
   '<details class="panel"'+(D.unmapped.length?' open':'')+'><summary style="cursor:pointer;font-weight:700">Pasangan nama mesin ↔ website: '+nOk+' dari '+nmMap+' cocok</summary><p class="note">Periksa pasangan yang otomatis, terutama nama pendek. Pilihan disimpan ke data karyawan dengan tombol Simpan pasangan, supaya bulan depan langsung cocok.</p>'+
@@ -2217,7 +2225,7 @@ async function mesinLoad(file){
   if(!window.XLSX&&!/\.(txt|dat|log)$/i.test(file.name)){toast('Pustaka Excel belum termuat. Coba lagi sebentar.');return}
   try{const buf=new Uint8Array(await file.arrayBuffer());const txt=/\.(txt|dat|log)$/i.test(file.name)||!(buf[0]===0x50&&buf[1]===0x4b)&&!(buf[0]===0xd0&&buf[1]===0xcf)&&!/\.(xlsx|xls|csv)$/i.test(file.name);
     const P0=txt?mesinTxt(buf):mesinParse(XLSX.read(buf,{type:'array'}));if(!Object.keys(P0.people).length)throw new Error('Tidak ada data scan di file ini.');
-    S.mesin=Object.assign(P0,{file:file.name,map:mesinMatch(P0.people)});S.mesin.key=mesinKey(S.mesin);openModal(mesinView())}
+    S.mesin=mesinSusun(Object.assign(P0,{file:file.name,map:mesinMatch(P0.people)}));S.mesin.key=mesinKey(S.mesin);openModal(mesinView())}
   catch(e){console.error(e);toast('File tidak bisa dibaca: '+e.message)}}
 function mesinIsi(){const M=S.mesin;if(!M)return;const D=mesinDiff();if(isLocked(D.key)){toast('Periode ini sudah dikunci.');return}
   const rows=D.rows.filter(r=>r.t==='kosong'&&!r.off);if(!rows.length){toast('Tidak ada hari kerja kosong yang ada scan.');return}
@@ -3245,7 +3253,7 @@ document.addEventListener('change',ev=>{
   if(t.id==='w_tgl'||t.id==='w_lama'){const s=addMonthsISO($('#w_tgl').value,+$('#w_lama').value||0);if(s&&+$('#w_lama').value)$('#w_sampai').value=s;return}
   if(t.id==='jamGrp'){S.jamGrp=t.value;render(true);return}
   if(t.id==='mesinFile'){if(t.files[0])mesinLoad(t.files[0]);return}
-  if(t.dataset&&t.dataset.mesin!=null&&S.mesin){S.mesin.map[t.dataset.mesin]={id:t.value,sc:t.value?1:0,src:t.value?'manual':''};openModal(mesinView());return}
+  if(t.dataset&&t.dataset.mesin!=null&&S.mesin){S.mesin.map[t.dataset.mesin]={id:t.value,sc:t.value?1:0,src:t.value?'manual':''};mesinSusun(S.mesin);openModal(mesinView());return}
   if(t.id==='bkFile'){if(t.files[0])backupRestore(t.files[0]);t.value='';return}
   if(t.id==='impWarnFile'){if(t.files[0])importWarns(t.files[0]);t.value='';return}
   if(t.id==='x_tgl'){const id=($('[data-act=exitSave]')||{}).dataset;const e=id&&S.emps[id.id];if(e)$('#xsum').innerHTML=exitSummary(e,t.value);return}
