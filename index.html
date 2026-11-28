@@ -308,6 +308,17 @@ tr.tdet>td{background:var(--surface-2);padding:0!important}table.dtab{width:100%
 .ppw{display:grid;grid-template-columns:240px minmax(0,1fr);gap:14px;align-items:start}.toc{padding:8px;display:flex;flex-direction:column;gap:1px;position:sticky;top:10px}
 .toc button{all:unset;cursor:pointer;font-size:13px;padding:7px 9px;border-radius:6px;color:var(--muted)}.toc button[aria-current="true"]{background:var(--accent-soft,var(--surface-2));color:var(--accent);font-weight:600}
 .tgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-top:12px}.tcard{border:1px solid var(--line);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:4px}.tsig{height:72px;background:#fff;border:1px dashed var(--line);border-radius:8px;display:flex;align-items:center;justify-content:center;margin-bottom:6px;color:#7a8394;font-size:12px}.tsig img{max-height:60px;max-width:90%}.tsig.big{height:120px}.tsig.big img{max-height:100px}.tchips{display:flex;flex-wrap:wrap;gap:4px;margin:4px 0 6px}.tchips .pill{font-size:11px}.tpad{width:100%;height:auto;aspect-ratio:640/220;background:#fff;border:1px dashed var(--line);border-radius:8px;touch-action:none;cursor:crosshair}.sd-sign img{max-height:34px;max-width:120px}.ppsign img{display:block;max-height:60px;margin:6px 0 4px auto}.ttdok{font-size:12px;color:var(--ok)}.ttdno{font-size:12px;color:var(--muted)}
+.jleg{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12px;color:var(--muted);margin:10px 0}.jleg i{display:inline-block;width:12px;height:12px;border-radius:3px;background:var(--line);vertical-align:-2px;margin-right:4px}
+.jw{overflow:auto;border:1px solid var(--line);border-radius:10px;max-height:70vh}.jg{border-collapse:separate;border-spacing:0;width:100%;font-variant-numeric:tabular-nums}
+.jg th,.jg td{padding:7px 3px;text-align:center;font-size:13px;line-height:1.3;min-width:44px;border-bottom:1px solid var(--line)}
+.jg tbody tr:nth-child(even) td{background:var(--soft,rgba(127,127,127,.05))}.jg td.o,.jg tbody tr:nth-child(even) td.o{background:rgba(127,127,127,.13)}
+.jg thead th{position:sticky;top:0;background:var(--surface);font-size:11px;font-weight:500;color:var(--muted);z-index:2}.jg thead th b{display:block;font-size:14px;color:var(--fg)}.jg thead th span{display:block;font-weight:400}.jg thead th.o b{color:var(--muted)}
+.jg .nm{position:sticky;left:0;background:var(--surface);text-align:left;padding:7px 10px;min-width:150px;max-width:170px;z-index:1;font-weight:600}.jg thead .nm{z-index:3}.jg .nm span{display:block;font-weight:400;font-size:11px;color:var(--muted)}
+.jg tbody tr:nth-child(even) .nm,.jg tbody tr:nth-child(even) .ck{background:var(--surface);background-image:linear-gradient(rgba(127,127,127,.05),rgba(127,127,127,.05))}
+.jg td .a{display:block;font-weight:600}.jg td .b{display:block;color:var(--muted);font-size:12px}.jg td .e{color:var(--muted);opacity:.5}
+.qq{color:var(--bad);font-weight:700}.qq.sm{font-size:11px}.jg td.bad{box-shadow:inset 0 -3px 0 var(--bad)}.okc{color:var(--ok)}
+.jg .ck{position:sticky;right:0;background:var(--surface);border-left:1px solid var(--line);min-width:58px;z-index:1}.jg thead .ck{z-index:3}
+.jg tbody tr:hover td{background:var(--accent-soft)}
 .ppa{line-height:1.6}.ppl{padding-left:20px;margin:4px 0}.ppl li{margin:4px 0}.ppsign{margin-top:22px;text-align:right}
 .auto{background:var(--accent-soft,var(--surface-2));color:var(--accent);border-radius:4px;padding:0 4px;font-weight:600;white-space:nowrap}
 .ppi{display:grid;grid-template-columns:96px minmax(0,1fr) auto;gap:6px;align-items:start;margin:6px 0}.ppi textarea{font:inherit;min-height:44px}.ppi select{font:inherit}
@@ -724,9 +735,42 @@ async function saveEmp(isNew){
   if(await saveDoc('employees/'+id,e)){logEmp(prev,e,isNew);histDoc((isNew?'Tambah ':'Ubah data ')+e.nama,'data','employees/'+id,isNew?null:prev,e,'emps',id);S.emps[id]=e;S.empSel=id;closeModal();toast('Data '+e.nama+' disimpan.');render(true)}
 }
 
+// ===== Absensi → Jam scan: jam masuk & pulang dari mesin, satu tabel sebulan =====
+const JAM_HADIR=['H','SH','LM','LTM'];
+function jamTxt2(m){const x=((m%1440)+1440)%1440;return pad(Math.floor(x/60))+'.'+pad(x%60)}
+function jamSel(e,d,J,A,info){// keterangan satu kotak
+  const r=((J[e.id]||{})[d])||null;if(!J[e.id])info=null;/* tidak ada di file mesin: tidak ditandai */const c=(A[e.id]||{})[d]||'';const had=JAM_HADIR.includes(c);const ada=info&&d>=info.dari&&d<=info.sampai;const part=info&&info.akhir&&d===info.akhir.d;
+  const i=r?r[0]:null,o=r?r[1]:null;let bad='';
+  if(ada&&!part){if(!r&&had)bad='tanpa';else if(r&&(i==null||o==null))bad=i==null?'masuk':'pulang'}
+  return {r,c,had,i,o,bad,ada,part}}
+function vAttJam(){const p=P();const J=p.jamScan||{},A=p.absensi||{},info=p.jamScanInfo||null;const dates=periodDates(S.periodKey).filter(d=>!info||(d>=info.dari&&d<=info.sampai));const hol=holidays();
+  const top=topbar('Absensi',true,attToggle());
+  if(!info)return top+'<div class="panel"><div class="empty">Belum ada jam scan untuk periode '+esc(periodLabel(S.periodKey))+'. Klik <b>Cocokkan mesin absen</b>, pilih file dari flashdisk mesin (.txt) atau Excel, lalu <b>Simpan jam scan</b>.</div></div>';
+  const g=S.jamGrp||'';const emps=periodEmps().filter(e=>(!g||(g==='-'?!e.grupShift:e.grupShift===g))&&(!S.q||(e.nama+' '+e.id).toLowerCase().includes(S.q.toLowerCase())));
+  const off=d=>parse(d).getDay()===0||hol.has(d);const H3=['Min','Sen','Sel','Rab','Kam','Jum','Sab'];
+  const head='<tr><th class="nm">Karyawan</th>'+dates.map(d=>'<th class="'+(off(d)?'o':'')+'">'+H3[parse(d).getDay()]+'<b>'+parse(d).getDate()+'</b>'+(info.akhir&&d===info.akhir.d?'<span>s/d '+jamTxt2(info.akhir.m)+'</span>':'')+'</th>').join('')+'<th class="ck">Perlu<br>dicek</th></tr>';
+  const body=emps.map(e=>{let n=0;const cells=dates.map(d=>{const x=jamSel(e,d,J,A,info);const cls=[off(d)?'o':'',x.bad?'bad':''].join(' ');if(x.bad)n++;
+      let tip=e.nama+' · '+fmtD(d)+' · kode '+(x.c||'kosong');if(!x.ada)tip+=' · di luar tanggal file mesin';
+      if(x.bad==='tanpa')tip+=' · tidak ada scan';if(x.bad==='masuk')tip+=' · tidak scan masuk';if(x.bad==='pulang')tip+=' · tidak scan pulang';
+      if(x.i!=null&&x.i<0)tip+=' · masuk malam sebelumnya (shift 00.00)';if(x.o!=null&&x.o>=1440)tip+=' · pulang lewat tengah malam';if(x.r&&!x.had)tip+=' · ada scan, kode '+(x.c||'kosong');
+      if(x.i!=null&&x.o!=null){const m=x.o-x.i;tip+=' · '+Math.floor(m/60)+' jam '+pad(m%60)+' menit'}
+      if(!x.r)return '<td class="'+cls+'" title="'+esc(tip)+'">'+(x.bad?'<span class="qq sm">absen?</span>':'<span class="e">·</span>')+'</td>';
+      return '<td class="'+cls+'" title="'+esc(tip)+'"><span class="a">'+(x.i==null?'<span class="qq">?</span>':jamTxt2(x.i))+'</span><span class="b">'+(x.o==null?(x.part?'':'<span class="qq">?</span>'):jamTxt2(x.o))+'</span></td>'}).join('');
+    return '<tr><td class="nm">'+esc(e.nama)+'<span>'+esc(J[e.id]?(e.grupShift?'Grup '+e.grupShift:(e.jabatan||'')):'Tidak ada di file mesin')+'</span></td>'+cells+'<td class="ck">'+(n?'<span class="pill p-bad">'+n+'</span>':J[e.id]?'<span class="okc">✓</span>':'<span class="sub">—</span>')+'</td></tr>'}).join('');
+  return top+'<div class="panel"><div class="row" style="justify-content:space-between;align-items:flex-start"><div><h2 style="margin:0">Jam masuk &amp; pulang</h2><p class="sub" style="margin:2px 0 0">Dari file '+esc(info.file||'mesin')+' · '+esc(fmtD(info.dari))+' – '+esc(fmtD(info.sampai))+'. Hanya untuk dilihat; kode absensi dan gaji tidak berubah.</p></div>'+
+   '<div class="row"><select id="jamGrp" aria-label="Filter grup shift"><option value="">Semua grup</option>'+GRUP.map(x=>'<option'+(g===x?' selected':'')+'>'+x+'</option>').join('')+'<option value="-"'+(g==='-'?' selected':'')+'>Non-shift</option></select><button class="btn" data-act="jamXlsx">Unduh Excel</button></div></div>'+
+   '<div class="jleg"><span><b>07.58</b> masuk · <span class="sub">17.02</span> pulang</span><span><b class="qq">?</b> lupa scan</span><span><b class="qq">absen?</b> kode hadir tapi tidak ada scan</span><span><i></i>Minggu / tanggal merah</span><span>Arahkan kursor ke kotak untuk keterangan</span></div>'+
+   '<div class="jw"><table class="jg"><thead>'+head+'</thead><tbody>'+(body||'<tr><td class="nm" colspan="'+(dates.length+2)+'">Tidak ada karyawan.</td></tr>')+'</tbody></table></div></div>'}
+async function jamXlsx(){if(!window.XLSX)return;const p=P();const J=p.jamScan||{},A=p.absensi||{},info=p.jamScanInfo;if(!info)return;const rows=[];
+  periodEmps().forEach(e=>periodDates(S.periodKey).forEach(d=>{const x=jamSel(e,d,J,A,info);if(!x.r&&!x.bad)return;
+    rows.push({ID:e.id,Nama:e.nama,Grup:e.grupShift||'',Tanggal:d,Kode:x.c,Masuk:x.i==null?'':jamTxt2(x.i)+(x.i<0?' (malam sebelumnya)':''),Pulang:x.o==null?'':jamTxt2(x.o)+(x.o>=1440?' (besok)':''),
+      'Lama (jam)':x.i!=null&&x.o!=null?Math.round((x.o-x.i)/6)/10:'',Catatan:{tanpa:'Kode hadir, tidak ada scan',masuk:'Tidak scan masuk',pulang:'Tidak scan pulang'}[x.bad]||(x.r&&!x.had?'Ada scan, kode '+(x.c||'kosong'):'')})}));
+  const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(rows),'JAM SCAN');
+  try{await S.dl.save({filename:'Jam scan '+periodLabel(S.periodKey)+'.xlsx',data:new Blob([XLSX.write(wb,{type:'array',bookType:'xlsx'})])});toast('Jam scan diunduh.')}catch(e){if(e&&e.code!=='declined')toast('Unduhan gagal.')}}
 // ===== Absensi =====
 function vAtt(){
   if(S.attMode==='hari')return vAttDay();
+  if(S.attMode==='jam')return vAttJam();
   const dates=periodDates(S.periodKey);const hol=holidays();const t=todayISO();const A=P().absensi||{};
   const emps=periodEmps().filter(e=>!S.q||(e.nama+' '+e.id).toLowerCase().includes(S.q.toLowerCase()));
   const head='<tr><th class="stick">Karyawan</th>'+dates.map(d=>{const dt=parse(d);const cls=(dt.getDay()===0?'sun':'')+(hol.has(d)?' hol':'')+(d===t?' today':'')+(d>t?' fut':'');return '<th class="'+cls+'" data-date="'+d+'" title="Klik untuk isi seluruh kolom dengan kode terpilih">'+dt.getDate()+'<span class="dw">'+DOW[dt.getDay()]+'</span></th>'}).join('')+['H','SH','I','S','C','A','LM','LTM'].map(c=>'<th class="tot">'+c+'</th>').join('')+'</tr>';
@@ -2062,7 +2106,46 @@ const MESIN_SHIFT=240;
 function xlsDate(v){if(v instanceof Date)return iso(v);if(typeof v==='number'){const d=new Date(Date.UTC(1899,11,30)+Math.round(Math.floor(v)*864e5));return d.getUTCFullYear()+'-'+pad(d.getUTCMonth()+1)+'-'+pad(d.getUTCDate())}
   const s=String(v==null?'':v).trim();let m=/^(\d{4})-(\d{1,2})-(\d{1,2})/.exec(s);if(m)return m[1]+'-'+pad(+m[2])+'-'+pad(+m[3]);m=/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{4})/.exec(s);return m?m[3]+'-'+pad(+m[2])+'-'+pad(+m[1]):''}
 function xlsMinutes(v){if(typeof v==='number')return Math.round((v-Math.floor(v))*1440)%1440;if(v instanceof Date)return v.getHours()*60+v.getMinutes();const m=/(\d{1,2})[:.](\d{2})/.exec(String(v||''));return m?(+m[1])*60+(+m[2]):null}
-const hhmm=m=>pad(Math.floor(m/60)%24)+'.'+pad(m%60)+(m>=1440?' (+1)':'');
+const hhmm=m=>{const x=((m%1440)+1440)%1440;return pad(Math.floor(x/60))+'.'+pad(x%60)+(m>=1440?' (+1)':m<0?' (malam sebelumnya)':'')};
+// Log USB mesin sidik jari (file .txt dari flashdisk). Isinya kadang disandikan (XOR satu byte);
+// tiap baris: No, Mchn, EnNo (ID mesin), Name, Mode, IOMd (1 masuk, 2 pulang, 5 lembur masuk, 6 lembur pulang), DateTime.
+function mesinTxtDecode(bytes){const dec=k=>{let o='';for(let i=0;i<bytes.length;i++)o+=String.fromCharCode(bytes[i]^k);return o};
+  const ok=t=>/\d{4}\/\d{2}\/\d{2}\s+\d{1,2}:\d{2}/.test(t.slice(0,4000));let t=dec(0);if(ok(t))return t;t=dec(0xD7);if(ok(t))return t;
+  for(let k=1;k<256;k++){if(k===0xD7)continue;const u=dec(k);if(ok(u))return u}return ''}
+function mesinTxt(bytes){const t=mesinTxtDecode(bytes);if(!t)throw new Error('Isi file tidak dikenali sebagai log mesin absen.');
+  const people={},pres={},scans={},log={};let from='',to='',last=null;
+  t.split(/\r\n|\n|\r|\u0085/).forEach(line=>{const f=line.split('\t');if(f.length<6)return;const dtI=f.findIndex(x=>/^\s*\d{4}\/\d{1,2}\/\d{1,2}\s+\d{1,2}:\d{2}/.test(x));if(dtI<4)return;
+    const m=/(\d{4})\/(\d{1,2})\/(\d{1,2})\s+(\d{1,2}):(\d{2})/.exec(f[dtI]);const date=m[1]+'-'+pad(+m[2])+'-'+pad(+m[3]);const min=(+m[4])*60+(+m[5]);
+    const id=String(f[2]||'').trim();if(!id)return;const io=parseInt(f[dtI-1],10)||0;if(!people[id])people[id]={id,nama:String(f[3]||'').trim()};
+    if(!from||date<from)from=date;if(!to||date>to)to=date;const a=absMin(date,min);if(!last||a>last.a)last={a,d:date,m:min};(scans[id]=scans[id]||[]).push(a);(log[id]=log[id]||[]).push([a,io,date,min])});
+  if(!Object.keys(people).length)throw new Error('Tidak ada data scan di file ini.');
+  const jam={};for(const id in log){log[id].sort((x,y)=>x[0]-y[0]);jam[id]=mesinJam(log[id]);
+    pres[id]={};for(const d in jam[id]){const [i,o]=jam[id][d];pres[id][d]={first:i!=null?i:o,last:o!=null?o:i,n:(i!=null)+(o!=null)}}}
+  return {people,pres,scans,jam,from,to,sumber:'log USB',akhir:last}}
+// Pasangkan scan jadi jam masuk–pulang per hari kerja. Masuk mulai 21.00 = shift 00.00 hari berikutnya.
+// Pulang yang langsung disusul lembur masuk (≤ 1 jam) disambung (longshift). Menit relatif terhadap 00.00 hari kerja.
+function mesinJam(list){const sess=[];let cur=null,closed=null;
+  for(const [t,io,d,m] of list){
+    if(io===1||(io===5&&!(closed&&t-closed.z<=60))){cur={a:t,d,m,in:true,z:null};sess.push(cur);closed=null}
+    else if(io===5){cur=closed;closed=null}
+    else if(cur&&t-cur.a<30)continue;// tertekan dua kali
+    else if(cur&&t-cur.a<=17*60){cur.z=t;if(io===2){closed=cur;cur=null}}
+    else{sess.push({a:t,d,m,in:false});cur=null;closed=null}}
+  const dd={};const geser=(d,n)=>{const x=parse(d);x.setDate(x.getDate()+n);return iso(x)};
+  sess.forEach(x=>{if(x.in){const day=x.m>=1260?geser(x.d,1):x.d;const b=absMin(day,0);const r=dd[day]||(dd[day]=[null,null]);if(r[0]==null)r[0]=x.a-b;if(x.z!=null)r[1]=x.z-b;return}
+    const pv=geser(x.d,-1),rp=dd[pv];if(x.m<720&&rp&&rp[0]!=null&&rp[1]==null&&x.a-absMin(pv,0)-rp[0]<=17*60){rp[1]=x.a-absMin(pv,0);return}
+    const day=(x.m<300||(x.m<720&&!rp&&!dd[x.d]))?pv:x.d;const r=dd[day]||(dd[day]=[null,null]);const o=x.a-absMin(day,0);r[1]=r[1]==null?o:Math.max(r[1],o)});
+  return dd}
+// jam masuk–pulang dari file Excel (tanpa kode masuk/pulang): scan pertama & terakhir per hari
+function mesinJamDariPres(pres){const jam={};for(const id in pres){jam[id]={};for(const d in pres[id]){const p=pres[id][d];jam[id][d]=[p.first,p.n>1?p.last:null]}}return jam}
+// Simpan jam scan ke periode (hanya untuk dilihat: tidak mengubah kode absensi, lembur atau gaji, jadi boleh juga untuk periode terkunci)
+function mesinJamSimpan(){const M=S.mesin;if(!M)return;const key=M.key;const {start,end}=periodRange(key);const s0=iso(start),s1=iso(end);const jam=M.jam||mesinJamDariPres(M.pres);
+  const out={};let n=0;for(const mid in M.map){const id=M.map[mid].id;if(!id||!jam[mid])continue;for(const d in jam[mid]){if(d<s0||d>s1)continue;(out[id]=out[id]||{})[d]=jam[mid][d];n++}}
+  if(!n){toast('Tidak ada jam scan karyawan yang cocok untuk periode ini.');return}
+  const lo=M.from>s0?M.from:s0,hi=M.to<s1?M.to:s1;const ak=M.akhir&&M.akhir.d<=s1?{d:M.akhir.d,m:M.akhir.m}:null;
+  patchPer(key,{jamScan:out,jamScanInfo:{file:M.file,dari:lo,sampai:hi,akhir:ak,diimpor:new Date().toISOString()}});
+  logAct('absen','Menyimpan jam scan mesin absen',{ket:Object.keys(out).length+' karyawan · '+n+' hari · '+periodLabel(key)+' · file '+M.file});
+  S.periodKey=key;S.attMode='jam';lsSet('hrd.att','jam');closeModal();render(true);toast('Jam scan '+periodLabel(key)+' disimpan.')}
 function mesinParse(wb){
   const people={},pres={},scans={};let from='',to='';
   const add=(id,nama,date,min)=>{if(!date||min==null||id==null||id==='')return;id=String(id).trim();if(!people[id])people[id]={id,nama:String(nama||'').trim()};
@@ -2086,7 +2169,7 @@ function mesinScore(m,w){const A=nameToks(m),B=nameToks(w);if(!A.length||!B.leng
   if(!strong)return 0;return (strong+ini*0.5)/A.length+0.01*(strong+ini)/B.length}
 function mesinMatch(people){
   const emps=empList(true);const out={};
-  for(const mid in people){const saved=emps.find(e=>String(e.idMesin||'')===mid);if(saved){out[mid]={id:saved.id,sc:1,src:'tersimpan'};continue}
+  for(const mid in people){const saved=emps.find(e=>String(e.idMesin||'')===mid);if(saved){out[mid]={id:saved.id,sc:9,src:'tersimpan'};continue}// pasangan tersimpan selalu menang dari tebakan nama
     let best=null,bs=0,second=0;emps.forEach(e=>{const sc=Math.max(mesinScore(people[mid].nama,e.nama),e.namaKtp?mesinScore(people[mid].nama,e.namaKtp):0);if(sc>bs){second=bs;bs=sc;best=e}else if(sc>second)second=sc});
     out[mid]=bs>=0.5&&bs-second>0.001?{id:best.id,sc:bs,src:'nama'}:{id:'',sc:bs,src:''}}
   // satu karyawan hanya boleh dipasangkan ke satu ID mesin: yang skornya tertinggi
@@ -2113,7 +2196,8 @@ function mesinView(){
   const scTxt=sc=>'scan '+hhmm(sc.first)+(sc.n>1?'–'+hhmm(sc.last):'');
   const grp=(arr,fn)=>{const g={};arr.forEach(r=>{(g[r.e.id]=g[r.e.id]||{e:r.e,l:[]}).l.push(r)});return Object.values(g).sort((a,b)=>byRank(a.e,b.e)).map(x=>li(esc(x.e.nama),x.l.map(fn).join(' · '),'<span class="pill p-mute">'+x.l.length+' hari</span>')).join('')};
   return '<div class="mesinwrap"><h3>Cocokkan dengan mesin absen</h3>'+
-  '<p class="note" style="margin:0">File <b>'+esc(M.file)+'</b> (sheet '+esc(M.sumber)+'): '+esc(fmtD(M.from))+' – '+esc(fmtD(M.to))+'. Dibandingkan dengan absensi periode <b>'+esc(periodLabel(D.key))+'</b>, tanggal '+esc(fmtD(D.lo))+' – '+esc(fmtD(D.hi))+'. Scan sebelum pukul 04.00 dihitung untuk hari sebelumnya.</p>'+
+  '<p class="note" style="margin:0">File <b>'+esc(M.file)+'</b> ('+(M.jam?'log USB':'sheet '+esc(M.sumber))+'): '+esc(fmtD(M.from))+' – '+esc(fmtD(M.to))+'. Dibandingkan dengan absensi periode <b>'+esc(periodLabel(D.key))+'</b>, tanggal '+esc(fmtD(D.lo))+' – '+esc(fmtD(D.hi))+'. '+(M.jam?'Jam masuk dan pulang dibaca dari kode scan mesin; masuk mulai pukul 21.00 dihitung untuk shift 00.00 hari berikutnya.':'Scan sebelum pukul 04.00 dihitung untuk hari sebelumnya.')+'</p>'+
+  '<div class="panel" style="margin:0"><h2>Jam masuk &amp; pulang</h2><p class="note" style="margin:0 0 8px">Simpan jam scan ke periode '+esc(periodLabel(D.key))+' untuk dilihat di Absensi → Jam scan. Kode absensi, lembur dan gaji tidak berubah, jadi bisa juga untuk periode yang sudah dikunci.'+(((S.periods[D.key]||{}).jamScanInfo)?' Jam scan periode ini sudah pernah disimpan; tanggal yang sama akan ditimpa.':'')+'</p><div class="row"><button class="btn primary" data-act="mesinJam">Simpan jam scan</button></div></div>'+
   '<div class="kpis"><div class="kpi"><span class="k">Di mesin, tidak ada di website</span><span class="v">'+D.unmapped.length+'</span></div><div class="kpi"><span class="k">Di website, tidak ada scan</span><span class="v">'+D.noScan.length+'</span></div><div class="kpi"><span class="k">Ada scan, absensi kosong / bukan hadir</span><span class="v">'+(kosong.length+beda.length)+'</span></div><div class="kpi"><span class="k">Tercatat hadir, tidak ada scan</span><span class="v">'+tanpa.length+'</span></div></div>'+
   '<details class="panel"'+(D.unmapped.length?' open':'')+'><summary style="cursor:pointer;font-weight:700">Pasangan nama mesin ↔ website: '+nOk+' dari '+nmMap+' cocok</summary><p class="note">Periksa pasangan yang otomatis, terutama nama pendek. Pilihan disimpan ke data karyawan dengan tombol Simpan pasangan, supaya bulan depan langsung cocok.</p>'+
    '<div class="tablewrap" style="max-height:44vh"><table><thead><tr><th>ID mesin</th><th>Nama di mesin</th><th>Karyawan di website</th><th></th></tr></thead><tbody>'+
@@ -2126,10 +2210,11 @@ function mesinView(){
   (()=>{const TA=mesinTelatAll(D);const tl=TA.late;const by={};tl.forEach(r=>{(by[r.e.id]=by[r.e.id]||{e:r.e,l:[]}).l.push(r)});return '<div class="panel"><h2>Telat menurut mesin<small>'+tl.length+' hari telat · '+TA.cek.length+' perlu dicek</small></h2><div class="list">'+(tl.length?Object.values(by).sort((a,b)=>byRank(a.e,b.e)).map(x=>li(esc(x.e.nama),x.l.map(r=>esc(fmtD(r.d).replace(/ \d{4}$/,''))+' '+r.m+' mnt'+(r.e.grupShift?' (masuk '+esc(jamTxt(r.j))+')':'')).join(' · '),'<span class="pill p-warn">'+x.l.reduce((a,r)=>a+Math.ceil(r.m/60),0)+' jam</span>')).join(''):'<div class="empty">Tidak ada telat baru.</div>')+'</div><p class="note" style="margin:8px 0 0">Hanya hari bertanda H (Senin–Sabtu). Karyawan shift dibandingkan dengan jam shift grupnya; yang tidak dipotong telat dilewati. Hari tanpa scan masuk masuk ke tab Perlu dicek, tidak dipotong otomatis. Telat dengan keterangan bisa dicentang di tab Rekap setelahnya.</p>'+((tl.length||TA.cek.length)&&!locked?'<div class="row" style="margin-top:8px"><button class="btn primary" data-act="mesinTelat">Catat '+tl.length+' hari telat'+(TA.cek.length?' & '+TA.cek.length+' perlu dicek':'')+'</button></div>':'')+'</div>'})()+
   '<div class="row"><button class="btn primary" data-act="mesinIsi"'+(locked||!isi.length?' disabled':'')+'>Isi H untuk '+isi.length+' hari kerja yang ada scan</button><button class="btn" data-act="mesinSimpan">Simpan pasangan nama</button><button class="btn" data-act="mesinXlsx">Unduh hasil (Excel)</button><button class="btn" data-act="mesinFile">Pilih file lain</button><button class="btn" data-act="closeModal">Tutup</button></div>'+
   (locked?'<p class="note" style="margin:0">Payroll '+esc(periodLabel(D.key))+' sudah dikunci, jadi absensi tidak bisa diisi dari sini.</p>':'<p class="note" style="margin:0">Tombol Isi hanya mengisi sel yang masih kosong di hari kerja. Hari Minggu/libur dan kode yang sudah ada tidak diubah; periksa sendiri. Bisa diurungkan dengan ↶.</p>')+'</div>'}
-function mesinOpen(){openModal('<div class="mesinwrap"><h3>Cocokkan dengan mesin absen</h3><p class="note" style="margin:0">Pilih file Excel dari mesin absen sidik jari (sheet berisi kolom ID, Nama, Tanggal dan Jam, atau rekap harian dengan kolom Semua Scan). Website membandingkannya dengan absensi yang tersimpan dan menunjukkan siapa yang tidak terdata.</p><label>File mesin absen<input id="mesinFile" type="file" accept=".xlsx,.xls,.csv"></label><div class="row"><button class="btn" data-act="closeModal">Tutup</button></div></div>')}
+function mesinOpen(){openModal('<div class="mesinwrap"><h3>Cocokkan dengan mesin absen</h3><p class="note" style="margin:0">Pilih file dari flashdisk mesin absen sidik jari (.txt), atau file Excel (sheet berisi kolom ID, Nama, Tanggal dan Jam, atau rekap harian dengan kolom Semua Scan). Website membandingkannya dengan absensi yang tersimpan dan menunjukkan siapa yang tidak terdata.</p><label>File mesin absen<input id="mesinFile" type="file" accept=".txt,.dat,.xlsx,.xls,.csv"></label><div class="row"><button class="btn" data-act="closeModal">Tutup</button></div></div>')}
 async function mesinLoad(file){
-  if(!window.XLSX){toast('Pustaka Excel belum termuat. Coba lagi sebentar.');return}
-  try{const wb=XLSX.read(await file.arrayBuffer(),{type:'array'});const P0=mesinParse(wb);if(!Object.keys(P0.people).length)throw new Error('Tidak ada data scan di file ini.');
+  if(!window.XLSX&&!/\.(txt|dat|log)$/i.test(file.name)){toast('Pustaka Excel belum termuat. Coba lagi sebentar.');return}
+  try{const buf=new Uint8Array(await file.arrayBuffer());const txt=/\.(txt|dat|log)$/i.test(file.name)||!(buf[0]===0x50&&buf[1]===0x4b)&&!(buf[0]===0xd0&&buf[1]===0xcf)&&!/\.(xlsx|xls|csv)$/i.test(file.name);
+    const P0=txt?mesinTxt(buf):mesinParse(XLSX.read(buf,{type:'array'}));if(!Object.keys(P0.people).length)throw new Error('Tidak ada data scan di file ini.');
     S.mesin=Object.assign(P0,{file:file.name,map:mesinMatch(P0.people)});S.mesin.key=mesinKey(S.mesin);openModal(mesinView())}
   catch(e){console.error(e);toast('File tidak bisa dibaca: '+e.message)}}
 function mesinIsi(){const M=S.mesin;if(!M)return;const D=mesinDiff();if(isLocked(D.key)){toast('Periode ini sudah dikunci.');return}
@@ -2306,7 +2391,7 @@ function empCheck(){
   return {err,warn}}
 
 // ===== Absensi: mode isi per hari =====
-function attToggle(){return '<button class="btn" data-act="mesinOpen">Cocokkan mesin absen</button><div class="segtab" role="group" aria-label="Tampilan absensi"><button data-act="attMode" data-id="hari" aria-pressed="'+(S.attMode==='hari')+'">Per hari</button><button data-act="attMode" data-id="tabel" aria-pressed="'+(S.attMode!=='hari')+'">Tabel sebulan</button></div>'}
+function attToggle(){return '<button class="btn" data-act="mesinOpen">Cocokkan mesin absen</button><div class="segtab" role="group" aria-label="Tampilan absensi"><button data-act="attMode" data-id="hari" aria-pressed="'+(S.attMode==='hari')+'">Per hari</button><button data-act="attMode" data-id="tabel" aria-pressed="'+(S.attMode!=='hari'&&S.attMode!=='jam')+'">Tabel sebulan</button><button data-act="attMode" data-id="jam" aria-pressed="'+(S.attMode==='jam')+'">Jam scan</button></div>'}
 function attDay(){const ds=periodDates(S.periodKey);const t=todayISO();if(S.attDay&&ds.includes(S.attDay))return S.attDay;return S.attDay=ds.includes(t)?t:(t>ds[ds.length-1]?ds[ds.length-1]:ds[0])}
 function attProg(d){const A=P().absensi||{};const emps=periodEmps();const n=emps.filter(e=>(A[e.id]||{})[d]).length;return {n,tot:emps.length}}
 function vAttDay(){
@@ -3098,6 +3183,8 @@ document.addEventListener('click',async ev=>{
     logAct('absen',a==='ckIsi'?'Mengisi telat dari daftar perlu dicek · '+enm(items[0][0]):'Menandai tidak telat',{ket:a==='ckIsi'?fmtD(items[0][1])+' · '+m+' menit':items.length+' hari'});
     render(true);toastUndo(a==='ckIsi'?'Telat '+m+' menit dicatat.':items.length+' hari ditandai tidak telat.');return}
   if(a==='mesinSimpan')return mesinSimpan();
+  if(a==='mesinJam')return mesinJamSimpan();
+  if(a==='jamXlsx')return jamXlsx();
   if(a==='mesinXlsx')return mesinXlsx();
   if(a==='logXlsx')return logXlsx();
   if(a==='remSave'){if(await remSave())render(true);return}
@@ -3154,6 +3241,7 @@ document.addEventListener('change',ev=>{
   if(ev.target.dataset&&ev.target.dataset.identmap!=null&&S.impId){const o=S.impId.ent[+ev.target.dataset.identmap];o.emp=ev.target.value;o.nameOk=o.emp?nameScore(o.nama,S.emps[o.emp].nama)>=.5||true:false;identPreview();return}
   const t=ev.target;
   if(t.id==='w_tgl'||t.id==='w_lama'){const s=addMonthsISO($('#w_tgl').value,+$('#w_lama').value||0);if(s&&+$('#w_lama').value)$('#w_sampai').value=s;return}
+  if(t.id==='jamGrp'){S.jamGrp=t.value;render(true);return}
   if(t.id==='mesinFile'){if(t.files[0])mesinLoad(t.files[0]);return}
   if(t.dataset&&t.dataset.mesin!=null&&S.mesin){S.mesin.map[t.dataset.mesin]={id:t.value,sc:t.value?1:0,src:t.value?'manual':''};openModal(mesinView());return}
   if(t.id==='bkFile'){if(t.files[0])backupRestore(t.files[0]);t.value='';return}

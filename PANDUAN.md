@@ -117,6 +117,8 @@ Ringkasan rutinitas tiap tanggal tutup absen:
 5. **Kirim slip via email…** (pilih semua, yang belum terkirim, atau orang tertentu; yang sudah pernah dikirim otomatis sebagai REVISI).
 6. Unduh **Laporan** bulanan dan **cadangan data** (Pengaturan → Cadangan data).
 
-Aturan telat, jam shift, jadwal grup minggu ini, masa berlaku SP, dan nama Direktur diatur di **Pengaturan**. SOP, Peraturan Perusahaan, dan Struktur Organisasi ada di kelompok menu **Dokumen**.
+Aturan telat, jam shift, jadwal grup minggu ini, masa berlaku SP, dan nama Direktur diatur di **Pengaturan**. **Jam masuk & pulang dari mesin absen:** colokkan flashdisk dari mesin sidik jari, lalu di **Absensi → Cocokkan mesin absen** pilih file `.txt`-nya (file Excel juga bisa). Periksa pasangan nama, lalu klik **Simpan jam scan**. Hasilnya ada di **Absensi → Jam scan**: jam masuk tebal, jam pulang tipis, garis merah = lupa scan atau kode hadir tanpa scan. Menyimpan jam scan tidak mengubah kode absensi atau gaji, jadi aman juga untuk bulan yang sudah dikunci.
+
+SOP, Peraturan Perusahaan, dan Struktur Organisasi ada di kelompok menu **Dokumen**.
 
 Tanda tangan digital disimpan sekali per orang di **Pengaturan → Daftar tanda tangan** (unggah foto/scan atau gambar langsung di layar). Surat, SOP, dan Peraturan Perusahaan otomatis memakai tanda tangan orang yang namanya tertulis sebagai penanda tangan; slip gaji sementara tidak memakai tanda tangan digital. Kartu berlabel "Gambar belum ada" menunjukkan nama yang sudah dipakai di dokumen tetapi belum punya tanda tangan.
