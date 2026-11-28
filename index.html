@@ -2153,7 +2153,10 @@ function mesinJamDariPres(pres){const jam={};for(const id in pres){jam[id]={};fo
 function mesinJamSimpan(){const M=S.mesin;if(!M)return;const key=M.key;const {start,end}=periodRange(key);const s0=iso(start),s1=iso(end);const jam=M.log?M.jam:mesinJamDariPres(M.pres);
   const out={};let n=0;for(const mid in M.map){const id=M.map[mid].id;if(!id||!jam[mid])continue;for(const d in jam[mid]){if(d<s0||d>s1)continue;(out[id]=out[id]||{})[d]=jam[mid][d];n++}}
   if(!n){toast('Tidak ada jam scan karyawan yang cocok untuk periode ini.');return}
-  const lo=M.from>s0?M.from:s0,hi=M.to<s1?M.to:s1;const ak=M.akhir&&M.akhir.d<=s1?{d:M.akhir.d,m:M.akhir.m}:null;
+  const lo=M.from>s0?M.from:s0,hi=M.to<s1?M.to:s1;
+  // impor ulang: tanggal lama di rentang file yang tidak ada lagi di hasil baru dikosongkan (null), supaya sisa hitungan lama tidak tertinggal
+  const lama=((S.periods[key]||{}).jamScan)||{};for(const id in out)for(const d in (lama[id]||{}))if(d>=lo&&d<=hi&&!(d in out[id])&&lama[id][d]!=null)out[id][d]=null;
+  const ak=M.akhir&&M.akhir.d<=s1?{d:M.akhir.d,m:M.akhir.m}:null;
   patchPer(key,{jamScan:out,jamScanInfo:{file:M.file,dari:lo,sampai:hi,akhir:ak,diimpor:new Date().toISOString()}});
   logAct('absen','Menyimpan jam scan mesin absen',{ket:Object.keys(out).length+' karyawan · '+n+' hari · '+periodLabel(key)+' · file '+M.file});
   S.periodKey=key;S.attMode='jam';lsSet('hrd.att','jam');closeModal();render(true);toast('Jam scan '+periodLabel(key)+' disimpan.')}
