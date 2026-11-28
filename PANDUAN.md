@@ -119,4 +119,4 @@ Ringkasan rutinitas tiap tanggal tutup absen:
 
 Aturan telat, jam shift, jadwal grup minggu ini, masa berlaku SP, dan nama Direktur diatur di **Pengaturan**. SOP, Peraturan Perusahaan, dan Struktur Organisasi ada di kelompok menu **Dokumen**.
 
-Tanda tangan digital disimpan sekali per orang di **Pengaturan → Daftar tanda tangan** (unggah foto/scan atau gambar langsung di layar). Slip gaji, surat, SOP, dan Peraturan Perusahaan otomatis memakai tanda tangan orang yang namanya tertulis sebagai penanda tangan. Kartu berlabel "Gambar belum ada" menunjukkan nama yang sudah dipakai di dokumen tetapi belum punya tanda tangan.
+Tanda tangan digital disimpan sekali per orang di **Pengaturan → Daftar tanda tangan** (unggah foto/scan atau gambar langsung di layar). Surat, SOP, dan Peraturan Perusahaan otomatis memakai tanda tangan orang yang namanya tertulis sebagai penanda tangan; slip gaji sementara tidak memakai tanda tangan digital. Kartu berlabel "Gambar belum ada" menunjukkan nama yang sudah dipakai di dokumen tetapi belum punya tanda tangan.
