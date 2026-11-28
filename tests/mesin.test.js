@@ -56,7 +56,7 @@ test('karyawan non-shift yang salah tekan tombol: scan pertama = masuk, terakhir
   const f = logFile([
     ['58', 'ENJANG', '002', '2026/11/19  07:00:04'], ['58', 'ENJANG', '002', '2026/11/19  16:20:22'],
     ['65', 'RIDWAN', '002', '2026/11/19  07:15:15'], ['65', 'RIDWAN', '001', '2026/11/19  16:06:34'],
-    ['65', 'RIDWAN', '002', '2026/11/20  07:22:17'],
+    ['65', 'RIDWAN', '002', '2026/11/20  07:22:17'], ['58', 'ENJANG', '002', '2026/11/21  16:30:00'],
   ], 0xd7);
   app.S.emps = { K039: { id: 'K039', nama: 'ENJANG' }, K046: { id: 'K046', nama: 'RIDWAN' } };
   const M = app.mesinTxt(f);
@@ -65,6 +65,7 @@ test('karyawan non-shift yang salah tekan tombol: scan pertama = masuk, terakhir
   assert.deepStrictEqual(J(M.jam['58']['2026-11-19']), [420, 980]);
   assert.deepStrictEqual(J(M.jam['65']['2026-11-19']), [435, 966]);
   assert.deepStrictEqual(J(M.jam['65']['2026-11-20']), [442, null]);
+  assert.deepStrictEqual(J(M.jam['58']['2026-11-21']), [null, 990]);
   // tanpa pasangan karyawan (atau karyawan shift) tetap memakai tombol: pagi "pulang" tidak dianggap masuk
   M.map = {};
   app.mesinSusun(M);

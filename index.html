@@ -2127,7 +2127,8 @@ function mesinTxt(bytes){const t=mesinTxtDecode(bytes);if(!t)throw new Error('Is
 // Non-shift: tombol diabaikan (ada yang sering salah tekan), scan pertama = masuk, terakhir = pulang; sebelum 04.00 milik hari sebelumnya.
 function mesinJamHari(list){const dd={};list.forEach(([t,io,d,m])=>{let day=d,mm=m;if(m<MESIN_SHIFT){const x=parse(d);x.setDate(x.getDate()-1);day=iso(x);mm=m+1440}
     const r=dd[day]||(dd[day]={a:mm,z:mm});r.a=Math.min(r.a,mm);r.z=Math.max(r.z,mm)});
-  const o={};for(const d in dd){const r=dd[d];o[d]=[r.a,r.z-r.a>=30?r.z:null]}return o}
+  // hanya satu scan: sebelum 12.00 = masuk, sesudahnya = pulang
+  const o={};for(const d in dd){const r=dd[d];o[d]=r.z-r.a>=30?[r.a,r.z]:r.a<720?[r.a,null]:[null,r.z]}return o}
 function mesinSusun(M){if(!M.log)return M;M.jam={};M.pres={};
   for(const mid in M.log){const o=(M.map||{})[mid];const e=o&&o.id?S.emps[o.id]:null;const j=e&&!e.grupShift?mesinJamHari(M.log[mid]):mesinJam(M.log[mid]);M.jam[mid]=j;
     const pr=M.pres[mid]={};for(const d in j){const [i,x]=j[d];pr[d]={first:i!=null?i:x,last:x!=null?x:i,n:(i!=null)+(x!=null)}}}
