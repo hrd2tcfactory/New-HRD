@@ -22,7 +22,7 @@ function fakeEl() {
 }
 
 const EXPORTS = ['S', 'liveCalc', 'calc', 'proRange', 'workDays', 'periodRange', 'periodDates', 'keyFor', 'counts',
-  'kasbonFor', 'loanDeduction', 'otRate', 'shRateFor', 'mealDays', 'cutiSisa', 'cutiUsed', 'payEmp', 'slipCutiHtml', 'payChecks', 'shiftOf', 'jadwalMasuk', 'mesinTelatAll', 'absMin', 'telatHitung', 'iso', 'parse', 'mesinTxt', 'mesinJam'];
+  'kasbonFor', 'loanDeduction', 'otRate', 'shRateFor', 'mealDays', 'cutiSisa', 'cutiUsed', 'payEmp', 'slipCutiHtml', 'payChecks', 'shiftOf', 'jadwalMasuk', 'mesinTelatAll', 'absMin', 'telatHitung', 'iso', 'parse', 'mesinTxt', 'mesinJam', 'jamKerjaBaca'];
 
 function loadApp() {
   const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');

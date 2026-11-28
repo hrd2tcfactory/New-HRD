@@ -40,3 +40,12 @@ test('mesin: karyawan shift dibandingkan dengan jam shift grup, longshift dan sc
   assert.deepEqual(plain(late.map((r) => [r.e.id, r.d, r.m, r.j])), [['K1', '2026-11-17', 49, '00:00'], ['K2', '2026-11-17', 20, '08:00']]);
   assert.deepEqual(plain(cek.map((r) => [r.e.id, r.d, r.k])), [['K1', '2026-11-18', 'lupa']]);
 });
+
+test('jam kerja sendiri (OB 07.00–16.00) dipakai sebagai jam masuk non-shift', () => {
+  const a = require('./app').loadApp();
+  a.S.settings = { jamMasuk: '08:00' };
+  assert.strictEqual(a.jadwalMasuk({ id: 'X', jamMasuk: '07:00' }, '2026-12-01'), '07:00');
+  assert.strictEqual(a.jadwalMasuk({ id: 'Y' }, '2026-12-01'), '08:00');
+  assert.deepStrictEqual(JSON.parse(JSON.stringify(a.jamKerjaBaca('7.00 - 16.00'))), { jamMasuk: '07:00', jamPulang: '16:00' });
+  assert.deepStrictEqual(JSON.parse(JSON.stringify(a.jamKerjaBaca(''))), { jamMasuk: '', jamPulang: '' });
+});
