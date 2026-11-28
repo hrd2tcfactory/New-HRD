@@ -201,6 +201,14 @@ test('cek payroll: lembur di hari alpha jadi peringatan', () => {
   assert.ok(app.payChecks(OKT).some((c) => c.lvl === 'warn' && /absensinya A/.test(c.s)));
 });
 
+test('bulan arsip (HR Sistem lama) tidak mengubah sisa cuti', () => {
+  setup({ emps: [emp({ kuotaCuti: 12, cutiTerpakaiAwal: 4 })], settings: { cutiAwalTahun: 2026, cutiMulaiBulan: 4 }, periods: { [OKT]: per({ absensi: { K1: { '2026-10-01': 'C' } } }) } });
+  const before = app.cutiSisa(S.emps.K1, 2026);
+  S.periods['2026-08'] = { key: '2026-08', arsip: true, absensi: { K1: { '2026-08-03': 'C', '2026-08-04': 'C' } }, lembur: {}, kunci: { at: 'x', rows: {} } };
+  assert.equal(app.cutiSisa(S.emps.K1, 2026), before);
+  assert.equal(before, 7);
+});
+
 test('telat tanpa keterangan: per jam yang dimulai × Rp 10.000', () => {
   const telat = { '2026-10-01': 5, '2026-10-02': 60, '2026-10-05': 61, '2026-10-06': 0, '2026-09-01': 30 };
   setup({ emps: [emp({ gajiPokok: 4800000, jabatan: 'OPERATOR CNC' })], periods: { [OKT]: per({ telat: { K1: telat } }) } });
