@@ -1993,7 +1993,10 @@ const PP_DEFAULT={judul:'PERATURAN PERUSAHAAN',dasar:'Maret 2026',revisi:'Novemb
  {j:'Pengunduran diri',i:[['baru','Karyawan yang mengundurkan diri mengajukan surat pengunduran diri paling lambat 30 hari sebelumnya.'],['baru','Karyawan yang keluar menerima surat keterangan kerja (paklaring).']]},
  {j:'Penutup',i:[['','Peraturan ini berlaku untuk seluruh karyawan dan wajib dipatuhi. Pelanggaran terhadap peraturan akan dikenakan sanksi sesuai ketentuan yang berlaku.']]}]};
 const PP_TAHAP=['Susun draf','Minta masukan wakil karyawan','Ajukan ke Disnaker','Sah · bagikan ke karyawan'];
-function ppData(){const d=(S.dok||{}).peraturan;return d&&Array.isArray(d.poin)?d:clone(PP_DEFAULT)}
+// Firestore tidak menerima array di dalam array: tiap aturan disimpan sebagai {t,s}, dipakai di layar sebagai [t,s]
+function ppToDb(d){return Object.assign({},d,{poin:d.poin.map(p=>({j:p.j,i:p.i.map(x=>Array.isArray(x)?{t:x[0]||'',s:x[1]||''}:x)}))})}
+function ppFromDb(d){return Object.assign({},d,{poin:d.poin.map(p=>({j:p.j||'',i:(p.i||[]).map(x=>Array.isArray(x)?x:[(x&&x.t)||'',(x&&x.s)||''])}))})}
+function ppData(){const d=(S.dok||{}).peraturan;return d&&Array.isArray(d.poin)?ppFromDb(d):clone(PP_DEFAULT)}
 function ppVals(){const st=S.settings||{};const c=telatCfg();const tp=st.telatToleransiPP!=null&&st.telatToleransiPP!==''?+st.telatToleransiPP:c.tol;
   return {toleransi:tp+' menit',tarifTelat:'Rp '+rp(c.tarif),kuotaCuti:((+st.kuotaCutiDefault)||12)+' hari',spLama:spLamaDef()+' bulan'}}
 function ppText(t,html){const v=ppVals();return String(t||'').replace(/\{(\w+)\}/g,(m,k)=>v[k]==null?m:(html?'<span class="auto" title="Diambil dari Pengaturan">'+esc(v[k])+'</span>':v[k]))}
@@ -2015,7 +2018,7 @@ function ppPrintHtml(d){const st=S.settings||{};return '<h1 style="text-align:ce
 function ppWord(){const d=ppData();const st=S.settings||{};const b=[{p:'Nama Perusahaan: '+(st.nama||'CV Sopandi Tekno Utama')},{p:'Tahun berlaku: '+(d.revisi||d.dasar||'')}];
   d.poin.forEach((p,i)=>b.push({h:(i+1)+'. '+String(p.j).toUpperCase(),ul:p.i.map(([t,s])=>ppText(s,false))}));docWord('Peraturan Perusahaan '+(d.revisi||'')+'.docx',d.judul||'PERATURAN PERUSAHAAN',b,[['',''],['Direktur',st.direktur||'','']])}
 async function ppSave(){const d=S.ppDraft;if(!d)return;d.poin=d.poin.map(p=>({j:String(p.j||'').trim(),i:p.i.map(([t,s])=>[t||'',String(s||'').trim()]).filter(x=>x[1])})).filter(p=>p.j||p.i.length);d.diubah=new Date().toISOString();
-  if(await saveDoc('dokumen/peraturan',d)){(S.dok=S.dok||{}).peraturan=d;S.ppDraft=null;logAct('data','Mengubah Peraturan Perusahaan',{ket:d.poin.length+' poin'});toast('Peraturan Perusahaan disimpan.');render(true)}}
+  const db=ppToDb(d);if(await saveDoc('dokumen/peraturan',db)){(S.dok=S.dok||{}).peraturan=db;S.ppDraft=null;logAct('data','Mengubah Peraturan Perusahaan',{ket:d.poin.length+' poin'});toast('Peraturan Perusahaan disimpan.');render(true)}}
 
 // --- Struktur Organisasi (otomatis dari jabatan di data karyawan) ---
 const ORG_LIST=[['eng','CAM Produksi',j=>j.includes('CAM')],['eng','Programmer',j=>j.includes('PROGRAMMER')],['eng','PPIC',j=>j.includes('PPIC')],['eng','Design',j=>j.includes('DESIGN')||j.includes('DESAIN')],
@@ -3004,7 +3007,7 @@ document.addEventListener('click',async ev=>{
   if(a==='ppDelI'){const d=S.ppDraft;d.poin[Math.min(S.ppCur||0,d.poin.length-1)].i.splice(+id,1);render(true);return}
   if(a==='ppAddP'){const d=S.ppDraft;d.poin.push({j:'Poin baru',i:[['baru','']]});S.ppCur=d.poin.length-1;render(true);return}
   if(a==='ppDelP'){const d=S.ppDraft;const c=Math.min(S.ppCur||0,d.poin.length-1);if(!confirm('Hapus poin "'+d.poin[c].j+'"?'))return;d.poin.splice(c,1);S.ppCur=Math.max(0,c-1);render(true);return}
-  if(a==='ppTahap'){if(S.readonly)return;const d=clone((S.dok||{}).peraturan||ppData());d.tahap=+id;if(S.ppDraft)S.ppDraft.tahap=+id;if(await saveDoc('dokumen/peraturan',d)){(S.dok=S.dok||{}).peraturan=d;logAct('data','Tahap Peraturan Perusahaan',{ke:PP_TAHAP[+id-1]})}render(true);return}
+  if(a==='ppTahap'){if(S.readonly)return;const d=ppToDb(clone(ppData()));d.tahap=+id;if(S.ppDraft)S.ppDraft.tahap=+id;if(await saveDoc('dokumen/peraturan',d)){(S.dok=S.dok||{}).peraturan=d;logAct('data','Tahap Peraturan Perusahaan',{ke:PP_TAHAP[+id-1]})}render(true);return}
   if(a==='ppWord')return ppWord();
   if(a==='ppPrint')return printArea(false);
   if(a==='orgG'){S.orgG=S.orgG===false;render(true);return}
