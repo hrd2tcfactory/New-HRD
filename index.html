@@ -1693,11 +1693,56 @@ function vLog(){
     return h+'<div class="logr"><div class="logw"><time>'+jam(r)+'</time><span class="sub">'+esc(String(r.oleh||'').split('@')[0])+'</span></div><div class="t"><div class="name">'+esc(r.judul)+'</div>'+(r.dari!=null||r.ke!=null?'<div class="chg"><s>'+esc(r.dari==null?'':r.dari)+'</s> → <b>'+esc(r.ke==null?'':r.ke)+'</b></div>':'')+(r.ket?'<div class="sub">'+esc(r.ket)+'</div>':'')+'</div><span class="pill '+k[1]+'">'+k[0]+'</span></div>'}).join('')+(rows.length>MAXR?'<div class="logr"><span class="sub">Menampilkan '+MAXR+' catatan terbaru. Unduh Excel untuk melihat semuanya.</span></div>':''):'<div class="empty">'+(Object.keys(S.logs).length?'Tidak ada catatan yang cocok.':'Belum ada catatan. Perubahan mulai dicatat sejak sekarang.')+'</div>')+'</div>'}
 // ===== Impor arsip bulan lama (file .json hasil ekstrak HR Sistem lama) =====
 // Bulan yang sudah punya data di website (absensi / payroll terkunci) tidak disentuh. Bulan arsip masuk sebagai payroll terkunci.
-function arsipModal(){openModal('<h3>Impor arsip bulan lama</h3><p class="note" style="margin:0">Pilih file arsip (.json) hasil ekstrak HR Sistem lama. Setiap bulan masuk sebagai payroll yang <b>sudah dikunci</b>, lengkap dengan absensi dan lembur. Bulan yang sudah punya data di website dilewati. Sisa cuti dan kasbon tidak berubah.</p><label>File arsip<input id="arsipFile" type="file" accept=".json,application/json"></label><div id="arsipPrev"></div><div class="row"><button class="btn" data-act="closeModal">Tutup</button></div>')}
+// Baca file Excel HR Sistem lama (sheet ABSENSI, LEMBUR, PAYROLL) menjadi data arsip satu bulan.
+const BULAN_ID={JANUARI:1,FEBRUARI:2,MARET:3,APRIL:4,MEI:5,JUNI:6,JULI:7,AGUSTUS:8,AGUSTUS_:8,SEPTEMBER:9,OKTOBER:10,NOVEMBER:11,DESEMBER:12};
+function arsipBulan(fname,wb){const u=String(fname||'').toUpperCase().replace(/[^A-Z0-9]+/g,' ');let m=null;for(const n in BULAN_ID)if(new RegExp('\\b'+n.replace('_','')+'\\b').test(u)){m=BULAN_ID[n];break}
+  const y=/\b(20\d\d)\b/.exec(u);return m&&y?y[1]+'-'+pad(m):''}
+function arsipLev1(a,b){if(Math.abs(a.length-b.length)>1)return false;let i=0,j=0,d=0;while(i<a.length&&j<b.length){if(a[i]===b[j]){i++;j++;continue}if(++d>1)return false;if(a.length>b.length)i++;else if(b.length>a.length)j++;else{i++;j++}}return d+(a.length-i)+(b.length-j)<=1}
+const arsipToks=n=>String(n||'').toUpperCase().replace(/[^A-Z ]/g,' ').split(/\s+/).filter(Boolean);
+function arsipSkor(a,b){const A=nameToks(a),B=nameToks(b);if(!A.length||!B.length)return 0;const used=new Set();let n=0;
+  A.forEach(t=>{const i=B.findIndex((x,k)=>!used.has(k)&&(x===t||(t.length>=4&&x.length>=4&&(x.startsWith(t)||t.startsWith(x)))||(t.length===1&&x.length>1&&x[0]===t)||(t.length>=5&&x.length>=5&&arsipLev1(t,x))));if(i>=0){used.add(i);n++}});return n?n/A.length+0.01*n/B.length:0}
+function arsipCocok(nama,jab,emps){const sc=emps.map(e=>[arsipSkor(nama,e.nama),e]).filter(x=>x[0]>=0.99).sort((a,b)=>b[0]-a[0]);if(!sc.length)return null;
+  const top=sc.filter(x=>Math.abs(x[0]-sc[0][0])<=0.001).map(x=>x[1]);if(top.length===1)return top[0].id;const j=normJab(jab);const tj=top.filter(e=>normJab(e.jabatan)===j);return tj.length===1?tj[0].id:null}
+function arsipRows(ws){const r=XLSX.utils.decode_range(ws['!ref']||'A1');r.s.c=0;r.s.r=0;return XLSX.utils.sheet_to_json(ws,{header:1,raw:true,defval:null,range:r,blankrows:true})}
+function arsipGrid(ws){const rows=arsipRows(ws);const hi=rows.findIndex(r=>r&&String(r[1]||'').trim().toUpperCase()==='ID');if(hi<0)return null;
+  const hdr=rows[hi+1]||[];const f=hdr.findIndex(v=>typeof v==='number');if(f<0)return null;const days=[];for(let j=f;j<hdr.length&&typeof hdr[j]==='number';j++)days.push(hdr[j]);
+  return {hi,f,days,rows,data:rows.slice(hi+2).filter(r=>r&&/^K\d/i.test(String(r[1]||'').trim())&&String(r[2]||'').trim())}}
+function arsipTanggal(days,key){const [y,m]=key.split('-').map(Number);let wrap=false,prev=null;return days.map(d=>{d=Math.round(d);if(prev!=null&&d<prev)wrap=true;prev=d;const dt=new Date(y,(wrap?m:m-1)-1,d);return dt.getDate()===d?iso(dt):null})}
+function arsipDariExcel(wb,fname){const key=arsipBulan(fname,wb);if(!key)throw new Error('nama file tidak menyebut bulan dan tahun (contoh: HR_SISTEM_JULI_2026)');
+  const sh=n=>{const k=wb.SheetNames.find(x=>x.trim().toUpperCase()===n);return k?wb.Sheets[k]:null};if(!sh('ABSENSI')||!sh('PAYROLL'))throw new Error('sheet ABSENSI / PAYROLL tidak ditemukan');
+  const emps=empList(true);const {start,end}=periodRange(key);const s0=iso(start),s1=iso(end);const CODES=['H','SH','I','S','C','A','L','LM','LTM'];
+  const slug=n=>'ARSIP-'+String(n).toUpperCase().replace(/[^A-Z]+/g,'-').replace(/^-|-$/g,'');const byName={};const unmatched=new Set();
+  const idOf=(nama,jab)=>{const k=String(nama).trim().toUpperCase();if(byName[k])return byName[k];let id=arsipCocok(nama,jab,emps);
+    if(!id){// salah ketik di file lama: nama yang sama dengan inisial akhir berbeda / disingkat, dicocokkan ke nama lain di file yang sama
+      const other=Object.keys(byName).find(o=>{const A=arsipToks(o),B=arsipToks(k);return A.length===B.length&&A.length>1&&A.slice(0,-1).join(' ')===B.slice(0,-1).join(' ')&&A[A.length-1].length===1&&B[B.length-1].length===1}) ||
+        Object.keys(byName).find(o=>{const A=arsipToks(o),B=arsipToks(k);const pre=(x,y)=>x.length>=2&&x.length<=y.length&&x[0].length>=3&&x.every((t,i)=>y[i]&&(y[i]===t||(t.length===1&&y[i][0]===t)));return pre(A,B)||pre(B,A)});
+      id=other?byName[other]:slug(nama);if(!other&&!S.emps[id])unmatched.add(String(nama).trim())}
+    byName[k]=id;return id};
+  const absensi={};const ga=arsipGrid(sh('ABSENSI'));if(!ga)throw new Error('format sheet ABSENSI tidak dikenali');const da=arsipTanggal(ga.days,key);
+  const gp=arsipRows(sh('PAYROLL'));const ph=gp.findIndex(r=>r&&String(r[1]||'').trim().toUpperCase()==='ID');
+  const prow=ph<0?[]:gp.slice(ph+1).filter(r=>r&&/^K\d/i.test(String(r[1]||'').trim())&&String(r[2]||'').trim());
+  prow.forEach(r=>idOf(r[2],r[3]));// nama di payroll dulu: biasanya paling lengkap
+  ga.data.forEach(r=>{const id=idOf(r[2],r[3]);const o={};da.forEach((d,k)=>{const v=String(r[ga.f+k]==null?'':r[ga.f+k]).trim().toUpperCase();if(d&&d>=s0&&d<=s1&&CODES.includes(v))o[d]=v});if(Object.keys(o).length)absensi[id]=o});
+  const lembur={};const gl=sh('LEMBUR')&&arsipGrid(sh('LEMBUR'));if(gl){const dl=arsipTanggal(gl.days,key);gl.data.forEach(r=>{const id=idOf(r[2],r[3]);const o={};dl.forEach((d,k)=>{const v=r[gl.f+k];if(d&&d>=s0&&d<=s1&&typeof v==='number'&&v>0)o[d]=Math.round(v*100)/100});if(Object.keys(o).length)lembur[id]=o})}
+  const H=(gp[ph]||[]).map(x=>String(x||'').trim().toLowerCase()),H2=(gp[ph+1]||[]).map(x=>String(x||'').trim().toLowerCase());
+  const col=(...n)=>{let j=H.findIndex(h=>n.includes(h));if(j<0)j=H2.findIndex(h=>n.includes(h));return j<0?null:j};
+  const C={gp:col('gaji pokok'),har:col('gaji harian'),had:col('gaji hadir'),lm:col('lembur minggu'),ltm:col('lembur tanggal merah'),lj:col('lembur/jam','lembur'),kas:col('potongan/kasbon','potongan lain/kasbon'),re:col('reimbursement'),thp:col('gaji yang perlu dibayar')};
+  if(C.thp==null)throw new Error('kolom "Gaji yang perlu dibayar" tidak ditemukan di PAYROLL');
+  const num=(r,c)=>c!=null&&typeof r[c]==='number'?r[c]:0;const rows={};
+  prow.forEach(r=>{const id=idOf(r[2],r[3]);const A=absensi[id]||{};const c={};CODES.forEach(k=>c[k]=0);Object.values(A).forEach(v=>c[v]++);
+    const lm=num(r,C.lm),ltm=num(r,C.ltm),lj=num(r,C.lj),kas=num(r,C.kas),re=num(r,C.re),thp=num(r,C.thp);const jam=Math.round(Object.values(lembur[id]||{}).reduce((a,b)=>a+b,0)*100)/100;
+    rows[id]={e:{id,nama:String(r[2]).trim(),jabatan:String(r[3]||'').trim(),status:'',gajiPokok:Math.round(num(r,C.gp)),metode:'BULANAN',pembagi:24,kaliLTM:1,rekening:'',wa:''},
+      r:{c,harian:Math.round(num(r,C.har)),gajiHadir:Math.round(num(r,C.had)),base:Math.round(thp-lm-ltm-lj-re+kas),lm:Math.round(lm),ltm:Math.round(ltm),lj:Math.round(lj),jam,um:0,hariUM:0,reimb:Math.round(re),bonus:0,pot:0,kas:Math.round(kas),potAbsen:0,hariPotong:0,cutKode:[],potSH:0,shRate:0,potTelat:0,telatJam:0,terima:Math.round(thp+kas),thp:Math.round(thp),arsip:true}}});
+  return {key,data:{absensi,lembur,kunci:{at:s1+'T12:00:00.000Z',arsip:true,sumber:String(fname||''),rows},arsip:true},unmatched:[...unmatched]}}
+function arsipModal(){openModal('<h3>Impor arsip bulan lama</h3><p class="note" style="margin:0">Pilih <b>file Excel HR Sistem lama</b> (boleh beberapa sekaligus, mis. HR_SISTEM_JULI_2026.xlsx), atau file arsip .json. Setiap bulan masuk sebagai payroll yang <b>sudah dikunci</b>, lengkap dengan absensi dan lembur. Bulan yang sudah punya data di website dilewati. Sisa cuti dan kasbon tidak berubah.</p><label>File HR Sistem (Excel) atau arsip (.json)<input id="arsipFile" type="file" multiple accept=".xlsx,.xls,.json,application/json"></label><div id="arsipPrev"></div><div class="row"><button class="btn" data-act="closeModal">Tutup</button></div>')}
 function arsipAda(k){const p=S.periods[k];return !!(p&&(p.kunci||Object.values(p.absensi||{}).some(r=>Object.values(r||{}).some(Boolean))))}
-async function arsipBaca(file){try{const j=JSON.parse(await file.text());const A=j.arsip||j;const keys=Object.keys(A).filter(k=>/^\d{4}-\d{2}$/.test(k)).sort();if(!keys.length)throw new Error('tidak ada data bulan di file ini');S.arsipData=A;
-  $('#arsipPrev').innerHTML='<div class="tablewrap"><table><thead><tr><th>Periode</th><th class="num">Karyawan</th><th class="num">Total THP</th><th>Status</th></tr></thead><tbody>'+keys.map(k=>{const rows=(A[k].kunci||{}).rows||{};const ids=Object.keys(rows);const ex=ids.filter(id=>!S.emps[id]).length;
-    return '<tr><td>'+esc(periodLabel(k))+'<div class="sub">'+esc(periodSub(k))+'</div></td><td class="num">'+ids.length+(ex?'<div class="sub">'+ex+' sudah tidak bekerja</div>':'')+'</td><td class="num">'+rp(ids.reduce((a,id)=>a+(+rows[id].r.thp||0),0))+'</td><td>'+(arsipAda(k)?'<span class="pill p-mute">Dilewati: sudah ada data</span>':'<span class="pill p-ok">Akan dimasukkan</span>')+'</td></tr>'}).join('')+'</tbody></table></div>'+
+async function arsipBaca(files){try{const A={};const err=[],un={};
+  for(const file of files){try{if(/\.json$/i.test(file.name)){const j=JSON.parse(await file.text());Object.assign(A,j.arsip||j)}
+      else{if(!window.XLSX){toast('Pustaka Excel belum termuat. Coba lagi sebentar.');return}const wb=XLSX.read(await file.arrayBuffer(),{type:'array'});const x=arsipDariExcel(wb,file.name);A[x.key]=x.data;if(x.unmatched.length)un[x.key]=x.unmatched}}
+    catch(e){err.push(file.name+': '+e.message)}}
+  const keys=Object.keys(A).filter(k=>/^\d{4}-\d{2}$/.test(k)).sort();if(!keys.length)throw new Error(err.length?err.join(' · '):'tidak ada data bulan di file ini');S.arsipData=A;
+  $('#arsipPrev').innerHTML=(err.length?'<div class="note" style="color:var(--bad)">Tidak bisa dibaca: '+err.map(esc).join(' · ')+'</div>':'')+'<div class="tablewrap"><table><thead><tr><th>Periode</th><th class="num">Karyawan</th><th class="num">Total THP</th><th>Status</th></tr></thead><tbody>'+keys.map(k=>{const rows=(A[k].kunci||{}).rows||{};const ids=Object.keys(rows);const ex=ids.filter(id=>!S.emps[id]).length;
+    return '<tr><td>'+esc(periodLabel(k))+'<div class="sub">'+esc(periodSub(k))+'</div></td><td class="num">'+ids.length+(ex?'<div class="sub">'+ex+' sudah tidak bekerja</div>':'')+(un[k]?'<div class="sub">tidak ada di data karyawan: '+esc(un[k].join(', '))+'</div>':'')+'</td><td class="num">'+rp(ids.reduce((a,id)=>a+(+rows[id].r.thp||0),0))+'</td><td>'+(arsipAda(k)?'<span class="pill p-mute">Dilewati: sudah ada data</span>':'<span class="pill p-ok">Akan dimasukkan</span>')+'</td></tr>'}).join('')+'</tbody></table></div>'+
    (keys.some(k=>!arsipAda(k))?'<div class="row" style="margin-top:8px"><button class="btn primary" data-act="arsipGo">Masukkan '+keys.filter(k=>!arsipAda(k)).length+' bulan</button></div>':'')}
   catch(e){console.error(e);toast('File arsip tidak bisa dibaca: '+e.message)}}
 async function arsipGo(){const A=S.arsipData;if(!A)return;const done=[];
@@ -3023,7 +3068,7 @@ document.addEventListener('input',ev=>{
   if(t.id==='q'){S.q=t.value;clearTimeout(S.qt);S.qt=setTimeout(()=>{const pos=t.selectionStart;render(true);const n=$('#q');if(n){n.focus();try{n.setSelectionRange(pos,pos)}catch(e){}}},200);return}
 });
 function bigWarn(id,v,lbl){const e=S.emps[id];const gp=e&&+e.gajiPokok||0;if(gp&&v>gp*0.5)toast('Cek lagi: '+lbl+' '+e.nama+' Rp '+rp(v)+', lebih dari setengah gaji pokok.')}
-document.addEventListener('change',ev=>{if(ev.target.id==='sopFile'&&ev.target.files&&ev.target.files[0])sopImpor(ev.target.files[0]);if(ev.target.id==='arsipFile'&&ev.target.files&&ev.target.files[0])arsipBaca(ev.target.files[0])});
+document.addEventListener('change',ev=>{if(ev.target.id==='sopFile'&&ev.target.files&&ev.target.files[0])sopImpor(ev.target.files[0]);if(ev.target.id==='arsipFile'&&ev.target.files&&ev.target.files[0])arsipBaca([...ev.target.files])});
 document.addEventListener('change',ev=>{
   if(ev.target.id==='srt_emp'&&S.srt){const id=ev.target.value;S.srt={j:S.srt.j,empId:id,f:srtDefaults(S.srt.j,S.emps[id]),recId:''};srtForm();return}
   if(ev.target.dataset&&ev.target.dataset.srt==='alasanPhk'&&S.srt){srtRead();srtForm();return}
